@@ -1,0 +1,73 @@
+@import '../../Styles/variables';
+
+/* Стиль для Header */
+.header {
+  display: flex;
+  justify-content: center; /* Центрируем элементы по горизонтали */
+  align-items: center;     /* Центрируем элементы по вертикали */
+  padding: 10px 20px;
+  background-color: #f4f4f4;
+  width: 100%;
+}
+
+/* Контейнер для всех элементов внутри Header */
+.wrapper {
+  display: flex;
+  justify-content: space-between; /* Логотип слева, ссылки справа */
+  align-items: center;
+  width: 100%;
+  max-width: 1200px; /* Устанавливаем максимальную ширину */
+  margin: 0 auto; /* Центрируем внутри родителя */
+}
+
+/* Логотип */
+.logo a {
+  font-size: 24px;
+  font-weight: 700;
+  color: $primary-color;
+}
+
+/* Навигационные ссылки */
+.nav {
+  display: flex;
+  gap: 20px; /* Расстояние между ссылками */
+  margin: 0 auto;
+
+  a {
+    color: $text-color;
+    font-weight: 500;
+    transition: color 0.3s;
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+}
+
+/* Медиазапрос для экранов с шириной меньше 768px */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column; /* Ставим элементы в колонку на маленьких экранах */
+    padding: 10px;          /* Уменьшаем отступы */
+  }
+
+  .wrapper {
+    flex-direction: column; /* Элементы будут в колонку */
+    align-items: flex-start; /* Выравниваем по левому краю */
+  }
+
+  .logo {
+    margin-bottom: 10px;    /* Добавляем отступ снизу для логотипа */
+  }
+
+  .nav {
+    flex-direction: column; /* Меняем направление на вертикальное */
+    gap: 10px;              /* Уменьшаем расстояние между ссылками */
+    margin-right: 0;        /* Убираем отступ справа */
+  }
+
+  .nav a {
+    padding: 10px;
+    text-align: center; /* Выравниваем текст по центру */
+  }
+}

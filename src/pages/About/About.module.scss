@@ -1,0 +1,105 @@
+// components/About/About.module.scss
+.about {
+  padding: 5rem 2rem;
+  background-color: #f9f9f9;
+  color: #2c3e50;
+
+  @media (max-width: 768px) {
+    padding: 3rem 1rem;
+  }
+}
+
+.iconPlaceholder {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+    background-color: #3498db;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+  color: #3498db;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: #e74c3c;
+    margin: 1rem auto 0;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.text {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.featureItem {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  h3 {
+    margin: 1.5rem 0 1rem;
+    color: #2c3e50;
+  }
+
+  p {
+    color: #7f8c8d;
+    line-height: 1.5;
+  }
+}
+
+.icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+  fill: #3498db;
+}
