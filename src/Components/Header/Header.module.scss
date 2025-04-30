@@ -1,73 +1,290 @@
-@import '../../Styles/variables';
+@import "../../Styles/variables";
 
-/* Стиль для Header */
 .header {
-  display: flex;
-  justify-content: center; /* Центрируем элементы по горизонтали */
-  align-items: center;     /* Центрируем элементы по вертикали */
-  padding: 10px 20px;
-  background-color: #f4f4f4;
+  position: fixed;
+  top: 0;
   width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+  z-index: 1000;
+  height: 100px;
 }
 
-/* Контейнер для всех элементов внутри Header */
-.wrapper {
+.container {
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
   display: flex;
-  justify-content: space-between; /* Логотип слева, ссылки справа */
   align-items: center;
-  width: 100%;
-  max-width: 1200px; /* Устанавливаем максимальную ширину */
-  margin: 0 auto; /* Центрируем внутри родителя */
+  justify-content: space-between;
+  position: relative;
 }
 
-/* Логотип */
-.logo a {
-  font-size: 24px;
+.logo {
+  font-size: 1.75rem;
   font-weight: 700;
   color: $primary-color;
+  text-decoration: none;
 }
 
-/* Навигационные ссылки */
 .nav {
   display: flex;
-  gap: 20px; /* Расстояние между ссылками */
-  margin: 0 auto;
+  gap: 1rem;
+  flex-grow: 1;
+  justify-content: center;
+  align-items: center;
 
-  a {
+  a,
+  button {
+    background: none;
+    border: none;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
     color: $text-color;
     font-weight: 500;
-    transition: color 0.3s;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s;
 
     &:hover {
-      color: $primary-color;
+      background: $primary-color;
+      color: #fff;
     }
   }
 }
 
-/* Медиазапрос для экранов с шириной меньше 768px */
-@media (max-width: 768px) {
-  .header {
-    flex-direction: column; /* Ставим элементы в колонку на маленьких экранах */
-    padding: 10px;          /* Уменьшаем отступы */
+/* Секция «Услуги» */
+.services {
+  position: relative;
+}
+
+.servicesMenu {
+  position: absolute;
+  top: 100%; // было: calc(100% + 8px)
+  margin-top: 2px; // лучше чуть меньше отступ
+  right: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 0.5rem 0;
+  min-width: 220px;
+  z-index: 1001;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+    color: $text-color;
+    cursor: default;
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba($primary-color, 0.1);
+    }
+    .name {
+      flex: 1;
+    }
+    .price {
+      margin-left: 0.5rem;
+      font-weight: 600;
+    }
+  }
+}
+
+/* Десктопные кнопки «Заказать звонок» + «Войти» */
+.desktopButtons {
+  display: flex;
+  align-items: center;
+}
+
+.callButton {
+  background-color: $primary-color;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: darken($primary-color, 10%);
+  }
+}
+
+.loginBtn {
+  margin-left: 1rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background: transparent;
+  border: 2px solid $primary-color;
+  color: $primary-color;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.3s, color 0.3s;
+
+  &:hover {
+    background: $primary-color;
+    color: #fff;
+  }
+}
+
+/* Mobile */
+@media (max-width: 1024px) {
+  .desktopButtons .loginBtn {
+    display: none;
   }
 
-  .wrapper {
-    flex-direction: column; /* Элементы будут в колонку */
-    align-items: flex-start; /* Выравниваем по левому краю */
-  }
-
-  .logo {
-    margin-bottom: 10px;    /* Добавляем отступ снизу для логотипа */
+  .burger {
+    display: block;
   }
 
   .nav {
-    flex-direction: column; /* Меняем направление на вертикальное */
-    gap: 10px;              /* Уменьшаем расстояние между ссылками */
-    margin-right: 0;        /* Убираем отступ справа */
+    display: none;
   }
 
-  .nav a {
-    padding: 10px;
-    text-align: center; /* Выравниваем текст по центру */
+  .callButton {
+    display: none;
+  }
+
+  .callButtonMobile {
+    display: block;
+    margin: 1rem auto 0;
+    padding: 0.75rem 1.5rem;
+    background-color: $primary-color;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: darken($primary-color, 10%);
+    }
+  }
+
+  .mobileOnly {
+    display: block;
+    padding: 0.75rem 1.5rem;
+    margin: 1rem auto 0;
+    background: transparent;
+    border: 2px solid $primary-color;
+    color: $primary-color;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s;
+
+    &:hover {
+      background: $primary-color;
+      color: #fff;
+    }
+  }
+
+  .nav.open {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+    // общий отступ между элементами
+    > * {
+      margin: 0.5rem 0;
+    }
+
+    a, button {
+      display: block;
+      margin: 0 auto;
+      width: 50%;
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 1.1rem;
+      border-radius: 8px;
+    }
+    button {
+      width: 70%;
+    }
+    // “Заказать звонок”
+    .callButtonMobile {
+      background-color: $primary-color;
+      color: #fff;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    // “Войти”
+    .mobileOnly {
+      background: transparent;
+      border: 2px solid $primary-color;
+      color: $primary-color;
+
+      &:hover {
+        background: $primary-color;
+        color: #fff;
+      }
+    }
+
+    // “Удаленная Поддержка” раскрывашка
+    .services {
+      width: 100%;
+
+      .servicesBtn {
+        background: none;
+        border: 2px solid $text-color;
+        color: $text-color;
+        font-weight: 500;
+
+        &:hover {
+          background: $primary-color;
+          color: #fff;
+        }
+      }
+      .servicesMenu {
+        position: static;
+        box-shadow: none;
+        background: #f9f9f9;
+        padding: 0.5rem 0;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+
+        li {
+          margin: 0.25rem 1rem;
+          a {
+            display: block;
+            padding: 0.5rem;
+            background: #fff;
+            border-radius: 6px;
+            &:hover {
+              background: rgba($primary-color, 0.1);
+            }
+          }
+        }
+      }
+    }
+  }
+
+}
+
+@media (min-width: 1025px) {
+  .burger {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: none;
   }
 }
