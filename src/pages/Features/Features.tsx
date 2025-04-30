@@ -1,4 +1,4 @@
-// components/Features/Features.tsx
+// pages/Features/Features.tsx
 import styles from './Features.module.scss';
 import { FiLayers, FiClock, FiTrendingUp, FiShield } from 'react-icons/fi';
 
