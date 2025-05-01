@@ -1,6 +1,7 @@
 import React from 'react'
+import InputMask from 'react-input-mask'
 import styles from './Contact.module.scss'
-import { FiMail, FiUser, FiMessageCircle } from 'react-icons/fi'
+import { FiUser, FiPhone } from 'react-icons/fi'
 
 export const Contact = () => {
     return (
@@ -21,16 +22,25 @@ export const Contact = () => {
                     </div>
 
                     <div className={styles.inputGroup}>
-                        <FiMail className={styles.icon} />
-                        <input type="email" placeholder="Email" required />
+                        <FiPhone className={styles.icon} />
+                        <InputMask
+                            mask="+7 (999) 999-99-99"
+                            alwaysShowMask={false}
+                            maskChar={null}
+                        >
+                            {(inputProps: any) => (
+                                <input
+                                    {...inputProps}
+                                    type="tel"
+                                    placeholder="+7 (___) ___-__-__"
+                                    className={styles.input}
+                                    required
+                                />
+                            )}
+                        </InputMask>
                     </div>
 
-                    <div className={styles.inputGroup}>
-                        <FiMessageCircle className={styles.icon} />
-                        <textarea className={styles.writeMessage} placeholder="Ваше сообщение" required rows={5}></textarea>
-                    </div>
-
-                    <button type="submit" className={styles.submitBtn}>Отправить</button>
+                    <button type="submit" className={styles.submitBtn}>Отправить запрос</button>
                 </form>
             </div>
         </section>

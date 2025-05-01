@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model news {
+  id         Int       @id @default(autoincrement())
+  title      String    @db.VarChar(255)
+  body       String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model promo_usage {
+  id           Int        @id @default(autoincrement())
+  user_id      Int
+  promocode_id Int
+  used_at      DateTime?  @default(now()) @db.Timestamp(6)
+  promocodes   promocodes @relation(fields: [promocode_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model promocodes {
+  id                      Int           @id @default(autoincrement())
+  code                    String        @unique @db.VarChar(50)
+  discount                Int
+  min_subscription_months Int
+  expires_at              DateTime      @db.Timestamp(6)
+  promo_usage             promo_usage[]
+}
+
+model service_orders {
+  id           Int       @id @default(autoincrement())
+  user_id      Int
+  operator_id  Int?
+  service_desc String?
+  status       String?   @default("pending") @db.VarChar(20)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model subscriptions {
+  id                 Int                  @id @default(autoincrement())
+  title              String               @db.VarChar(50)
+  duration_days      Int
+  price              Decimal              @db.Decimal(10, 2)
+  user_subscriptions user_subscriptions[]
+  users              users[]
+}
+
+model support_requests {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  title       String    @db.VarChar(255)
+  description String?
+  status      String?   @default("active") @db.VarChar(20)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model user_subscriptions {
+  id              Int           @id @default(autoincrement())
+  user_id         Int
+  subscription_id Int
+  start_date      DateTime      @db.Date
+  end_date        DateTime      @db.Date
+  active          Boolean?      @default(true)
+  subscriptions   subscriptions @relation(fields: [subscription_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id              String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username        String         @unique @db.VarChar(50)
+  email           String         @db.VarChar(100)
+  phone           String?        @db.VarChar(20)
+  password        String
+  subscription_id Int?
+  created_at      DateTime?      @default(now()) @db.Timestamp(6)
+  subscriptions   subscriptions? @relation(fields: [subscription_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
