@@ -99,6 +99,7 @@
 .desktopButtons {
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .callButton {
@@ -134,9 +135,77 @@
   }
 }
 
+/* Меню пользователя */
+.userMenu {
+  position: relative;
+  margin-left: 1rem;
+
+  .userIcon {
+    display: flex;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: $text-color;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.3s;
+
+    &:hover {
+      background: rgba($primary-color, 0.1);
+    }
+  }
+
+  .userDropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1002;
+    overflow: hidden;
+
+    a,
+    button {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      color: $text-color;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: rgba($primary-color, 0.1);
+      }
+    }
+
+    button {
+      color: #e74c3c;
+    }
+  }
+}
+
+/* Бургер */
+.burger {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: $text-color;
+  cursor: pointer;
+  display: none;
+}
+
 /* Mobile */
 @media (max-width: 1024px) {
   .desktopButtons .loginBtn {
+    display: none;
+  }
+  .desktopButtons .userMenu {
     display: none;
   }
 
@@ -197,16 +266,18 @@
     top: 100%;
     left: 0;
     width: 100%;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
     background: #fff;
     padding: 1rem 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 
-    // общий отступ между элементами
     > * {
       margin: 0.5rem 0;
     }
 
-    a, button {
+    a,
+    button {
       display: block;
       margin: 0 auto;
       width: 50%;
@@ -218,7 +289,7 @@
     button {
       width: 70%;
     }
-    // “Заказать звонок”
+
     .callButtonMobile {
       background-color: $primary-color;
       color: #fff;
@@ -226,7 +297,6 @@
       font-weight: 600;
     }
 
-    // “Войти”
     .mobileOnly {
       background: transparent;
       border: 2px solid $primary-color;
@@ -238,7 +308,6 @@
       }
     }
 
-    // “Удаленная Поддержка” раскрывашка
     .services {
       width: 100%;
 
@@ -276,7 +345,6 @@
       }
     }
   }
-
 }
 
 @media (min-width: 1025px) {

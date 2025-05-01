@@ -1,0 +1,101 @@
+@import "../../Styles/variables";
+
+.wrapper {
+  min-height: calc(100vh - $header-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $background-color;
+  padding: 2rem 1rem;
+}
+
+.form {
+  background: #fff;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  color: $primary-color;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.inputGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+    }
+
+    &::placeholder {
+      color: darken($border-color, 20%);
+    }
+  }
+
+  .icon {
+    position: absolute;
+    left: 0.75rem;
+    font-size: 1.2rem;
+    color: $primary-color;
+  }
+}
+
+.submitBtn {
+  padding: 0.8rem;
+  background: $primary-color;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s;
+
+  &:hover {
+    background: darken($primary-color, 10%);
+  }
+}
+
+.links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+
+  .link {
+    color: $link-color;
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: darken($link-color, 10%);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .form {
+    padding: 2rem 1rem;
+  }
+}
