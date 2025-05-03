@@ -1,6 +1,6 @@
 // src/controllers/auth.controller.ts
 import { Request, Response } from 'express'
-import { prisma } from '../config/prisma'
+import { prisma } from '../config/prisma';
 import { hashPassword, comparePassword } from '../utils/hash' 
 import { sign, Secret, SignOptions } from 'jsonwebtoken'
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/jwt'

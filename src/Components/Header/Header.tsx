@@ -2,10 +2,12 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FiMenu, FiX, FiUser } from 'react-icons/fi'
+import CallRequestModal from './CallRequestModal'
 import styles from './Header.module.scss'
 import { AuthContext } from 'context/AuthContext'
 
 const Header: React.FC = () => {
+  const [callModalOpen, setCallModalOpen] = useState(false)
   const { isAuth, logout } = useContext(AuthContext)
   const [servicesOpen, setServicesOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -80,7 +82,7 @@ const Header: React.FC = () => {
               className={styles.servicesBtn}
               onClick={toggleServices}
             >
-              Удаленная Поддержка
+              Услуги
             </button>
             {servicesOpen && (
               <ul className={styles.servicesMenu}>
@@ -118,7 +120,12 @@ const Header: React.FC = () => {
 
         {/* --- Десктопные кнопки справа --- */}
         <div className={styles.desktopButtons}>
-          <button className={styles.callButton}>Заказать звонок</button>
+          <button
+            className={styles.callButton}
+            onClick={() => setCallModalOpen(true)}
+          >
+            Заказать звонок
+          </button>
 
           {/* Если не авторизован — кнопка «Войти» */}
           {!isAuthenticated && (
@@ -152,6 +159,7 @@ const Header: React.FC = () => {
           {mobileOpen ? <FiX /> : <FiMenu />}
         </button>
       </div>
+      {callModalOpen && <CallRequestModal onClose={() => setCallModalOpen(false)} />}
     </header>
   )
 }
