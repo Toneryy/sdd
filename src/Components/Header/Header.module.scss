@@ -160,6 +160,7 @@
     position: absolute;
     top: calc(100% + 4px);
     right: 0;
+    width: 180px;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -202,15 +203,21 @@
 
 /* Mobile */
 @media (max-width: 1024px) {
+  .desktopButtons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-grow: 1;
+  }
   .desktopButtons .loginBtn {
     display: none;
   }
   .desktopButtons .userMenu {
-    display: none;
+    margin-left: auto;
   }
 
   .burger {
-    display: block;
+    display: flex;
   }
 
   .nav {

@@ -1,3 +1,4 @@
+// backend/src/middlewares/auth.middleware.ts
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/jwt";
@@ -10,10 +11,11 @@ export const authMiddleware = (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-) => {
+): void => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ message: "Нет токена" });
+    res.status(401).json({ message: "Нет токена" });
+    return;
   }
 
   const [, token] = authHeader.split(" ");
@@ -25,5 +27,6 @@ export const authMiddleware = (
     next();
   } catch {
     res.status(401).json({ message: "Неверный токен" });
+    return;
   }
 };

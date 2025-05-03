@@ -29,6 +29,9 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .infoItem {
@@ -114,6 +117,21 @@
   .historyDate {
     font-size: 0.85rem;
     color: darken($text-color, 20%);
+  }
+}
+
+.linkToSubscribe {
+  background-color: #4f46e5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgb(41.1374407583, 30.5592417062, 217.4407582938);
   }
 }
 
