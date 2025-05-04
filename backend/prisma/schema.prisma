@@ -25,6 +25,8 @@ model subscriptions {
   title              String               @db.VarChar(50)
   duration_days      Int
   price              Decimal              @db.Decimal(10, 2)
+  description        String?
+  image              String?
   user_subscriptions user_subscriptions[]
   currentUsers       users[]              @relation("CurrentSub")
 

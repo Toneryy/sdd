@@ -19,11 +19,14 @@ const LoginPage: React.FC = () => {
         e.preventDefault()
         try {
             const res = await loginUser(form)
-            login(res.data.token);
-            toast.success('Успешный вход!')
-            navigate('/profile')            // сразу на профиль
+            login(res.data.token)
+            toast.success('Успешный вход!', { toastId: 'login-success' })
+            navigate('/profile')
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Ошибка входа')
+            toast.error(
+                error.response?.data?.message || 'Ошибка входа',
+                { toastId: 'login-error' }
+            )
         }
     }
 
