@@ -8,6 +8,8 @@ import HomePage from 'pages/HomePage/HomePage'
 import ForgotPasswordPage from 'pages/ForgotPassword/ForgotPasswordPage'
 import Profile from 'pages/ProfilePage/Profile'
 import { AuthContext } from '../context/AuthContext'
+import Services from 'Components/Services/Services'
+import ServiceDetails from 'pages/ServiceDetails/ServiceDetails'
 
 const AppRouter: React.FC = () => {
   const { isAuth } = useContext(AuthContext)
@@ -16,7 +18,8 @@ const AppRouter: React.FC = () => {
     <Routes>
       <Route path="/" element={<MainLayout />}>
         <Route index element={<HomePage />} />
-
+        <Route path='/subscriptions' element={<Services />} />
+        <Route path="/subscriptions/:id" element={<ServiceDetails />} />
         <Route
           path="/login"
           element={isAuth ? <Navigate to="/profile" replace /> : <LoginPage />}

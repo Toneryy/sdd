@@ -1,0 +1,87 @@
+// src/pages/ServiceDetails/ServiceDetails.module.scss
+@import "../../Styles/variables";
+
+.details {
+  max-width: 640px;
+  margin: 140px auto 40px;
+  padding: 0 1rem;
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: $primary-color;
+  text-decoration: none;
+  font-weight: 500;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.loading,
+.notFound {
+  text-align: center;
+  margin: 200px 0;
+  color: $text-color;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  padding: 1.5rem;
+  text-align: center;
+
+  .topImageWrapper {
+    margin-bottom: 1.5rem;
+    img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  }
+
+  .title {
+    font-size: 2rem;
+    color: $text-color;
+    margin-bottom: 0.75rem;
+  }
+
+  .price {
+    font-size: 1.75rem;
+    color: $primary-color;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .duration {
+    font-size: 1rem;
+    color: darken($text-color, 20%);
+    margin-bottom: 1rem;
+  }
+
+  .description {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: $text-color;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .buyBtn {
+    background-color: $primary-color;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    &:hover {
+      background-color: darken($primary-color, 10%);
+    }
+  }
+}

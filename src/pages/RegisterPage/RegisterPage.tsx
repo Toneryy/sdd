@@ -25,7 +25,7 @@ const RegisterPage: React.FC = () => {
         e.preventDefault()
 
         if (form.password !== form.confirmPassword) {
-            toast.error('Пароли не совпадают')
+            toast.error('Пароли не совпадают', { toastId: 'register-error' })
             return
         }
 
@@ -46,7 +46,10 @@ const RegisterPage: React.FC = () => {
             navigate('/login') // Перенаправление на страницу входа
         } catch (error: any) {
             console.error("Ошибка при регистрации:", error.response?.data || error.message)
-            toast.error(error.response?.data?.message || 'Ошибка регистрации')
+            toast.error(
+                error.response?.data?.message || 'Ошибка регистрации',
+                { toastId: 'register-error' }
+            )
         }
     }
 

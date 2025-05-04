@@ -16,10 +16,8 @@ const Header: React.FC = () => {
   const userRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
-  // здесь проверяем, есть ли токен
   const isAuthenticated = Boolean(localStorage.getItem('token'))
 
-  // Закрываем оба меню при клике вне
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -39,17 +37,6 @@ const Header: React.FC = () => {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
-
-  const tariffs = [
-    'Консультация',
-    'Разовое обращение',
-    'Месячная подписка',
-    '3-месячная подписка',
-    '6-месячная подписка',
-    'Годовая подписка',
-    '2-года подписка',
-    'Решение проблемы YouTube',
-  ]
 
   const toggleMobile = () => setMobileOpen(prev => !prev)
   const toggleServices = () => setServicesOpen(prev => !prev)
@@ -71,37 +58,20 @@ const Header: React.FC = () => {
           className={`${styles.nav} ${mobileOpen ? styles.open : ''}`}
           onClick={e => e.stopPropagation()}
         >
-          <Link to="/news" onClick={() => setMobileOpen(false)}>Главное меню</Link>
+          <Link to="/" onClick={() => setMobileOpen(false)}>Главное меню</Link>
 
           {/* Услуги */}
           <div
             className={styles.services}
             ref={servicesRef}
           >
-            <button
-              className={styles.servicesBtn}
-              onClick={toggleServices}
+            <Link
+              to="/subscriptions"
+              className={styles.services}
+              onClick={() => setMobileOpen(false)}
             >
               Услуги
-            </button>
-            {servicesOpen && (
-              <ul className={styles.servicesMenu}>
-                {tariffs.map((label, i) => (
-                  <li key={i}>
-                    <Link
-                      to={`/subscriptions/${encodeURIComponent(label.toLowerCase().replace(/\s+/g, '-'))}`}
-                      className={styles.name}
-                      onClick={() => {
-                        setServicesOpen(false)
-                        setMobileOpen(false)
-                      }}
-                    >
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            </Link>
           </div>
 
           <Link to="/shop">Магазин</Link>
