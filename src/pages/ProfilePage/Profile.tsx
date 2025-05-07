@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import { AuthContext } from 'context/AuthContext'
 import { fetchProfile } from 'api/profile'
 import styles from './Profile.module.scss'
-import { FiMail, FiPhone, FiCalendar, FiArchive } from 'react-icons/fi'
+import { FiMail, FiPhone, FiCalendar, FiArchive, FiShoppingCart } from 'react-icons/fi'
 
 interface ProfileData {
     user: { username: string; email: string; phone: string }
@@ -13,29 +13,21 @@ interface ProfileData {
     | { subscriptions: { title: string }; end_date: string }
     | null
     supportHistory: { title: string; status: string; created_at: string }[]
+    purchasedProducts: {
+        products: { title: string }
+        purchased_at: string
+    }[]
 }
+
 const MONTHS_RU = [
-    'января',
-    'февраля',
-    'марта',
-    'апреля',
-    'мая',
-    'июня',
-    'июля',
-    'августа',
-    'сентября',
-    'октября',
-    'ноября',
-    'декабря'
-];
+    'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+]
 
 const formatDateRu = (iso: string) => {
-    const d = new Date(iso);
-    const day = d.getDate();
-    const monthName = MONTHS_RU[d.getMonth()];
-    const year = d.getFullYear();
-    return `${day} ${monthName} ${year}`;
-};
+    const d = new Date(iso)
+    return `${d.getDate()} ${MONTHS_RU[d.getMonth()]} ${d.getFullYear()}`
+}
 
 const Profile: React.FC = () => {
     const { logout } = useContext(AuthContext)
@@ -74,16 +66,12 @@ const Profile: React.FC = () => {
                     <div className={styles.infoItem}>
                         <FiMail className={styles.icon} />
                         <span className={styles.infoLabel}>Email:</span>
-                        <span className={styles.infoValue}>
-                            {data.user.email}
-                        </span>
+                        <span className={styles.infoValue}>{data.user.email}</span>
                     </div>
                     <div className={styles.infoItem}>
                         <FiPhone className={styles.icon} />
                         <span className={styles.infoLabel}>Телефон:</span>
-                        <span className={styles.infoValue}>
-                            {data.user.phone}
-                        </span>
+                        <span className={styles.infoValue}>{data.user.phone}</span>
                     </div>
                 </div>
             </section>
@@ -99,18 +87,17 @@ const Profile: React.FC = () => {
                                 {data.activeSubscription.subscriptions.title}
                             </p>
                             <p className={styles.cardText}>
-                                Окончание:{' '}
-                                <strong>
-                                    {formatDateRu(data.activeSubscription.end_date)}
-                                </strong>
+                                Окончание: <strong>{formatDateRu(data.activeSubscription.end_date)}</strong>
                             </p>
                         </div>
                     </div>
                 ) : (
                     <>
                         <p>Нет активных подписок</p>
-                        <br></br>
-                        <NavLink to="/subscription" className={styles.linkToSubscribe}>Оформить подписку</NavLink>
+                        <br />
+                        <NavLink to="/subscriptions" className={styles.linkToSubscribe}>
+                            Оформить подписку
+                        </NavLink>
                     </>
                 )}
             </section>
@@ -140,10 +127,29 @@ const Profile: React.FC = () => {
                 )}
             </section>
 
-            <button
-                onClick={handleLogout}
-                className={styles.logoutBtn}
-            >
+            {/* Купленные товары */}
+            <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Купленные товары</h2>
+                {data.purchasedProducts.length ? (
+                    <div className={styles.historyList}>
+                        {data.purchasedProducts.map((p, i) => (
+                            <div key={i} className={styles.historyItem}>
+                                <FiShoppingCart className={styles.historyIcon} />
+                                <div>
+                                    <p className={styles.historyTitle}>{p.products.title}</p>
+                                    <p className={styles.historyDate}>
+                                        Куплено: {formatDateRu(p.purchased_at)}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p>Вы ещё ничего не покупали</p>
+                )}
+            </section>
+
+            <button onClick={handleLogout} className={styles.logoutBtn}>
                 Выйти
             </button>
         </div>

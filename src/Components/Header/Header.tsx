@@ -51,7 +51,7 @@ const Header: React.FC = () => {
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <Link to="/" className={styles.logo}>MySite</Link>
+        <Link to="/" className={styles.logo}>Сергей где зп</Link>
 
         {/* --- Навигация --- */}
         <nav

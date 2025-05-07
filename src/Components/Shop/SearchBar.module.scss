@@ -1,0 +1,24 @@
+.searchBar {
+  display: flex;
+  gap: 10px;
+
+  input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  button {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #2980b9;
+    }
+  }
+}

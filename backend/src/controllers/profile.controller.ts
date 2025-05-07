@@ -1,13 +1,13 @@
 // backend/src/controllers/profile.controller.ts
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middleware";
-import { prisma } from '../config/prisma';
+import { prisma } from "../config/prisma";
 
 export const getProfile = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
-  const userId = req.userId!; // уже string
+  const userId = req.userId!;
 
   try {
     const user = await prisma.users.findUnique({
@@ -37,7 +37,13 @@ export const getProfile = async (
       take: 10,
     });
 
-    res.json({ user, activeSubscription, supportHistory });
+    const purchasedProducts = await prisma.user_products.findMany({
+      where: { user_id: userId },
+      orderBy: { added_at: "desc" },
+      include: { product: true },
+    });
+
+    res.json({ user, activeSubscription, supportHistory, purchasedProducts });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка сервера" });

@@ -10,6 +10,8 @@ import Profile from 'pages/ProfilePage/Profile'
 import { AuthContext } from '../context/AuthContext'
 import Services from 'Components/Services/Services'
 import ServiceDetails from 'pages/ServiceDetails/ServiceDetails'
+import Shop from 'Components/Shop/Shop'
+import ShopProduct from 'Components/Shop/ShopProduct/ShopProduct'
 
 const AppRouter: React.FC = () => {
   const { isAuth } = useContext(AuthContext)
@@ -20,6 +22,8 @@ const AppRouter: React.FC = () => {
         <Route index element={<HomePage />} />
         <Route path='/subscriptions' element={<Services />} />
         <Route path="/subscriptions/:id" element={<ServiceDetails />} />
+        <Route path='/shop' element={<Shop />} />
+        <Route path="/shop/:id" element={<ShopProduct />} />
         <Route
           path="/login"
           element={isAuth ? <Navigate to="/profile" replace /> : <LoginPage />}
