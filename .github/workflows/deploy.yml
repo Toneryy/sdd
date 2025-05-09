@@ -34,5 +34,5 @@ jobs:
 
       - name: Deploy to Render
         run: |
-          git remote add render https://git@render.com/your-project-url.git
+          git remote add render https://git@render.com/https://github.com/Toneryy/sdd.git
           git push render main
