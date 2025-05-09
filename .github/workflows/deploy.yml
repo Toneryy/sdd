@@ -13,22 +13,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
+      - name: Use Node.js 18
         uses: actions/setup-node@v2
         with:
           node-version: "18"
 
-      - name: Install dependencies
-        run: |
-          npm install --legacy-peer-deps
-          npx prisma generate --schema ./backend/prisma/schema.prisma
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate --schema=prisma/schema.prisma
 
       - name: Apply database migrations
-        run: |
-          npx prisma migrate deploy --schema ./backend/prisma/schema.prisma
+        working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - name: Deploy your application to Render
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
+      - name: Deploy to Render
         run: |
-          git remote add render https://git@render.com/https://github.com/Toneryy/sdd.git
-          git push render main  # или другая ветка для деплоя
+          git remote add render https://git@render.com/your-project-url.git
+          git push render main
