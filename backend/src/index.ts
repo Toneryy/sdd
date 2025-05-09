@@ -11,10 +11,7 @@ export const prisma = new PrismaClient()
 
 const app = express()
 
-app.use(cors({
-  origin: ['https://toneryy.github.io/'],
-  credentials: true,
-}));
+app.use(cors());
 app.use(express.json())
 
 app.use('/api/auth', authRoutes);
