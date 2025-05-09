@@ -1,7 +1,6 @@
 // frontend/src/api/profile.ts
 import axios from 'axios'
-
-const API_URL = 'https://sdd-egvz.onrender.com'
+import { API_URL } from "utils/api";
 
 export const fetchProfile = async (token: string) => {
   return axios.get(`${API_URL}/api/profile`, {

@@ -1,5 +1,6 @@
 // src/api/subscriptions.ts
 import axios from "axios";
+import { API_URL } from "utils/api";
 
 export interface Subscription {
   id: string;
@@ -9,8 +10,6 @@ export interface Subscription {
   price: string;
   image?: string;
 }
-
-const API_URL = process.env.REACT_APP_API_URL || "https://sdd-egvz.onrender.com";
 
 export const fetchSubscriptions = () =>
   axios.get<Subscription[]>(`${API_URL}/api/subscriptions`);
