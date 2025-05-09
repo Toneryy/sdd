@@ -31,8 +31,3 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx prisma migrate deploy --schema=prisma/schema.prisma
-
-      - name: Deploy to Render
-        run: |
-          git remote add render https://git@render.com/https://github.com/Toneryy/sdd.git
-          git push render main
