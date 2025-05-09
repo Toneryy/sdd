@@ -21,14 +21,14 @@ jobs:
       - name: Install dependencies
         run: |
           npm install --legacy-peer-deps
-          npx prisma generate
+          npx prisma generate --schema ./backend/prisma/schema.prisma
 
       - name: Apply database migrations
         run: |
-          npx prisma migrate deploy
+          npx prisma migrate deploy --schema ./backend/prisma/schema.prisma
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - name: Deploy your application to Render
         run: |
-          git remote add render https://git@render.com/your-project-url.git
+          git remote add render https://git@render.com/https://github.com/Toneryy/sdd.git
           git push render main  # или другая ветка для деплоя
