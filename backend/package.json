@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
+    "postinstall": "npx prisma generate",
+    "seed": "ts-node prisma/seed.ts",
     "start": "ts-node src/index.ts",
     "dev": "ts-node src/index.ts"
   },
