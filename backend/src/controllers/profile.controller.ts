@@ -37,13 +37,29 @@ export const getProfile = async (
       take: 10,
     });
 
-    const purchasedProducts = await prisma.user_products.findMany({
+    // Получаем купленные товары
+    const boughtProducts = await prisma.user_products.findMany({
       where: { user_id: userId },
-      orderBy: { added_at: "desc" },
-      include: { product: true },
+      include: {
+        products: {
+          // Исправляем на 'products'
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            description: true,
+            img: true,
+          },
+        },
+      },
     });
 
-    res.json({ user, activeSubscription, supportHistory, purchasedProducts });
+    res.json({
+      user,
+      activeSubscription,
+      supportHistory,
+      boughtProducts, // добавляем купленные товары
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка сервера" });

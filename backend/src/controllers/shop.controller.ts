@@ -1,3 +1,4 @@
+// src/controllers/shop.controller.ts
 import { Request, Response } from "express";
 import { prisma } from "../config/prisma";
 
@@ -33,17 +34,34 @@ export const getProducts = async (
     const where: any = { price: { gte: minPrice, lte: maxPrice } };
     if (categoryId) where.category_id = categoryId;
 
+    // 1) Берём продукты с привязкой к categories
     const products = await prisma.products.findMany({
       where,
-      include: { category: { select: { name: true } } },
+      include: {
+        categories: { select: { name: true } }, // <-- здесь
+      },
     });
 
+    // 2) Считаем доступные ключи
+    const counts = await prisma.product_keys.groupBy({
+      by: ["product_id"],
+      where: { used: false },
+      _count: { _all: true },
+    });
+    const countMap: Record<string, number> = {};
+    counts.forEach((c) => {
+      if (c.product_id) countMap[c.product_id] = c._count._all;
+    });
+
+    // 3) Собираем ответ
     const result = products.map((p) => ({
       id: p.id,
       name: p.name,
       price: Number(p.price),
-      category: p.category?.name,
-      img: p.img || null,
+      category: p.categories?.name ?? null,
+      img: p.img ?? null,
+      description: p.description ?? null,
+      available: countMap[p.id] ?? 0,
     }));
 
     res.json(result);
@@ -60,23 +78,30 @@ export const getProductById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+
     const p = await prisma.products.findUnique({
       where: { id },
-      include: { category: { select: { name: true } } },
+      include: {
+        categories: { select: { name: true } },
+      },
     });
-
     if (!p) {
       res.status(404).json({ message: "Товар не найден" });
       return;
     }
 
+    const available = await prisma.product_keys.count({
+      where: { product_id: id, used: false },
+    });
+
     res.json({
       id: p.id,
       name: p.name,
       price: Number(p.price),
-      category: p.category?.name,
-      img: p.img || null,
-      description: p.description || "",
+      category: p.categories?.name ?? null,
+      img: p.img ?? null,
+      description: p.description ?? null,
+      available,
     });
   } catch (error) {
     console.error("Ошибка получения товара:", error);

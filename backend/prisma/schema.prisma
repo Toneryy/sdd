@@ -8,15 +8,15 @@ datasource db {
 }
 
 model users {
-  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username            String          @db.VarChar(50)
-  email               String          @unique @db.VarChar(100)
-  phone               String?         @db.VarChar(20)
-  password            String          @db.VarChar
-  subscription_id     String?         @db.Uuid
-  created_at          DateTime?       @default(now()) @db.Timestamptz(6)
-  user_products       user_products[]
-  currentSubscription subscriptions?  @relation("CurrentSub", fields: [subscription_id], references: [id], onUpdate: NoAction)
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username        String          @db.VarChar(50)
+  email           String          @unique @db.VarChar(100)
+  phone           String?         @db.VarChar(20)
+  password        String          @db.VarChar
+  subscription_id String?         @db.Uuid
+  created_at      DateTime?       @default(now()) @db.Timestamptz(6)
+  user_products   user_products[]
+  subscriptions   subscriptions?  @relation(fields: [subscription_id], references: [id], onUpdate: NoAction)
 
   @@map("users")
 }
@@ -29,7 +29,7 @@ model subscriptions {
   description        String?
   image              String?
   user_subscriptions user_subscriptions[]
-  currentUsers       users[]              @relation("CurrentSub")
+  users              users[]
 
   @@map("subscriptions")
 }
@@ -119,36 +119,33 @@ model products {
   updated_at    DateTime?       @default(now()) @db.Timestamptz(6)
   img           String?         @db.VarChar(255)
   description   String?
-  category      categories?     @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
+  product_keys  product_keys[]
+  categories    categories?     @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
   user_products user_products[]
-
-  @@map("products")
 }
 
 model product_keys {
-  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  product_id      String?         @db.Uuid
-  key_encrypted   String
-  used            Boolean?        @default(false)
-  created_at      DateTime?       @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime?       @default(now()) @db.Timestamptz(6)
-  user_product    user_products?  @relation(fields: [user_product_id], references: [id])
-  user_product_id String?         @db.Uuid
-
-  @@map("product_keys")
+  id                                                        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_id                                                String?         @db.Uuid
+  key_encrypted                                             String
+  used                                                      Boolean?        @default(false)
+  created_at                                                DateTime?       @default(now()) @db.Timestamptz(6)
+  updated_at                                                DateTime?       @default(now()) @db.Timestamptz(6)
+  user_product_id                                           String?         @db.Uuid
+  products                                                  products?       @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_keys_product")
+  user_products_product_keys_user_product_idTouser_products user_products?  @relation("product_keys_user_product_idTouser_products", fields: [user_product_id], references: [id], onUpdate: NoAction, map: "fk_keys_purchase")
+  user_products_user_products_product_key_idToproduct_keys  user_products[] @relation("user_products_product_key_idToproduct_keys")
 }
 
-
 model user_products {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id        String       @db.Uuid
-  product_id     String       @db.Uuid
-  product_key_id String?      @db.Uuid
-  added_at       DateTime     @default(now()) @db.Timestamptz(6)
-
-  product        products     @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_product")
-  user           users        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
-  product_key    product_keys? @relation(fields: [product_key_id], references: [id])
-
-  @@map("user_products")
+  id                                                       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                                                  String         @db.Uuid
+  product_id                                               String         @db.Uuid
+  added_at                                                 DateTime       @default(now()) @db.Timestamptz(6)
+  product_key_id                                           String?        @db.Uuid
+  code                                                     String?
+  product_keys_product_keys_user_product_idTouser_products product_keys[] @relation("product_keys_user_product_idTouser_products")
+  products                                                 products       @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_product")
+  product_keys_user_products_product_key_idToproduct_keys  product_keys?  @relation("user_products_product_key_idToproduct_keys", fields: [product_key_id], references: [id], onUpdate: NoAction, map: "fk_product_key")
+  users                                                    users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_purchases_user")
 }
