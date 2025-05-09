@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:4000";
+const API_URL = "https://sdd-egvz.onrender.com";
 
 export const register = async (data: {
   username: string;
