@@ -74,7 +74,7 @@ const Header: React.FC = () => {
             </Link>
           </div>
 
-          <Link to="/shop">Магазин</Link>
+          <Link to="/shop" onClick={() => setMobileOpen(false)}>Магазин</Link>
 
           {/* Кнопка «Войти» для мобильного, если не авторизован */}
           {!isAuthenticated && (
