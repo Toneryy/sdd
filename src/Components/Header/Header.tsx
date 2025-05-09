@@ -1,6 +1,6 @@
 // src/components/Header.tsx
 import React, { useState, useEffect, useRef, useContext } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { FiMenu, FiX, FiUser } from 'react-icons/fi'
 import CallRequestModal from './CallRequestModal'
 import styles from './Header.module.scss'
@@ -51,7 +51,7 @@ const Header: React.FC = () => {
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <Link to="/" className={styles.logo}>Сергей где зп</Link>
+        <NavLink to="/" className={styles.logo} onClick={() => setMobileOpen(false)}>Сергей где зп</NavLink>
 
         {/* --- Навигация --- */}
         <nav
