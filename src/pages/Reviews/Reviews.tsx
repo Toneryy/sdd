@@ -47,7 +47,6 @@ export const Reviews = () => {
                     loop
                     autoplay={{ delay: 5000, disableOnInteraction: false }}
                     pagination={{ clickable: true }}
-                    navigation
                     breakpoints={{
                         768: {
                             slidesPerView: 2
