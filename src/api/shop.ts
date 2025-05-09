@@ -13,6 +13,7 @@ export interface Product {
   category?: string;
   img?: string;
   description?: string;
+  available: number;
 }
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:4000";

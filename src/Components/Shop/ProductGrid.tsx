@@ -114,7 +114,11 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
                                 <div className={styles.imagePlaceholder}>🎁</div>
                                 <h4 className={styles.name}>{p.name}</h4>
                                 <p className={styles.price}>{p.price.toLocaleString()} ₽</p>
-                                <button className={styles.buyBtn}>Купить</button>
+                                {p.available > 0 ? (
+                                    <button className={styles.buyBtn}>Купить</button>
+                                ) : (
+                                    <span className={styles.soldOut}>Нет в наличии</span>
+                                )}
                             </div>
                         </Link>
                     ))}

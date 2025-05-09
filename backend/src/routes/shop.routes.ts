@@ -1,3 +1,4 @@
+// src/routes/shop.routes.ts
 import { Router } from "express";
 import {
   getCategories,
@@ -7,11 +8,8 @@ import {
 
 const router = Router();
 
-// Сначала конкретный маршрут по id:
-router.get("/products/:id", getProductById);
-
-// А затем общий список:
 router.get("/categories", getCategories);
+router.get("/products/:id", getProductById);
 router.get("/products", getProducts);
 
 export default router;
