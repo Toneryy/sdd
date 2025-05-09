@@ -1,0 +1,34 @@
+name: Deploy Migrations to Render
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npx prisma generate
+
+      - name: Apply database migrations
+        run: |
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Deploy your application to Render
+        run: |
+          git remote add render https://git@render.com/your-project-url.git
+          git push render main  # или другая ветка для деплоя
