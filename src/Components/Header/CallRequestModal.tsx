@@ -53,6 +53,29 @@ const CallRequestModal: React.FC<Props> = ({ onClose }) => {
                         maskChar="_"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                        onPaste={(e) => {
+                            e.preventDefault()
+                            const pasted = e.clipboardData.getData('Text')
+                            const digitsOnly = pasted.replace(/\D/g, '')
+
+                            let number = digitsOnly
+
+                            if (number.length === 11 && (number.startsWith('8') || number.startsWith('7'))) {
+                                number = number.slice(1) // отрезаем первую 8/7
+                            } else if (number.length === 12 && number.startsWith('7')) {
+                                number = number.slice(2) // отрезаем +7
+                            }
+
+                            // Ограничим до 10 цифр (типичный российский номер без кода страны)
+                            number = number.slice(0, 10)
+
+                            // Превращаем обратно в маску +7 (___) ___-__-__
+                            const formatted = number.replace(/(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/, (_, a, b, c, d) =>
+                                `+7 (${a}${b ? ') ' + b : ''}${c ? '-' + c : ''}${d ? '-' + d : ''}`
+                            )
+
+                            setPhone(formatted)
+                        }}
                     >
                         {(inputProps: any) => (
                             <input
