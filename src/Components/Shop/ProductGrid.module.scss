@@ -10,6 +10,8 @@
 }
 
 .card {
+  position: relative;
+  overflow: hidden;
   background-color: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -19,10 +21,36 @@
   flex-direction: column;
   align-items: center;
 
+  &:hover .cardOverlay {
+    opacity: 1;
+  }
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
   }
+}
+
+.cardOverlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.heartBtn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.favorited {
+  color: #e74c3c !important;
 }
 
 .imagePlaceholder {

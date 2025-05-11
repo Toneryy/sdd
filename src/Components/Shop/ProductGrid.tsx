@@ -5,6 +5,7 @@ import Fuse from "fuse.js";
 import styles from "./ProductGrid.module.scss";
 import { fetchProducts, Product } from "../../api/shop";
 import { getSearchVariants } from "../../utils/keyboardAndTranslit";
+import { FiHeart } from "react-icons/fi";
 
 // Хук для ширины окна
 function useWindowWidth() {
@@ -32,25 +33,53 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Для управления «сердечками»
+    const [cartIds, setCartIds] = useState<Set<string>>(new Set());
+
     // пагинация
     const width = useWindowWidth();
     const itemsPerPage = width >= 1024 ? 12 : width >= 768 ? 8 : 4;
     const [currentPage, setCurrentPage] = useState(1);
 
-    // 1) Загрузка
+    // 0) При монтировании читаем текущую корзину из localStorage
+    useEffect(() => {
+        const raw: Product[] = JSON.parse(localStorage.getItem("cart") || "[]");
+        const ids = new Set(raw.map((p) => p.id));
+        setCartIds(ids);
+    }, []);
+
+    // 1) Загрузка товаров
     useEffect(() => {
         setLoading(true);
         setError(null);
         fetchProducts(filters.minPrice, filters.maxPrice, filters.category)
-            .then(res => {
+            .then((res) => {
                 setProducts(res.data);
-                setCurrentPage(1); // сброс на первую страницу при смене фильтров
+                setCurrentPage(1);
             })
             .catch(() => setError("Ошибка при загрузке товаров"))
             .finally(() => setLoading(false));
     }, [filters]);
 
-    // 2) Fuse.js
+    // Добавить или удалить из корзины
+    const toggleCart = (product: Product, e: React.MouseEvent) => {
+        e.preventDefault();
+        const raw: Product[] = JSON.parse(localStorage.getItem("cart") || "[]");
+        let updated: Product[];
+        if (cartIds.has(product.id)) {
+            // удалить все копии
+            updated = raw.filter((p) => p.id !== product.id);
+        } else {
+            // добавить один экземпляр
+            updated = [...raw, product];
+        }
+        localStorage.setItem("cart", JSON.stringify(updated));
+        // обновить состояние сердечек
+        const ids = new Set(updated.map((p) => p.id));
+        setCartIds(ids);
+    };
+
+    // 2) Fuse.js-инстанс
     const fuse = useMemo(
         () =>
             new Fuse(products, {
@@ -71,8 +100,8 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
     // 4) Точные substring результаты
     const substringResults = useMemo(() => {
         if (!variants.length) return products;
-        return products.filter(p =>
-            variants.some(v => p.name.toLowerCase().includes(v))
+        return products.filter((p) =>
+            variants.some((v) => p.name.toLowerCase().includes(v))
         );
     }, [products, variants]);
 
@@ -81,7 +110,7 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
         if (!searchInput.trim()) return products;
         if (substringResults.length > 0) return substringResults;
         const map = new Map<string, Product>();
-        variants.forEach(term =>
+        variants.forEach((term) =>
             fuse.search(term).forEach(({ item }) => map.set(item.id, item))
         );
         return Array.from(map.values());
@@ -108,16 +137,38 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
         <>
             <div className={styles.gridWrapper}>
                 <div className={styles.grid}>
-                    {pageItems.map(p => (
-                        <Link key={p.id} to={`/shop/${p.id}`} className={styles.cardLink}>
+                    {pageItems.map((p) => (
+                        <Link
+                            key={p.id}
+                            to={`/shop/${p.id}`}
+                            className={styles.cardLink}
+                        >
                             <div className={styles.card}>
+                                <div className={styles.cardOverlay}>
+                                    <button
+                                        className={`${styles.heartBtn} ${cartIds.has(p.id) ? styles.favorited : ""
+                                            }`}
+                                        onClick={(e) => toggleCart(p, e)}
+                                        title={
+                                            cartIds.has(p.id)
+                                                ? "Убрать из избранного"
+                                                : "Добавить в избранное"
+                                        }
+                                    >
+                                        <FiHeart />
+                                    </button>
+                                </div>
                                 <div className={styles.imagePlaceholder}>🎁</div>
                                 <h4 className={styles.name}>{p.name}</h4>
-                                <p className={styles.price}>{p.price.toLocaleString()} ₽</p>
+                                <p className={styles.price}>
+                                    {p.price.toLocaleString()} ₽
+                                </p>
                                 {p.available > 0 ? (
                                     <button className={styles.buyBtn}>Купить</button>
                                 ) : (
-                                    <span className={styles.soldOut}>Нет в наличии</span>
+                                    <span className={styles.soldOut}>
+                                        Нет в наличии
+                                    </span>
                                 )}
                             </div>
                         </Link>

@@ -116,6 +116,33 @@
   }
 }
 
+.cartIcon {
+  position: relative;
+  margin-left: 20px;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background 0.3s;
+
+  &:hover {
+    background: rgba($primary-color, 0.1);
+  }
+
+  svg {
+    font-size: 22px;
+  }
+
+  .cartCount {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background-color: red;
+    color: white;
+    font-size: 12px;
+    padding: 2px 5px;
+    border-radius: 50%;
+  }
+}
+
 .loginBtn {
   margin-left: 1rem;
   padding: 0.75rem 1.5rem;
