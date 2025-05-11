@@ -1,7 +1,8 @@
 // src/components/Header.tsx
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { FiMenu, FiX, FiUser } from 'react-icons/fi'
+import { FiMenu, FiX, FiUser, FiShoppingCart } from 'react-icons/fi'
+import { loadCart } from 'utils/cartStorage'
 import CallRequestModal from './CallRequestModal'
 import styles from './Header.module.scss'
 import { AuthContext } from 'context/AuthContext'
@@ -14,11 +15,14 @@ const Header: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const servicesRef = useRef<HTMLDivElement>(null)
   const userRef = useRef<HTMLDivElement>(null)
+  const [cartCount, setCartCount] = useState(0)
   const navigate = useNavigate()
 
   const isAuthenticated = Boolean(localStorage.getItem('token'))
 
   useEffect(() => {
+    const cart = loadCart()
+    setCartCount(cart.length)
     const handleClickOutside = (event: MouseEvent) => {
       if (
         servicesRef.current &&
@@ -96,6 +100,10 @@ const Header: React.FC = () => {
           >
             Заказать звонок
           </button>
+          <Link to="/cart" className={styles.cartIcon}>
+            <FiShoppingCart />
+            {cartCount > 0 && <span className={styles.cartCount}>{cartCount}</span>}
+          </Link>
 
           {/* Если не авторизован — кнопка «Войти» */}
           {!isAuthenticated && (

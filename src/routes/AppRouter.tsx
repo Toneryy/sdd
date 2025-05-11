@@ -13,6 +13,7 @@ import ServiceDetails from 'pages/ServiceDetails/ServiceDetails'
 import Shop from 'Components/Shop/Shop'
 import ShopProduct from 'Components/Shop/ShopProduct/ShopProduct'
 import ProductDetails from 'pages/ProductDetailsPage/ProductDetails'
+import Cart from 'pages/Cart/Cart'
 
 const AppRouter: React.FC = () => {
   const { isAuth } = useContext(AuthContext)
@@ -25,6 +26,7 @@ const AppRouter: React.FC = () => {
         <Route path="/subscriptions/:id" element={<ServiceDetails />} />
         <Route path='/shop' element={<Shop />} />
         <Route path="/shop/:id" element={<ShopProduct />} />
+        <Route path="/cart" element={<Cart />} />
         <Route
           path="/login"
           element={isAuth ? <Navigate to="/profile" replace /> : <LoginPage />}
