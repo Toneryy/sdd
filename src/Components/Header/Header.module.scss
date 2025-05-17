@@ -116,12 +116,15 @@
   }
 }
 
-.cartIcon {
+.iconButton {
   position: relative;
   margin-left: 20px;
   padding: 0.5rem;
   border-radius: 50%;
   transition: background 0.3s;
+  @media (max-width: 480px) {
+    margin: 0;
+  }
 
   &:hover {
     background: rgba($primary-color, 0.1);
@@ -131,7 +134,7 @@
     font-size: 22px;
   }
 
-  .cartCount {
+  .badge {
     position: absolute;
     top: -6px;
     right: -8px;
@@ -140,6 +143,12 @@
     font-size: 12px;
     padding: 2px 5px;
     border-radius: 50%;
+  }
+}
+
+.favoriteButton {
+  svg {
+    color: #e74c3c !important;
   }
 }
 
@@ -231,9 +240,7 @@
 @media (max-width: 1024px) {
   .desktopButtons {
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex-grow: 1;
+    margin-left: auto;
   }
   .desktopButtons .loginBtn {
     display: none;

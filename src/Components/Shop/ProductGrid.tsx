@@ -6,8 +6,8 @@ import styles from "./ProductGrid.module.scss";
 import { fetchProducts, Product } from "../../api/shop";
 import { getSearchVariants } from "../../utils/keyboardAndTranslit";
 import { FiHeart } from "react-icons/fi";
+import { loadFavorites, saveFavorites } from "utils/favoritesStorage";
 
-// Хук для ширины окна
 function useWindowWidth() {
     const [width, setWidth] = useState(window.innerWidth);
     useEffect(() => {
@@ -23,6 +23,7 @@ interface Filters {
     maxPrice: string;
     category: string;
 }
+
 interface Props {
     filters: Filters;
     searchInput: string;
@@ -33,27 +34,26 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Для управления «сердечками»
-    const [cartIds, setCartIds] = useState<Set<string>>(new Set());
+    // Для управления «избранным»
+    const [favIds, setFavIds] = useState<Set<string>>(new Set());
 
-    // пагинация
+    // Пагинация
     const width = useWindowWidth();
     const itemsPerPage = width >= 1024 ? 12 : width >= 768 ? 8 : 4;
     const [currentPage, setCurrentPage] = useState(1);
 
-    // 0) При монтировании читаем текущую корзину из localStorage
+    // При монтировании читаем текущее «избранное»
     useEffect(() => {
-        const raw: Product[] = JSON.parse(localStorage.getItem("cart") || "[]");
-        const ids = new Set(raw.map((p) => p.id));
-        setCartIds(ids);
+        const raw = loadFavorites();
+        setFavIds(new Set(raw.map(p => p.id)));
     }, []);
 
-    // 1) Загрузка товаров
+    // Загрузка товаров
     useEffect(() => {
         setLoading(true);
         setError(null);
         fetchProducts(filters.minPrice, filters.maxPrice, filters.category)
-            .then((res) => {
+            .then(res => {
                 setProducts(res.data);
                 setCurrentPage(1);
             })
@@ -61,25 +61,21 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
             .finally(() => setLoading(false));
     }, [filters]);
 
-    // Добавить или удалить из корзины
-    const toggleCart = (product: Product, e: React.MouseEvent) => {
+    // Добавление/удаление из «избранного»
+    const toggleFavorite = (product: Product, e: React.MouseEvent) => {
         e.preventDefault();
-        const raw: Product[] = JSON.parse(localStorage.getItem("cart") || "[]");
+        const raw = loadFavorites();
         let updated: Product[];
-        if (cartIds.has(product.id)) {
-            // удалить все копии
-            updated = raw.filter((p) => p.id !== product.id);
+        if (favIds.has(product.id)) {
+            updated = raw.filter(p => p.id !== product.id);
         } else {
-            // добавить один экземпляр
             updated = [...raw, product];
         }
-        localStorage.setItem("cart", JSON.stringify(updated));
-        // обновить состояние сердечек
-        const ids = new Set(updated.map((p) => p.id));
-        setCartIds(ids);
+        saveFavorites(updated);
+        setFavIds(new Set(updated.map(p => p.id)));
     };
 
-    // 2) Fuse.js-инстанс
+    // Fuse.js-инстанс
     const fuse = useMemo(
         () =>
             new Fuse(products, {
@@ -91,39 +87,39 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
         [products]
     );
 
-    // 3) Варианты поиска
+    // Варианты поиска
     const variants = useMemo(() => {
         const txt = searchInput.trim().toLowerCase();
         return txt ? getSearchVariants(txt) : [];
     }, [searchInput]);
 
-    // 4) Точные substring результаты
+    // Точные substring результаты
     const substringResults = useMemo(() => {
         if (!variants.length) return products;
-        return products.filter((p) =>
-            variants.some((v) => p.name.toLowerCase().includes(v))
+        return products.filter(p =>
+            variants.some(v => p.name.toLowerCase().includes(v))
         );
     }, [products, variants]);
 
-    // 5) Итоговый список перед пагинацией
+    // Итоговый список перед пагинацией
     const filtered = useMemo(() => {
         if (!searchInput.trim()) return products;
         if (substringResults.length > 0) return substringResults;
         const map = new Map<string, Product>();
-        variants.forEach((term) =>
+        variants.forEach(term =>
             fuse.search(term).forEach(({ item }) => map.set(item.id, item))
         );
         return Array.from(map.values());
     }, [products, searchInput, substringResults, fuse, variants]);
 
-    // 6) Пагинированные данные
+    // Пагинированные данные
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
     const pageItems = filtered.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
-    // 7) Рендер
+    // Рендер
     if (loading) return <p className={styles.loading}>Загрузка товаров...</p>;
     if (error) return <p className={styles.error}>{error}</p>;
     if (filtered.length === 0)
@@ -137,20 +133,16 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
         <>
             <div className={styles.gridWrapper}>
                 <div className={styles.grid}>
-                    {pageItems.map((p) => (
-                        <Link
-                            key={p.id}
-                            to={`/shop/${p.id}`}
-                            className={styles.cardLink}
-                        >
+                    {pageItems.map(p => (
+                        <Link key={p.id} to={`/shop/${p.id}`} className={styles.cardLink}>
                             <div className={styles.card}>
                                 <div className={styles.cardOverlay}>
                                     <button
-                                        className={`${styles.heartBtn} ${cartIds.has(p.id) ? styles.favorited : ""
+                                        className={`${styles.heartBtn} ${favIds.has(p.id) ? styles.favorited : ""
                                             }`}
-                                        onClick={(e) => toggleCart(p, e)}
+                                        onClick={e => toggleFavorite(p, e)}
                                         title={
-                                            cartIds.has(p.id)
+                                            favIds.has(p.id)
                                                 ? "Убрать из избранного"
                                                 : "Добавить в избранное"
                                         }
@@ -160,15 +152,11 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
                                 </div>
                                 <div className={styles.imagePlaceholder}>🎁</div>
                                 <h4 className={styles.name}>{p.name}</h4>
-                                <p className={styles.price}>
-                                    {p.price.toLocaleString()} ₽
-                                </p>
+                                <p className={styles.price}>{p.price.toLocaleString()} ₽</p>
                                 {p.available > 0 ? (
                                     <button className={styles.buyBtn}>Купить</button>
                                 ) : (
-                                    <span className={styles.soldOut}>
-                                        Нет в наличии
-                                    </span>
+                                    <span className={styles.soldOut}>Нет в наличии</span>
                                 )}
                             </div>
                         </Link>

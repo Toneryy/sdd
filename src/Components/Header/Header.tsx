@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { FiMenu, FiX, FiUser, FiShoppingCart } from 'react-icons/fi'
-import { loadCart } from 'utils/cartStorage'
+import { loadFavorites } from 'utils/favoritesStorage'
 import CallRequestModal from './CallRequestModal'
 import styles from './Header.module.scss'
 import { AuthContext } from 'context/AuthContext'
+import { FaHeart } from 'react-icons/fa'
 
 const Header: React.FC = () => {
   const [callModalOpen, setCallModalOpen] = useState(false)
@@ -15,14 +16,20 @@ const Header: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const servicesRef = useRef<HTMLDivElement>(null)
   const userRef = useRef<HTMLDivElement>(null)
-  const [cartCount, setCartCount] = useState(0)
+  const [favCount, setFavCount] = useState(0)
   const navigate = useNavigate()
 
   const isAuthenticated = Boolean(localStorage.getItem('token'))
 
+  const updateFavCount = () => {
+    const raw = loadFavorites();
+    const uniqueIds = Array.from(new Set(raw.map((p: any) => p.id)));
+    setFavCount(uniqueIds.length);
+  };
+
   useEffect(() => {
-    const cart = loadCart()
-    setCartCount(cart.length)
+    updateFavCount();
+    window.addEventListener('favoritesChanged', updateFavCount)
     const handleClickOutside = (event: MouseEvent) => {
       if (
         servicesRef.current &&
@@ -100,9 +107,14 @@ const Header: React.FC = () => {
           >
             Заказать звонок
           </button>
-          <Link to="/cart" className={styles.cartIcon}>
+          <Link to="/favorites" className={`${styles.iconButton} ${styles.favoriteButton}`}>
+            <FaHeart />
+            {favCount > 0 && <span className={styles.badge}>{favCount}</span>}
+          </Link>
+
+          <Link to="/cart" className={styles.iconButton}>
             <FiShoppingCart />
-            {cartCount > 0 && <span className={styles.cartCount}>{cartCount}</span>}
+            {/* {favCount > 0 && <span className={styles.badge}>{favCount}</span>} */}
           </Link>
 
           {/* Если не авторизован — кнопка «Войти» */}
