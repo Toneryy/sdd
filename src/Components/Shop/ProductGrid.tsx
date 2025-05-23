@@ -5,7 +5,7 @@ import Fuse from "fuse.js";
 import styles from "./ProductGrid.module.scss";
 import { fetchProducts, Product } from "../../api/shop";
 import { getSearchVariants } from "../../utils/keyboardAndTranslit";
-import { FiHeart } from "react-icons/fi";
+import { FaHeart } from "react-icons/fa";
 import { loadFavorites, saveFavorites } from "utils/favoritesStorage";
 
 function useWindowWidth() {
@@ -147,7 +147,7 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
                                                 : "Добавить в избранное"
                                         }
                                     >
-                                        <FiHeart />
+                                        <FaHeart />
                                     </button>
                                 </div>
                                 <div className={styles.imagePlaceholder}>🎁</div>

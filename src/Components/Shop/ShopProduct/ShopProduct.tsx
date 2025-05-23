@@ -3,21 +3,45 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import styles from "./ShopProduct.module.scss";
 import { fetchProductById, Product } from "../../../api/shop";
+import {
+    addToCart,
+    isInCart,
+    CartItem,
+} from "../../../utils/cartStorage";
+
 
 const ShopProduct: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [inCart, setInCart] = useState(false)
 
     useEffect(() => {
         if (!id) return;
+        if (product) {
+            setInCart(isInCart(product.id))
+        }
         setLoading(true);
         fetchProductById(id)
             .then((res) => setProduct(res.data))
             .catch(() => setError("Не удалось загрузить товар"))
             .finally(() => setLoading(false));
     }, [id]);
+    const handleAddToCart = () => {
+        if (product) {
+            const item: CartItem = {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                img: product.img,
+                quantity: 1,
+                available: product.available,
+            }
+            addToCart(item)
+            setInCart(true)
+        }
+    }
 
     if (loading) return <p className={styles.status}>Загрузка...</p>;
     if (error) return <p className={styles.statusError}>{error}</p>;
@@ -60,7 +84,20 @@ const ShopProduct: React.FC = () => {
                             <li>Подтвердите, и продукт будет доступен в вашем аккаунте.</li>
                         </ol>
                     </div>
-                    <button className={styles.buyBtn}>Купить</button>
+                    {product.available === 0 ? (
+                        <button className={styles.disabledBtn} disabled>
+                            Нет в наличии
+                        </button>
+                    ) : inCart ? (
+                        <Link to="/cart" className={styles.buyBtn}>
+                            Перейти в корзину
+                        </Link>
+                    ) : (
+                        <button className={styles.buyBtn} onClick={handleAddToCart}>
+                            Добавить в корзину
+                        </button>
+                    )}
+
                 </div>
             </div>
         </div>
