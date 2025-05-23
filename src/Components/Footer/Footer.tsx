@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
             <div className={styles.container}>
                 {/* Колонка 1: Логотип и описание */}
                 <div className={styles.column}>
-                    <h2 className={styles.logo}>Сергей где зп</h2>
+                    <h2 className={styles.logo}>bd-project</h2>
                     <p className={styles.description}>
                         Профессиональная IT-поддержка и онлайн-консультации. Решим любую проблему!
                     </p>
@@ -30,7 +30,7 @@ const Footer: React.FC = () => {
                 <div className={styles.column}>
                     <h3>Контакты</h3>
                     <ul>
-                        <li>Email: <a href="mailto:support@Сергей где зп.com">support@Сергей где зп.com</a></li>
+                        <li>Email: <a href="mailto:support@bd-project.com">support@bd-project.com</a></li>
                         <li>Телефон: <a href="tel:+79991234567">+7 (999) 123-45-67</a></li>
                         <li className={styles.socials}>
                             <a href="https://t.me/yourchannel" target="_blank" rel="noreferrer"><FaTelegramPlane /></a>
@@ -51,7 +51,7 @@ const Footer: React.FC = () => {
             </div>
 
             <div className={styles.bottomBar}>
-                © {new Date().getFullYear()} Сергей где зп. Все права защищены.
+                © {new Date().getFullYear()} bd-project. Все права защищены.
             </div>
         </footer>
     )

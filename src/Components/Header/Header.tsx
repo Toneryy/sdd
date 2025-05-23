@@ -62,7 +62,7 @@ const Header: React.FC = () => {
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <NavLink to="/" className={styles.logo} onClick={() => setMobileOpen(false)}>Сергей где зп</NavLink>
+        <NavLink to="/" className={styles.logo} onClick={() => setMobileOpen(false)}>bd-project</NavLink>
 
         {/* --- Навигация --- */}
         <nav
