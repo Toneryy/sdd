@@ -1,10 +1,16 @@
 // src/pages/Favorites/Favorites.tsx
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./Favorites.module.scss";
 import { Product, fetchProductById } from "../../api/shop";
 import { FiTrash2 } from "react-icons/fi";
 import { toast } from "react-toastify";
-import { loadFavorites, saveFavorites, clearFavorites } from "../../utils/favoritesStorage";
+import {
+    loadFavorites,
+    saveFavorites,
+    clearFavorites,
+} from "../../utils/favoritesStorage";
+import { addToCart } from "../../utils/cartStorage";
 
 interface FavItem {
     product: Product;
@@ -16,13 +22,14 @@ interface FavItem {
 const Favorites: React.FC = () => {
     const [items, setItems] = useState<FavItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     // 1) При монтировании — группируем по id, подтягиваем available
     useEffect(() => {
         (async () => {
             const raw: Product[] = loadFavorites();
             const map = new Map<string, FavItem>();
-            raw.forEach(p => {
+            raw.forEach((p) => {
                 const ex = map.get(p.id);
                 if (ex) ex.quantity += 1;
                 else map.set(p.id, { product: p, quantity: 1, available: 0, selected: true });
@@ -30,7 +37,7 @@ const Favorites: React.FC = () => {
             const arr = Array.from(map.values());
 
             await Promise.all(
-                arr.map(async it => {
+                arr.map(async (it) => {
                     try {
                         const res = await fetchProductById(it.product.id);
                         it.available = res.data.available;
@@ -51,7 +58,7 @@ const Favorites: React.FC = () => {
         })();
     }, []);
 
-    // 2) Сохраняем при любых изменениях
+    // 2) Сохраняем при любых изменениях в избранном
     useEffect(() => {
         if (!loading) {
             const flat: Product[] = [];
@@ -82,8 +89,38 @@ const Favorites: React.FC = () => {
     };
 
     const total = items
-        .filter(it => it.selected && it.available > 0)
+        .filter((it) => it.selected && it.available > 0)
         .reduce((sum, it) => sum + it.product.price * it.quantity, 0);
+
+    const handleBuySelected = () => {
+        const selected = items.filter((it) => it.selected && it.available > 0);
+        if (selected.length === 0) {
+            toast.error("Нет выбранных товаров для добавления в корзину");
+            return;
+        }
+        // Добавляем в корзину и удаляем из избранного
+        selected.forEach((it) => {
+            addToCart({
+                id: it.product.id,
+                name: it.product.name,
+                price: it.product.price,
+                img: it.product.img,
+                quantity: it.quantity,
+                available: it.available,
+            });
+        });
+        // Оставляем в избранном только невыбранные
+        const remaining = items.filter((it) => !(it.selected && it.available > 0));
+        setItems(remaining);
+        saveFavorites(
+            remaining.flatMap((it) =>
+                Array.from({ length: it.quantity }, () => it.product)
+            )
+        );
+
+        toast.success("Товары добавлены в корзину");
+        navigate("/cart");
+    };
 
     if (loading) return <p className={styles.loading}>Загрузка…</p>;
 
@@ -158,9 +195,13 @@ const Favorites: React.FC = () => {
                     </ul>
 
                     <div className={styles.summary}>
-                        <span className={styles.summaryText}>Итого:</span>
-                        <span className={styles.summaryTotal}>{total.toLocaleString()} ₽</span>
-                        <button className={styles.checkoutBtn}>
+                        <span className={styles.summaryText}>
+                            Итого: {total.toLocaleString()} ₽
+                        </span>
+                        <button
+                            className={styles.checkoutBtn}
+                            onClick={handleBuySelected}
+                        >
                             Купить выбранные
                         </button>
                         <button
