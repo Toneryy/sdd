@@ -1,76 +1,101 @@
 // src/pages/Cart/Cart.tsx
-import React, { useEffect, useState } from 'react';
-import styles from './Cart.module.scss';
+import React, { useEffect, useState } from 'react'
+import styles from './Cart.module.scss'
 import {
   loadCart,
   removeFromCart,
   updateQuantity,
-  CartItem
-} from '../../utils/cartStorage';
-import { Link } from 'react-router-dom';
-import { fetchProductById } from '../../api/shop';
+  CartItem,
+} from '../../utils/cartStorage'
+import { Link, useNavigate } from 'react-router-dom'
+import { applyPromo, fetchUsedPromos, removePromo, UsedPromo } from '../../api/promocodes'
+import { toast } from 'react-toastify'
+import { fetchProductById } from '../../api/shop'
 
 const Cart: React.FC = () => {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [promo, setPromo] = useState('');
-  const [discount, setDiscount] = useState(0);
+  const [items, setItems] = useState<CartItem[]>([])
+  const [promo, setPromo] = useState('')
+  const [discount, setDiscount] = useState(0)
+  const [appliedPromos, setAppliedPromos] = useState<UsedPromo[]>([])
+  const navigate = useNavigate()
 
-  // Функция, которая всегда грузит из localStorage
-  // и сразу подтягивает актуальное available для каждого товара
+  // Загружает корзину и подтягивает актуальные данные
   const refreshCart = async () => {
-    const rawCart = loadCart();
+    const rawCart = loadCart()
     const updatedCart: CartItem[] = await Promise.all(
       rawCart.map(async (item) => {
         try {
-          const { data } = await fetchProductById(item.id);
-          // обновляем available и массу других полей, если нужно
+          const { data } = await fetchProductById(item.id)
           return {
             ...item,
             available: data.available,
             price: data.price,
             name: data.name,
             img: data.img,
-            // на случай, если в localStorage quantity > серверного available
-            quantity: Math.min(item.quantity, data.available)
-          };
+            quantity: Math.min(item.quantity, data.available),
+          }
         } catch {
-          return item;
+          return item
         }
       })
-    );
-    // сохраняем и в стейт, и в localStorage
-    updatedCart.forEach(it => updateQuantity(it.id, it.quantity));
-    setItems(updatedCart);
-  };
+    )
+    updatedCart.forEach((it) => updateQuantity(it.id, it.quantity))
+    setItems(updatedCart)
+  }
 
-  // При монтировании — один раз загрузить
+  // Загружает список уже применённых промокодов
+  const refreshPromos = async () => {
+    try {
+      const { data } = await fetchUsedPromos()
+      setAppliedPromos(data)
+      // Если среди них есть скидочный — берём последний
+      const disc = data.find((p) => p.type === 'discount')
+      setDiscount(disc ? disc.denomination : 0)
+    } catch {
+      toast.error('Не удалось загрузить применённые промокоды')
+    }
+  }
+
   useEffect(() => {
-    refreshCart();
-  }, []);
+    refreshCart()
+    refreshPromos()
+  }, [])
 
   const handleQuantityChange = async (id: string, quantity: number) => {
-    // Задаём желаемое
-    updateQuantity(id, quantity);
-    // и сразу рефрешим, чтобы получить clamp по available
-    await refreshCart();
-  };
+    updateQuantity(id, quantity)
+    await refreshCart()
+  }
 
   const handleRemove = async (id: string) => {
-    removeFromCart(id);
-    await refreshCart();
-  };
+    removeFromCart(id)
+    await refreshCart()
+  }
 
-  const handleApplyPromo = () => {
-    if (promo.toLowerCase() === 'sale10') {
-      setDiscount(10);
-    } else {
-      setDiscount(0);
-      alert('Промокод не найден');
+  const handleApplyPromo = async () => {
+    try {
+      const { data } = await applyPromo(promo)
+      toast.success(`Промокод "${promo}" применён: ${data.denomination}%`)
+      setPromo('')
+      await refreshPromos()
+      // после обновления appliedPromos в refreshPromos() будет пересчитан discount
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Ошибка при применении промокода')
+      // НИЧЕГО не делаем с discount — он остаётся тем, что был
     }
-  };
+  }
 
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const discounted = total - (total * discount) / 100;
+  const handleRemovePromo = async (code: string) => {
+    try {
+      await removePromo(code)
+      toast.info(`Промокод ${code} удалён`)
+      await refreshPromos()
+    } catch {
+      toast.error('Не удалось удалить промокод')
+    }
+  }
+
+  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+  const discounted = total - (total * discount) / 100
 
   return (
     <div className={styles.container}>
@@ -80,7 +105,7 @@ const Cart: React.FC = () => {
       ) : (
         <>
           <div className={styles.items}>
-            {items.map(item => (
+            {items.map((item) => (
               <div key={item.id} className={styles.item}>
                 <div className={styles.img}>
                   {item.img ? (
@@ -98,9 +123,7 @@ const Cart: React.FC = () => {
                     <div className={styles.quantityControl}>
                       <button
                         className={styles.quantityBtn}
-                        onClick={() =>
-                          handleQuantityChange(item.id, item.quantity - 1)
-                        }
+                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                         disabled={item.quantity <= 1}
                       >
                         −
@@ -114,19 +137,14 @@ const Cart: React.FC = () => {
                         onChange={(e) => {
                           const qty = Math.max(
                             1,
-                            Math.min(
-                              parseInt(e.target.value) || 1,
-                              item.available
-                            )
-                          );
-                          handleQuantityChange(item.id, qty);
+                            Math.min(parseInt(e.target.value) || 1, item.available)
+                          )
+                          handleQuantityChange(item.id, qty)
                         }}
                       />
                       <button
                         className={styles.quantityBtn}
-                        onClick={() =>
-                          handleQuantityChange(item.id, item.quantity + 1)
-                        }
+                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                         disabled={item.quantity >= item.available}
                       >
                         +
@@ -135,10 +153,7 @@ const Cart: React.FC = () => {
                         <div className={styles.outOfStock}>Нет в наличии</div>
                       )}
                     </div>
-                    <button
-                      className={styles.removeBtn}
-                      onClick={() => handleRemove(item.id)}
-                    >
+                    <button className={styles.removeBtn} onClick={() => handleRemove(item.id)}>
                       Удалить
                     </button>
                   </div>
@@ -157,6 +172,31 @@ const Cart: React.FC = () => {
             <button onClick={handleApplyPromo}>Применить</button>
           </div>
 
+          {/* Список применённых промокодов */}
+          {appliedPromos.length > 0 && (
+            <div className={styles.appliedPromos}>
+              <h3>Применённые промокоды</h3>
+              <ul>
+                {appliedPromos.map((p) => (
+                  <li key={p.code} className={styles.promoItem}>
+                    <span className={styles.promoCode}>{p.code}</span>
+                    <span className={styles.promoType}>
+                      {p.type === 'discount'
+                        ? `- ${p.denomination}%`
+                        : `+ ${p.denomination}`}
+                    </span>
+                    <button
+                      className={styles.removePromoBtn}
+                      onClick={() => handleRemovePromo(p.code)}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className={styles.summary}>
             <p>Сумма: {total.toLocaleString()} ₽</p>
             {discount > 0 && (
@@ -165,12 +205,14 @@ const Cart: React.FC = () => {
                 <strong>{discounted.toLocaleString()} ₽</strong>
               </p>
             )}
-            <button className={styles.checkout}>Оформить заказ</button>
+            <button className={styles.checkout} onClick={() => navigate('/checkout')}>
+              Оформить заказ
+            </button>
           </div>
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Cart;
+export default Cart

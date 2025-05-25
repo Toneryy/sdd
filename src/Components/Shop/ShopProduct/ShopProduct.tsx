@@ -1,6 +1,7 @@
 // src/components/Shop/ShopProduct/ShopProduct.tsx
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import styles from "./ShopProduct.module.scss";
 import { fetchProductById, Product } from "../../../api/shop";
 import {
@@ -9,39 +10,51 @@ import {
     CartItem,
 } from "../../../utils/cartStorage";
 
-
 const ShopProduct: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [inCart, setInCart] = useState(false)
+    const [inCart, setInCart] = useState(false);
 
     useEffect(() => {
         if (!id) return;
-        if (product) {
-            setInCart(isInCart(product.id))
-        }
         setLoading(true);
         fetchProductById(id)
-            .then((res) => setProduct(res.data))
-            .catch(() => setError("Не удалось загрузить товар"))
+            .then((res) => {
+                setProduct(res.data);
+                setInCart(isInCart(res.data.id));
+            })
+            .catch(() => {
+                setError("Не удалось загрузить товар");
+            })
             .finally(() => setLoading(false));
     }, [id]);
+
     const handleAddToCart = () => {
-        if (product) {
-            const item: CartItem = {
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                img: product.img,
-                quantity: 1,
-                available: product.available,
-            }
-            addToCart(item)
-            setInCart(true)
+        if (!product) {
+            toast.error("Товар не найден");
+            return;
         }
-    }
+        if (product.available === 0) {
+            toast.error("Товар отсутствует на складе");
+            return;
+        }
+
+        const item: CartItem = {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            img: product.img,
+            quantity: 1,
+            available: product.available,
+        };
+
+        addToCart(item);
+        setInCart(true);
+        toast.success("Товар добавлен в корзину");
+    };
 
     if (loading) return <p className={styles.status}>Загрузка...</p>;
     if (error) return <p className={styles.statusError}>{error}</p>;
@@ -54,15 +67,11 @@ const ShopProduct: React.FC = () => {
             </Link>
             <div className={styles.card}>
                 <div className={styles.imageWrapper}>
-                    {/* В будущем можно вставить изображение товара */}
-                    <div className={styles.imageWrapper}>
-                        {product.img ? (
-                            <img src={product.img} alt={product.name} className={styles.image} />
-                        ) : (
-                            <div className={styles.imagePlaceholder}>🎁</div>
-                        )}
-                    </div>
-
+                    {product.img ? (
+                        <img src={product.img} alt={product.name} className={styles.image} />
+                    ) : (
+                        <div className={styles.imagePlaceholder}>🎁</div>
+                    )}
                 </div>
                 <div className={styles.info}>
                     <h1 className={styles.title}>{product.name}</h1>
@@ -84,20 +93,23 @@ const ShopProduct: React.FC = () => {
                             <li>Подтвердите, и продукт будет доступен в вашем аккаунте.</li>
                         </ol>
                     </div>
+
                     {product.available === 0 ? (
                         <button className={styles.disabledBtn} disabled>
                             Нет в наличии
                         </button>
                     ) : inCart ? (
-                        <Link to="/cart" className={styles.buyBtn}>
+                        <button
+                            className={styles.buyBtn}
+                            onClick={() => navigate("/cart")}
+                        >
                             Перейти в корзину
-                        </Link>
+                        </button>
                     ) : (
                         <button className={styles.buyBtn} onClick={handleAddToCart}>
                             Добавить в корзину
                         </button>
                     )}
-
                 </div>
             </div>
         </div>
