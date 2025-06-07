@@ -1,4 +1,3 @@
-// src/components/Header.tsx
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { FiMenu, FiX, FiUser, FiShoppingCart } from 'react-icons/fi'
@@ -69,23 +68,35 @@ const Header: React.FC = () => {
           className={`${styles.nav} ${mobileOpen ? styles.open : ''}`}
           onClick={e => e.stopPropagation()}
         >
-          <Link to="/" onClick={() => setMobileOpen(false)}>Главное меню</Link>
+          <NavLink
+            to="/"
+            onClick={() => setMobileOpen(false)}
+            className={({ isActive }) => isActive ? styles.active : ''}
+          >
+            Главное меню
+          </NavLink>
 
           {/* Услуги */}
           <div
             className={styles.services}
             ref={servicesRef}
           >
-            <Link
+            <NavLink
               to="/subscriptions"
-              className={styles.services}
               onClick={() => setMobileOpen(false)}
+              className={({ isActive }) => isActive ? styles.active : ''}
             >
               Услуги
-            </Link>
+            </NavLink>
           </div>
 
-          <Link to="/shop" onClick={() => setMobileOpen(false)}>Магазин</Link>
+          <NavLink
+            to="/shop"
+            onClick={() => setMobileOpen(false)}
+            className={({ isActive }) => isActive ? styles.active : ''}
+          >
+            Магазин
+          </NavLink>
 
           {/* Кнопка «Войти» для мобильного, если не авторизован */}
           {!isAuthenticated && (
@@ -114,7 +125,6 @@ const Header: React.FC = () => {
 
           <Link to="/cart" className={styles.iconButton}>
             <FiShoppingCart />
-            {/* {favCount > 0 && <span className={styles.badge}>{favCount}</span>} */}
           </Link>
 
           {/* Если не авторизован — кнопка «Войти» */}

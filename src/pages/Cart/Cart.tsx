@@ -1,4 +1,3 @@
-// src/pages/Cart/Cart.tsx
 import React, { useEffect, useState } from 'react'
 import styles from './Cart.module.scss'
 import {
@@ -48,7 +47,6 @@ const Cart: React.FC = () => {
     try {
       const { data } = await fetchUsedPromos()
       setAppliedPromos(data)
-      // Если среди них есть скидочный — берём последний
       const disc = data.find((p) => p.type === 'discount')
       setDiscount(disc ? disc.denomination : 0)
     } catch {
@@ -61,29 +59,32 @@ const Cart: React.FC = () => {
     refreshPromos()
   }, [])
 
+  // Обновление количества товара в корзине
   const handleQuantityChange = async (id: string, quantity: number) => {
-    updateQuantity(id, quantity)
+    const newQuantity = Math.max(1, Math.min(quantity, items.find(item => item.id === id)?.available || 1))
+    updateQuantity(id, newQuantity)
     await refreshCart()
   }
 
+  // Удаление товара из корзины
   const handleRemove = async (id: string) => {
     removeFromCart(id)
     await refreshCart()
   }
 
+  // Применение промокода
   const handleApplyPromo = async () => {
     try {
       const { data } = await applyPromo(promo)
       toast.success(`Промокод "${promo}" применён: ${data.denomination}%`)
       setPromo('')
       await refreshPromos()
-      // после обновления appliedPromos в refreshPromos() будет пересчитан discount
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Ошибка при применении промокода')
-      // НИЧЕГО не делаем с discount — он остаётся тем, что был
     }
   }
 
+  // Удаление промокода
   const handleRemovePromo = async (code: string) => {
     try {
       await removePromo(code)
@@ -94,6 +95,7 @@ const Cart: React.FC = () => {
     }
   }
 
+  // Общая сумма
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const discounted = total - (total * discount) / 100
 
@@ -130,17 +132,9 @@ const Cart: React.FC = () => {
                       </button>
                       <input
                         type="number"
-                        min={1}
-                        max={item.available}
                         className={styles.quantityInput}
                         value={item.quantity}
-                        onChange={(e) => {
-                          const qty = Math.max(
-                            1,
-                            Math.min(parseInt(e.target.value) || 1, item.available)
-                          )
-                          handleQuantityChange(item.id, qty)
-                        }}
+                        readOnly
                       />
                       <button
                         className={styles.quantityBtn}

@@ -34,8 +34,7 @@
   justify-content: center;
   align-items: center;
 
-  a,
-  button {
+  a {
     background: none;
     border: none;
     padding: 0.75rem 1rem;
@@ -48,6 +47,11 @@
     transition: background 0.3s, color 0.3s;
 
     &:hover {
+      background: $primary-color;
+      color: #fff;
+    }
+
+    &.active {
       background: $primary-color;
       color: #fff;
     }
