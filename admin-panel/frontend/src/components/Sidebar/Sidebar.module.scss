@@ -1,0 +1,72 @@
+/* /src/components/Sidebar.module.scss */
+.sidebar {
+  width: 250px;
+  background: linear-gradient(135deg, #2c3e50, #34495e); /* Градиент для фона */
+  padding: 20px;
+  color: white;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1); /* Тень для боковой панели */
+  height: 100vh;
+  position: fixed; /* Фиксируем панель сбоку */
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  overflow-y: auto; /* Прокрутка, если контент больше */
+}
+
+.title {
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+  font-weight: 600;
+  color: white;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  margin: 15px 0; /* Общий отступ для каждого элемента */
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.link:hover {
+  background-color: #16a085; /* Эффект на hover */
+  color: #fff; /* Изменяем цвет текста */
+}
+
+.icon {
+  margin-right: 10px;
+  font-size: 1.5rem;
+}
+
+.active {
+  background-color: #1abc9c; /* Цвет фона для активной ссылки */
+  color: white; /* Цвет текста для активной ссылки */
+}
+
+.active .icon {
+  color: #fff; /* Изменяем цвет иконки для активной ссылки */
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px; /* Уменьшаем ширину на мобильных */
+  }
+  .title {
+    font-size: 1.2rem;
+  }
+  .link {
+    font-size: 1rem;
+  }
+}

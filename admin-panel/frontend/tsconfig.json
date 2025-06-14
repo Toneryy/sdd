@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES5" /* Для совместимости с браузерами */,
+    "lib": [
+      "DOM",
+      "ES6",
+      "DOM.Iterable",
+      "ScriptHost"
+    ] /* Определяет окружение, в котором будет выполняться код */,
+    "typeRoots": ["node_modules/@types", "src/types"],
+    "allowJs": true /* Позволяет использовать JavaScript файлы */,
+    "skipLibCheck": true /* Пропустить проверку типов в .d.ts файлах */,
+    "esModuleInterop": true /* Для корректной работы с модулями CommonJS */,
+    "allowSyntheticDefaultImports": true /* Разрешить использование default импорта для CommonJS */,
+    "strict": true /* Включает все строгие проверки типов */,
+    "module": "ESNext" /* Генерация модулей ESNext */,
+    "moduleResolution": "Node" /* Модульное разрешение для Node.js */,
+    "resolveJsonModule": true /* Разрешение на импорт JSON файлов */,
+    "jsx": "react-jsx" /* Использование JSX синтаксиса для React */,
+    "baseUrl": "./src" /* Базовый путь для всех импортов */,
+    "paths": {
+      "@components/*": ["src/components/*"] /* Поддержка алиасов для импорта */,
+      "@assets/*": ["src/assets/*"]
+    },
+    "noUnusedLocals": true /* Ошибка, если переменные не используются */,
+    "noUnusedParameters": true /* Ошибка, если параметры функции не используются */,
+    "noImplicitReturns": true /* Ошибка, если в функции не явно указано возвращаемое значение */,
+    "noFallthroughCasesInSwitch": true /* Ошибка для падения через кейс в switch */,
+    "forceConsistentCasingInFileNames": true /* Ошибка, если у импортов разные регистры в именах файлов */
+  },
+  "include": ["src"] /* Включение папки src в проект */,
+  "exclude": ["node_modules"] /* Исключение node_modules */
+}

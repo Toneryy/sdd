@@ -1,0 +1,32 @@
+/* /src/components/Users.module.scss */
+.usersEditor {
+  padding: 20px;
+}
+
+.title {
+  font-size: 2rem;
+  color: #34495e;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+.toggleButton {
+  background: #3498db;
+  color: white;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.toggleButton:hover {
+  background: #2980b9;
+}
