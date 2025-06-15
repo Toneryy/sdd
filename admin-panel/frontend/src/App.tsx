@@ -11,6 +11,7 @@ import ClientDatabase from './components/ClientDatabase/ClientDatabase';
 import LandingEditor from './components/ProductEditor/ProductEditor';
 
 import './App.scss';
+import Databases from 'components/Databases/Databases';
 
 const App: React.FC = () => (
   <Router>
@@ -21,6 +22,7 @@ const App: React.FC = () => (
       {/* ★ звёздочка — пропускаем все хвосты URL внутрь AdminLayout */}
       <Route path="/admin/*" element={<AdminLayout />}>
         {/* index-роут: /admin → Dashboard */}
+        <Route path="databases" element={<Databases />} />
         <Route index element={<Dashboard />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="products" element={<Products />} />

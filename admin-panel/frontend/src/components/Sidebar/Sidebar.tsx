@@ -1,7 +1,7 @@
-// /src/components/Sidebar.tsx
+// /src/components/Sidebar/Sidebar.tsx
 import React from 'react';
-import { NavLink } from 'react-router-dom'; // Используем NavLink для активных ссылок
-import { FiHome, FiPackage, FiUsers, FiTag, FiUsers as FiUserIcon, FiEdit } from 'react-icons/fi'; // Иконки
+import { NavLink } from 'react-router-dom';
+import { FiHome, FiPackage, FiUsers, FiTag, FiUsers as FiUserIcon, FiEdit, FiDatabase } from 'react-icons/fi';
 import styles from './Sidebar.module.scss';
 
 interface SidebarProps {
@@ -48,6 +48,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
                         <FiEdit className={styles.icon} />
                         Редактор
                     </NavLink>
+                </li>
+                {/* Новый раздел для Баз данных */}
+                <li>
+                    <NavLink to="/admin/databases" className={({ isActive }) => isActive ? `${styles.link} ${styles.active}` : styles.link}>
+                        <FiDatabase className={styles.icon} />
+                        Базы данных
+                    </NavLink>
+                    {/* Здесь теперь не будет подсписков с данными, они будут только в Databases */}
                 </li>
             </ul>
         </div>
