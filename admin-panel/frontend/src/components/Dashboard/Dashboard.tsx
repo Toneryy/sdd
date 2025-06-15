@@ -9,7 +9,7 @@ const Dashboard: React.FC = () => {
             <p className={styles.subtitle}>Этот текст должен отображаться в админке</p>
 
             {/* пример статистики */}
-            <div className={styles.statsGrid}>
+            <div className={styles.statsFlex}>
                 <div className={styles.card}>
                     <span className={styles.cardLabel}>Товары</span>
                     <span className={styles.cardValue}>120</span>
