@@ -1,3 +1,16 @@
+.imgPreview {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  transition: transform 0.3s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(4);
+    z-index: 10;
+  }
+}
+
 .productEditor {
   padding: 20px;
   margin-left: 40px;

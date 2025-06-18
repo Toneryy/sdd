@@ -1,16 +1,11 @@
-// /src/api/categories.ts
 import axios from "axios";
 import { API_URL } from "../utils/api";
 
-export const getCategories = async () => {
-  const { data } = await axios.get(`${API_URL}/admin/categories`);
-  return data;
-};
-
-export const addCategory = async (categoryData: any) => {
-  const { data } = await axios.post(
-    `${API_URL}/admin/categories`,
-    categoryData
-  );
-  return data;
-};
+export const getCategories = () =>
+  axios.get(`${API_URL}/admin/categories`).then((r) => r.data);
+export const addCategory = (body: any) =>
+  axios.post(`${API_URL}/admin/categories`, body).then((r) => r.data);
+export const updateCategory = (id: string, body: any) =>
+  axios.put(`${API_URL}/admin/categories/${id}`, body).then((r) => r.data);
+export const deleteCategory = (id: string) =>
+  axios.delete(`${API_URL}/admin/categories/${id}`);
