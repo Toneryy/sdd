@@ -5,8 +5,9 @@ import staffMembersRoutes from "./routes/staffMembers.routes";
 import staffRightsRoutes from "./routes/staffRights.routes";
 import dbNameAliasesRoutes from "./routes/dbNameAliases.routes";
 import productsRoutes from "./routes/products.routes";
-import categoriesRoutes from "./routes/categories.routes"; // Новый роут
-import subscriptionsRoutes from "./routes/subscriptions.routes"; // Новый роут
+import categoriesRoutes from "./routes/categories.routes";
+import subscriptionsRoutes from "./routes/subscriptions.routes";
+import usersRoutes from "./routes/users.routes";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use("/api/db-name-aliases", dbNameAliasesRoutes);
 app.use("/api/admin/products", productsRoutes);
 app.use("/api/admin/categories", categoriesRoutes); // Новый маршрут для категорий
 app.use("/api/admin/subscriptions", subscriptionsRoutes); // Новый маршрут для подписок
+app.use("/api/admin/users", usersRoutes);
 
 const port = process.env.PORT || 4001;
 

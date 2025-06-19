@@ -1,0 +1,52 @@
+/* идентично product-delete-modal */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 360px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.title {
+  margin-bottom: 6px;
+  font-size: 1.3rem;
+}
+
+.text {
+  margin-bottom: 18px;
+}
+
+.btnRow {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.deleteBtn {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background: #6c757d;
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}
