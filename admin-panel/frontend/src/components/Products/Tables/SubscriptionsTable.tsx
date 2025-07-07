@@ -1,0 +1,227 @@
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import {
+  getSubscriptions,
+  addSubscription,
+  updateSubscription,
+  deleteSubscription,
+} from "../../../api/subscriptions";
+import EditModal from "../EditModal/EditModal";
+import DeleteConfirmation from "../DeleteConfirmation/DeleteConfirmation";
+import styles from "../Products.module.scss";
+
+export default function SubscriptionsTable() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [currentItemId, setCurrentItemId] = useState<string | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
+  const blank = {
+    title: "",
+    duration_days: "",
+    price: "",
+    description: "",
+    image: "",
+  };
+  const [form, setForm] = useState(blank);
+
+  useEffect(() => {
+    fetchRows();
+  }, []);
+
+  const fetchRows = async () => {
+    setLoading(true);
+    try {
+      setRows(await getSubscriptions());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const created = await addSubscription({
+        title: form.title,
+        duration_days: Number(form.duration_days),
+        price: form.price,
+        description: form.description,
+        image: form.image,
+      });
+      setRows([...rows, created]);
+      setForm(blank);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!currentItemId) return;
+    try {
+      await deleteSubscription(currentItemId);
+      setRows((prev) => prev.filter((r) => r.id !== currentItemId));
+      toast.info("Запись удалена");
+    } catch (err) {
+      console.error(err);
+      toast.error("Не удалось удалить запись");
+    } finally {
+      setDeleteModalVisible(false);
+      setCurrentItemId(null);
+    }
+  };
+
+  const handleSaveEdit = async (upd: any) => {
+    try {
+      const saved = await updateSubscription(upd.id, {
+        title: upd.title,
+        duration_days: upd.duration_days,
+        price: upd.price,
+        description: upd.description,
+        image: upd.image,
+      });
+      setRows((prev) => prev.map((r) => (r.id === saved.id ? saved : r)));
+      toast.success("Изменения сохранены");
+      setEditModalVisible(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Не удалось сохранить изменения");
+    }
+  };
+
+  const currentItem = rows.find((r) => r.id === currentItemId) ?? null;
+
+  return (
+    <>
+      <h3 className={styles.subtitle}>2. Добавить запись</h3>
+
+      <form onSubmit={handleAdd} className={styles.form}>
+        <div className={styles.formField}>
+          <input
+            name="title"
+            placeholder="Название подписки"
+            value={form.title}
+            onChange={onChange}
+            required
+          />
+        </div>
+        <div className={styles.formField}>
+          <input
+            name="duration_days"
+            type="number"
+            placeholder="Длительность (дни)"
+            value={form.duration_days}
+            onChange={onChange}
+            required
+          />
+        </div>
+        <div className={styles.formField}>
+          <input
+            name="price"
+            type="number"
+            placeholder="Цена"
+            value={form.price}
+            onChange={onChange}
+            required
+          />
+        </div>
+        <div className={styles.formField}>
+          <input
+            name="description"
+            placeholder="Описание"
+            value={form.description}
+            onChange={onChange}
+          />
+        </div>
+        <div className={styles.formField}>
+          <input
+            name="image"
+            placeholder="URL изображения"
+            value={form.image}
+            onChange={onChange}
+          />
+        </div>
+        <button type="submit" className={styles.submitButton}>
+          Добавить
+        </button>
+      </form>
+
+      <h3 className={styles.subtitle}>3. Содержимое «Подписки»</h3>
+
+      {loading ? (
+        <p>Загрузка…</p>
+      ) : (
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Название</th>
+              <th>Дней</th>
+              <th>Цена</th>
+              <th>Фотография</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id}>
+                <td>{r.title}</td>
+                <td>{r.duration_days}</td>
+                <td>{r.price}</td>
+                <td>
+                  {r.image ? (
+                    <img
+                      src={r.image}
+                      alt="sub"
+                      className={styles.imgPreview}
+                      width={40}
+                    />
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td>
+                  <button
+                    className={styles.editButton}
+                    onClick={() => {
+                      setCurrentItemId(r.id);
+                      setEditModalVisible(true);
+                    }}
+                  >
+                    ✎
+                  </button>
+                  <button
+                    className={styles.deleteButton}
+                    onClick={() => {
+                      setCurrentItemId(r.id);
+                      setDeleteModalVisible(true);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <EditModal
+        show={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        table="subscriptions"
+        item={currentItem}
+        onSave={handleSaveEdit}
+      />
+
+      <DeleteConfirmation
+        show={deleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onDelete={handleDelete}
+      />
+    </>
+  );
+}
