@@ -132,6 +132,7 @@ model product_keys {
   created_at                                                DateTime?       @default(now()) @db.Timestamptz(6)
   updated_at                                                DateTime?       @default(now()) @db.Timestamptz(6)
   user_product_id                                           String?         @db.Uuid
+  keys_aliases                                              keys_aliases[]
   products                                                  products?       @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_keys_product")
   user_products_product_keys_user_product_idTouser_products user_products?  @relation("product_keys_user_product_idTouser_products", fields: [user_product_id], references: [id], onUpdate: NoAction, map: "fk_keys_purchase")
   user_products_user_products_product_key_idToproduct_keys  user_products[] @relation("user_products_product_key_idToproduct_keys")
@@ -143,7 +144,7 @@ model user_products {
   product_id                                               String         @db.Uuid
   added_at                                                 DateTime       @default(now()) @db.Timestamptz(6)
   product_key_id                                           String?        @db.Uuid
-  code                                                     String?
+  code                                                     String?        @unique(map: "unique_code")
   product_keys_product_keys_user_product_idTouser_products product_keys[] @relation("product_keys_user_product_idTouser_products")
   products                                                 products       @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_product")
   product_keys_user_products_product_key_idToproduct_keys  product_keys?  @relation("user_products_product_key_idToproduct_keys", fields: [product_key_id], references: [id], onUpdate: NoAction, map: "fk_product_key")
@@ -175,4 +176,14 @@ model staff_rights {
   can_access      Boolean?       @default(true)
   staff_member_id String?        @db.Uuid
   staff_members   staff_members? @relation(fields: [staff_member_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model keys_aliases {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_key_id String       @db.Uuid
+  code           String       @unique @db.VarChar(22)
+  purchased      Boolean?     @default(false)
+  created_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  product_keys   product_keys @relation(fields: [product_key_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_keys_aliases_product_key")
 }

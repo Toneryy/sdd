@@ -8,6 +8,9 @@ import productsRoutes from "./routes/products.routes";
 import categoriesRoutes from "./routes/categories.routes";
 import subscriptionsRoutes from "./routes/subscriptions.routes";
 import usersRoutes from "./routes/users.routes";
+import keysAliasesRoutes from "./routes/keys_aliases.routes";
+import productKeysRoutes from './routes/product_keys.routes'
+import keyLookupRoutes from "./routes/key_lookup.routes";
 
 dotenv.config();
 
@@ -24,6 +27,9 @@ app.use("/api/admin/products", productsRoutes);
 app.use("/api/admin/categories", categoriesRoutes); // Новый маршрут для категорий
 app.use("/api/admin/subscriptions", subscriptionsRoutes); // Новый маршрут для подписок
 app.use("/api/admin/users", usersRoutes);
+app.use("/api/admin/keys-aliases", keysAliasesRoutes);
+app.use('/api/admin/product-keys', productKeysRoutes)
+app.use("/api/admin/key-lookup", keyLookupRoutes);
 
 const port = process.env.PORT || 4001;
 

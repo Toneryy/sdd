@@ -12,6 +12,8 @@ import LandingEditor from './components/ProductEditor/ProductEditor';
 
 import './App.scss';
 import Databases from 'components/Databases/Databases';
+import KeyAliasesTable from 'components/Products/Tables/KeyAliasesTable';
+import KeyLookup from 'components/Products/Tables/KeyLookup';
 
 const App: React.FC = () => (
   <Router>
@@ -25,6 +27,8 @@ const App: React.FC = () => (
         <Route path="databases" element={<Databases />} />
         <Route index element={<Dashboard />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="keys" element={<KeyAliasesTable />} />
+        <Route path="key-check" element={<KeyLookup />} />
         <Route path="products" element={<Products />} />
         <Route path="users" element={<Users />} />
         <Route path="promocodes" element={<PromoCodes />} />
