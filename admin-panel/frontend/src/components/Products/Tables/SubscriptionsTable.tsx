@@ -27,6 +27,14 @@ export default function SubscriptionsTable() {
   };
   const [form, setForm] = useState(blank);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(rows.length / pageSize);
+  const paginatedRows = rows.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   useEffect(() => {
     fetchRows();
   }, []);
@@ -34,7 +42,9 @@ export default function SubscriptionsTable() {
   const fetchRows = async () => {
     setLoading(true);
     try {
-      setRows(await getSubscriptions());
+      const data = await getSubscriptions();
+      setRows(data);
+      setCurrentPage(1);
     } finally {
       setLoading(false);
     }
@@ -46,17 +56,19 @@ export default function SubscriptionsTable() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await addSubscription({
+      await addSubscription({
         title: form.title,
         duration_days: Number(form.duration_days),
         price: form.price,
         description: form.description,
         image: form.image,
       });
-      setRows([...rows, created]);
+      await fetchRows();
       setForm(blank);
+      toast.success("Подписка добавлена");
     } catch (err) {
       console.error(err);
+      toast.error("Ошибка при добавлении подписки");
     }
   };
 
@@ -64,7 +76,7 @@ export default function SubscriptionsTable() {
     if (!currentItemId) return;
     try {
       await deleteSubscription(currentItemId);
-      setRows((prev) => prev.filter((r) => r.id !== currentItemId));
+      await fetchRows();
       toast.info("Запись удалена");
     } catch (err) {
       console.error(err);
@@ -77,14 +89,14 @@ export default function SubscriptionsTable() {
 
   const handleSaveEdit = async (upd: any) => {
     try {
-      const saved = await updateSubscription(upd.id, {
+      await updateSubscription(upd.id, {
         title: upd.title,
         duration_days: upd.duration_days,
         price: upd.price,
         description: upd.description,
         image: upd.image,
       });
-      setRows((prev) => prev.map((r) => (r.id === saved.id ? saved : r)));
+      await fetchRows();
       toast.success("Изменения сохранены");
       setEditModalVisible(false);
     } catch (err) {
@@ -155,58 +167,91 @@ export default function SubscriptionsTable() {
       {loading ? (
         <p>Загрузка…</p>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Название</th>
-              <th>Дней</th>
-              <th>Цена</th>
-              <th>Фотография</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td>{r.title}</td>
-                <td>{r.duration_days}</td>
-                <td>{r.price}</td>
-                <td>
-                  {r.image ? (
-                    <img
-                      src={r.image}
-                      alt="sub"
-                      className={styles.imgPreview}
-                      width={40}
-                    />
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td>
-                  <button
-                    className={styles.editButton}
-                    onClick={() => {
-                      setCurrentItemId(r.id);
-                      setEditModalVisible(true);
-                    }}
-                  >
-                    ✎
-                  </button>
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => {
-                      setCurrentItemId(r.id);
-                      setDeleteModalVisible(true);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </td>
+        <>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Дней</th>
+                <th>Цена</th>
+                <th>Фотография</th>
+                <th>Действия</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginatedRows.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.title}</td>
+                  <td>{r.duration_days}</td>
+                  <td>{r.price}</td>
+                  <td>
+                    {r.image ? (
+                      <img
+                        src={r.image}
+                        alt="sub"
+                        className={styles.imgPreview}
+                        width={40}
+                      />
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td>
+                    <button
+                      className={styles.editButton}
+                      onClick={() => {
+                        setCurrentItemId(r.id);
+                        setEditModalVisible(true);
+                      }}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => {
+                        setCurrentItemId(r.id);
+                        setDeleteModalVisible(true);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                ←
+              </button>
+              {[...Array(totalPages)].map((_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={page === currentPage ? styles.activePage : ""}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <EditModal

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import styles from "./EditModal.module.scss";
 
@@ -23,9 +23,34 @@ const EditModal: React.FC<Props> = ({ show, table, item, onClose, onSave }) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSave = () => onSave(form);
+  const handleSave = useCallback(() => onSave(form), [form, onSave]);
+
+  useEffect(() => {
+    if (!show) return;
+
+    const typingTags = ["INPUT", "TEXTAREA", "SELECT"];
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSave();
+      } else if (
+        e.key === "Escape" ||
+        (e.key === "Backspace" &&
+          !typingTags.includes(
+            (document.activeElement as HTMLElement | null)?.tagName || ""
+          ))
+      ) {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [show, handleSave, onClose]);
 
   if (!show) return null;
+
   return ReactDOM.createPortal(
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>

@@ -29,6 +29,14 @@ export default function ProductsTable() {
   };
   const [form, setForm] = useState(blank);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(rows.length / pageSize);
+  const paginatedRows = rows.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   useEffect(() => {
     getCategories().then(setCategories).catch(console.error);
     fetchRows();
@@ -37,7 +45,9 @@ export default function ProductsTable() {
   const fetchRows = async () => {
     setLoading(true);
     try {
-      setRows(await getProducts());
+      const data = await getProducts();
+      setRows(data);
+      setCurrentPage(1);
     } finally {
       setLoading(false);
     }
@@ -50,17 +60,19 @@ export default function ProductsTable() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await addProduct({
+      await addProduct({
         name: form.name,
         price: form.price,
         description: form.description,
         img: form.img,
         category_id: form.category_id || null,
       });
-      setRows([...rows, created]);
+      await fetchRows();
       setForm(blank);
+      toast.success("Товар добавлен");
     } catch (err) {
       console.error(err);
+      toast.error("Ошибка при добавлении товара");
     }
   };
 
@@ -68,7 +80,7 @@ export default function ProductsTable() {
     if (!currentItemId) return;
     try {
       await deleteProduct(currentItemId);
-      setRows((prev) => prev.filter((r) => r.id !== currentItemId));
+      await fetchRows();
       toast.info("Запись удалена");
     } catch (err) {
       console.error(err);
@@ -81,8 +93,8 @@ export default function ProductsTable() {
 
   const handleSaveEdit = async (upd: any) => {
     try {
-      const saved = await updateProduct(upd.id, upd);
-      setRows((prev) => prev.map((r) => (r.id === saved.id ? saved : r)));
+      await updateProduct(upd.id, upd);
+      await fetchRows();
       toast.success("Изменения сохранены");
       setEditModalVisible(false);
     } catch (err) {
@@ -159,58 +171,93 @@ export default function ProductsTable() {
       {loading ? (
         <p>Загрузка…</p>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Название</th>
-              <th>Цена</th>
-              <th>Категория</th>
-              <th>Фотография</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td>{r.name}</td>
-                <td>{r.price}</td>
-                <td>{r.categories?.name ?? "—"}</td>
-                <td>
-                  {r.img ? (
-                    <img
-                      src={r.img}
-                      alt="img"
-                      className={styles.imgPreview}
-                      width={40}
-                    />
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td>
-                  <button
-                    className={styles.editButton}
-                    onClick={() => {
-                      setCurrentItemId(r.id);
-                      setEditModalVisible(true);
-                    }}
-                  >
-                    ✎
-                  </button>
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => {
-                      setCurrentItemId(r.id);
-                      setDeleteModalVisible(true);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </td>
+        <>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Цена</th>
+                <th>Категория</th>
+                <th>Фотография</th>
+                <th>Действия</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginatedRows.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.name}</td>
+                  <td>{r.price}</td>
+                  <td>{r.categories?.name ?? "—"}</td>
+                  <td>
+                    {r.img ? (
+                      <img
+                        src={r.img}
+                        alt="img"
+                        className={styles.imgPreview}
+                        width={40}
+                      />
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td>
+                    <button
+                      className={styles.editButton}
+                      onClick={() => {
+                        setCurrentItemId(r.id);
+                        setEditModalVisible(true);
+                      }}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => {
+                        setCurrentItemId(r.id);
+                        setDeleteModalVisible(true);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                ←
+              </button>
+
+              {[...Array(totalPages)].map((_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={page === currentPage ? styles.activePage : ""}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <EditModal
