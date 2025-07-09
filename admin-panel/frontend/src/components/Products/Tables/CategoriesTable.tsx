@@ -20,6 +20,14 @@ export default function CategoriesTable() {
 
   const [name, setName] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(rows.length / pageSize);
+  const paginatedRows = rows.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   useEffect(() => {
     fetchRows();
   }, []);
@@ -27,7 +35,9 @@ export default function CategoriesTable() {
   const fetchRows = async () => {
     setLoading(true);
     try {
-      setRows(await getCategories());
+      const data = await getCategories();
+      setRows(data);
+      setCurrentPage(1);
     } finally {
       setLoading(false);
     }
@@ -36,11 +46,13 @@ export default function CategoriesTable() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await addCategory({ name });
-      setRows([...rows, created]);
+      await addCategory({ name });
+      await fetchRows();
       setName("");
+      toast.success("Категория добавлена");
     } catch (err) {
       console.error(err);
+      toast.error("Ошибка при добавлении категории");
     }
   };
 
@@ -48,7 +60,7 @@ export default function CategoriesTable() {
     if (!currentItemId) return;
     try {
       await deleteCategory(currentItemId);
-      setRows((prev) => prev.filter((r) => r.id !== currentItemId));
+      await fetchRows();
       toast.info("Запись удалена");
     } catch (err) {
       console.error(err);
@@ -61,8 +73,8 @@ export default function CategoriesTable() {
 
   const handleSaveEdit = async (upd: any) => {
     try {
-      const saved = await updateCategory(upd.id, { name: upd.name });
-      setRows((prev) => prev.map((r) => (r.id === saved.id ? saved : r)));
+      await updateCategory(upd.id, { name: upd.name });
+      await fetchRows();
       toast.success("Изменения сохранены");
       setEditModalVisible(false);
     } catch (err) {
@@ -97,41 +109,76 @@ export default function CategoriesTable() {
       {loading ? (
         <p>Загрузка…</p>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Название</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td>{r.name}</td>
-                <td>
-                  <button
-                    className={styles.editButton}
-                    onClick={() => {
-                      setCurrentItemId(r.id);
-                      setEditModalVisible(true);
-                    }}
-                  >
-                    ✎
-                  </button>
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => {
-                      setCurrentItemId(r.id);
-                      setDeleteModalVisible(true);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </td>
+        <>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Действия</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginatedRows.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.name}</td>
+                  <td>
+                    <button
+                      className={styles.editButton}
+                      onClick={() => {
+                        setCurrentItemId(r.id);
+                        setEditModalVisible(true);
+                      }}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => {
+                        setCurrentItemId(r.id);
+                        setDeleteModalVisible(true);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                ←
+              </button>
+
+              {[...Array(totalPages)].map((_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={page === currentPage ? styles.activePage : ""}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <EditModal

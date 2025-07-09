@@ -11,10 +11,12 @@ import usersRoutes from "./routes/users.routes";
 import keysAliasesRoutes from "./routes/keys_aliases.routes";
 import productKeysRoutes from './routes/product_keys.routes'
 import keyLookupRoutes from "./routes/key_lookup.routes";
+import { scheduleSubscriptionRefresh } from './jobs';
 
 dotenv.config();
 
 const app = express();
+scheduleSubscriptionRefresh();
 
 app.use(cors()); // Для обработки CORS запросов
 app.use(express.json()); // Для парсинга JSON

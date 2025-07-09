@@ -22,8 +22,16 @@ export default function ProductKeysTable() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
-const blank = { key_encrypted: "", product_id: "", code: "" };
+  const blank = { key_encrypted: "", product_id: "", code: "" };
   const [form, setForm] = useState(blank);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(rows.length / pageSize);
+  const paginatedRows = rows.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   useEffect(() => {
     fetchRows();
@@ -36,6 +44,7 @@ const blank = { key_encrypted: "", product_id: "", code: "" };
       const data = await getProductKeys();
       setAllRows(data);
       setRows(data);
+      setCurrentPage(1);
     } finally {
       setLoading(false);
     }
@@ -51,8 +60,10 @@ const blank = { key_encrypted: "", product_id: "", code: "" };
       await addProductKey(form);
       await fetchRows();
       setForm(blank);
+      toast.success("Ключ добавлен");
     } catch (err) {
       console.error(err);
+      toast.error("Ошибка при добавлении ключа");
     }
   };
 
@@ -73,7 +84,13 @@ const blank = { key_encrypted: "", product_id: "", code: "" };
 
   const handleSaveEdit = async (upd: any) => {
     try {
-      const saved = await updateProductKey(upd.id, upd);
+      const { id, key_encrypted, product_id, used } = upd;
+      const saved = await updateProductKey(id, {
+        key_encrypted,
+        product_id,
+        used,
+      });
+
       setRows((prev) => prev.map((r) => (r.id === saved.id ? saved : r)));
       toast.success("Сохранено");
       setEditModalVisible(false);
@@ -87,6 +104,7 @@ const blank = { key_encrypted: "", product_id: "", code: "" };
     const q = searchTerm.trim().toLowerCase();
     if (!q) {
       setRows(allRows);
+      setCurrentPage(1);
       return;
     }
 
@@ -97,12 +115,16 @@ const blank = { key_encrypted: "", product_id: "", code: "" };
     );
 
     setRows(filtered);
+    setCurrentPage(1);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     setSearchTerm(v);
-    if (!v.trim()) setRows(allRows);
+    if (!v.trim()) {
+      setRows(allRows);
+      setCurrentPage(1);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -112,8 +134,6 @@ const blank = { key_encrypted: "", product_id: "", code: "" };
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-
-      // Максимум 3 уведомления
       if (toast.length < 3) {
         toast.info("Скопировано", { autoClose: 2000 });
       }
@@ -128,7 +148,6 @@ const blank = { key_encrypted: "", product_id: "", code: "" };
     <>
       <h3 className={styles.subtitle}>2. Добавить ключ</h3>
 
-      {/* поиск */}
       <div className={styles.searchBar}>
         <input
           className={styles.searchInput}
@@ -177,61 +196,94 @@ const blank = { key_encrypted: "", product_id: "", code: "" };
       {loading ? (
         <p>Загрузка…</p>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Ключ</th>
-              <th>Код</th>
-              <th>Товар</th>
-              <th>Статус</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td
-                  title={r.key_encrypted}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => copyToClipboard(r.key_encrypted)}
-                >
-                  {r.key_encrypted.slice(0, 6)}…{r.key_encrypted.slice(-4)}
-                </td>
-                <td
-                  style={{ cursor: "pointer" }}
-                  onClick={() => {
-                    if (r.keys_aliases?.[0]?.code)
-                      copyToClipboard(r.keys_aliases[0].code);
-                  }}
-                >
-                  {r.keys_aliases?.[0]?.code ?? "—"}
-                </td>
-                <td>{r.products?.name ?? "—"}</td>
-                <td>{r.used ? "Использован" : "Свободен"}</td>
-                <td>
-                  <button
-                    className={styles.editButton}
-                    onClick={() => {
-                      setCurrentItemId(r.id);
-                      setEditModalVisible(true);
-                    }}
-                  >
-                    ✎
-                  </button>
-                  <button
-                    className={styles.deleteButton}
-                    onClick={() => {
-                      setCurrentItemId(r.id);
-                      setDeleteModalVisible(true);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </td>
+        <>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Ключ</th>
+                <th>Код</th>
+                <th>Товар</th>
+                <th>Статус</th>
+                <th>Действия</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginatedRows.map((r) => (
+                <tr key={r.id}>
+                  <td
+                    title={r.key_encrypted}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => copyToClipboard(r.key_encrypted)}
+                  >
+                    {r.key_encrypted.slice(0, 6)}…{r.key_encrypted.slice(-4)}
+                  </td>
+                  <td
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      if (r.keys_aliases?.[0]?.code)
+                        copyToClipboard(r.keys_aliases[0].code);
+                    }}
+                  >
+                    {r.keys_aliases?.[0]?.code ?? "—"}
+                  </td>
+                  <td>{r.products?.name ?? "—"}</td>
+                  <td>{r.used ? "Использован" : "Свободен"}</td>
+                  <td>
+                    <button
+                      className={styles.editButton}
+                      onClick={() => {
+                        setCurrentItemId(r.id);
+                        setEditModalVisible(true);
+                      }}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => {
+                        setCurrentItemId(r.id);
+                        setDeleteModalVisible(true);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                ←
+              </button>
+              {[...Array(totalPages)].map((_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={page === currentPage ? styles.activePage : ""}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <EditModal

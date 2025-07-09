@@ -61,11 +61,14 @@ export const addProductKey = async (req: Request, res: Response) => {
 };
 
 /* --------- PUT /product-keys/:id --------- */
+// controllers/product_keys.controller.ts
 export const updateProductKey = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { key_encrypted, product_id, used } = req.body;
+
   try {
-    const encrypted = encrypt(key_encrypted); // <= тоже шифруем
+    const encrypted = encrypt(key_encrypted);
+
     const updated = await prisma.product_keys.update({
       where: { id },
       data: {
@@ -74,8 +77,22 @@ export const updateProductKey = async (req: Request, res: Response) => {
         used,
         updated_at: new Date(),
       },
+      include: {
+        // ⚠️ добавили
+        products: true,
+        keys_aliases: true,
+      },
     });
-    res.json(updated);
+
+    /* расшифровываем перед отправкой */
+    res.json({
+      ...updated,
+      key_encrypted: safeDecrypt(updated.key_encrypted),
+      keys_aliases: updated.keys_aliases.map((a) => ({
+        ...a,
+        code: safeDecrypt(a.code),
+      })),
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Ошибка при обновлении ключа" });
