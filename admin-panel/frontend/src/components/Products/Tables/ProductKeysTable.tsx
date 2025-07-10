@@ -160,7 +160,7 @@ export default function ProductKeysTable() {
           Поиск
         </button>
       </div>
-
+      
       <form onSubmit={handleAdd} className={styles.form}>
         <div className={styles.formField}>
           <input

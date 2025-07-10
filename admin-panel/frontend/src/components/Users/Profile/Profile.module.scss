@@ -1,0 +1,157 @@
+.profile {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 32px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", sans-serif;
+  color: #333;
+}
+
+.back {
+  display: inline-block;
+  background: transparent;
+  color: #007bff;
+  font-weight: 500;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+  font-size: 15px;
+  margin-bottom: 20px;
+  transition: color 0.2s;
+}
+
+.back:hover {
+  color: #0056b3;
+}
+
+.heading {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: #222;
+}
+
+.section {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  border: 1px solid #ddd;
+}
+
+.subheading {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: #555;
+}
+
+p {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+strong {
+  color: #444;
+}
+
+.subList {
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.subItem {
+  font-size: 15px;
+  color: #444;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.loading,
+.error {
+  text-align: center;
+  font-size: 18px;
+  color: #888;
+  margin-top: 200px;
+}
+
+.copyable {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.copyable:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.modalContent {
+  padding: 24px;
+  max-width: 600px;
+  font-family: "Segoe UI", sans-serif;
+  color: #333;
+
+  h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #222;
+  }
+
+  p {
+    margin: 8px 0;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #444;
+  }
+
+  label {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+  }
+
+  textarea,
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    font-family: "Segoe UI", sans-serif;
+    background: #fff;
+    transition: border 0.2s;
+
+    &:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+  }
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.saveBtn {
+  display: inline-block;
+  margin-top: 24px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #0056b3, #004099);
+  }
+}

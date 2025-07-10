@@ -1,0 +1,99 @@
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+  animation: fadeBackdrop 0.2s ease-in-out;
+}
+
+@keyframes fadeBackdrop {
+  from {
+    background: rgba(0, 0, 0, 0);
+  }
+  to {
+    background: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 520px;
+  width: 92%;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeInUp 0.25s ease;
+  font-family: "Segoe UI", sans-serif;
+  color: #333;
+  position: relative;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+}
+
+p {
+  margin: 8px 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+strong {
+  color: #111;
+}
+
+.closeButton {
+  display: block;
+  margin: 24px auto 0;
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  }
+}
+
+.closeIcon {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #333;
+  }
+}

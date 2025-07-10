@@ -30,7 +30,7 @@ export const listProductKeys = async (_: Request, res: Response) => {
 export const addProductKey = async (req: Request, res: Response) => {
   const { key_encrypted, product_id, code } = req.body;
 
-  if (!key_encrypted || !product_id || !code) {
+  if (!key_encrypted || !product_id) {
     return res.status(400).json({ message: "Отсутствует одно из полей" });
   }
 
@@ -42,11 +42,6 @@ export const addProductKey = async (req: Request, res: Response) => {
       data: {
         key_encrypted: encryptedKey,
         product_id,
-        keys_aliases: {
-          create: {
-            code: encryptedCode,
-          },
-        },
       },
       include: {
         keys_aliases: true,

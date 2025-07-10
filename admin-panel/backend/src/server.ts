@@ -11,6 +11,7 @@ import usersRoutes from "./routes/users.routes";
 import keysAliasesRoutes from "./routes/keys_aliases.routes";
 import productKeysRoutes from './routes/product_keys.routes'
 import keyLookupRoutes from "./routes/key_lookup.routes";
+import ordersRouter from "./routes/orders.routes";
 import { scheduleSubscriptionRefresh } from './jobs';
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.use("/api/admin/users", usersRoutes);
 app.use("/api/admin/keys-aliases", keysAliasesRoutes);
 app.use('/api/admin/product-keys', productKeysRoutes)
 app.use("/api/admin/key-lookup", keyLookupRoutes);
+app.use("/api/admin/orders", ordersRouter);
 
 const port = process.env.PORT || 4001;
 
