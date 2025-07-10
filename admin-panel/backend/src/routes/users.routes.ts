@@ -4,12 +4,15 @@ import {
   addUser,
   updateUser,
   deleteUser,
+  getUserById,
 } from "../controllers/users.controller";
 
 const router = Router();
 
 // Получить всех пользователей
 router.get("/", listUsers);
+
+router.get("/:id", getUserById);
 
 // Добавить нового пользователя
 router.post("/", addUser);

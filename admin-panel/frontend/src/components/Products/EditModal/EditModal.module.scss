@@ -55,3 +55,49 @@
   border-radius: 6px;
   cursor: pointer;
 }
+
+.toggleWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.toggleCheckbox {
+  display: none;
+}
+
+.toggleSlider {
+  width: 50px;
+  height: 26px;
+  background-color: #dc3545; // красный
+  border-radius: 50px;
+  position: relative;
+  transition: background-color 0.2s;
+
+  &::before {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    top: 2px;
+    left: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+}
+
+.toggleCheckbox:checked + .toggleSlider {
+  background-color: #28a745; // зелёный
+}
+
+.toggleCheckbox:checked + .toggleSlider::before {
+  transform: translateX(24px);
+}
+
+.toggleLabel {
+  font-size: 0.95rem;
+}

@@ -54,6 +54,70 @@ export const listUsers = async (
   }
 };
 
+export const getUserById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const user = await prisma.users.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phone: true,
+        created_at: true,
+      },
+    });
+
+    if (!user)
+      return res.status(404).json({ message: "Пользователь не найден" });
+
+    const subscriptions = await prisma.user_subscriptions.findMany({
+      where: { user_id: id },
+      include: { subscriptions: true },
+      orderBy: { start_date: "desc" },
+    });
+    const serviceOrders = await prisma.service_orders.findMany({
+      where: { user_id: id },
+      include: {
+        operator: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    res.json({ user, subscriptions, serviceOrders });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Ошибка при получении пользователя" });
+  }
+};
+
+// PUT /api/admin/orders/:id
+export const updateServiceOrder = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { operator_description, operator_id } = req.body;
+
+  try {
+    const updated = await prisma.service_orders.update({
+      where: { id },
+      data: {
+        operator_description,
+        operator_id,
+        updated_at: new Date(),
+      },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Ошибка при обновлении обращения" });
+  }
+};
+
 /**
  * POST /api/admin/users
  */

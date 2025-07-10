@@ -14,6 +14,7 @@ import './App.scss';
 import Databases from 'components/Databases/Databases';
 import KeyAliasesTable from 'components/Products/Tables/KeyAliasesTable';
 import KeyLookup from 'components/Products/Tables/KeyLookup';
+import Profile from 'components/Users/Profile/Profile';
 
 const App: React.FC = () => (
   <Router>
@@ -31,6 +32,7 @@ const App: React.FC = () => (
         <Route path="key-check" element={<KeyLookup />} />
         <Route path="products" element={<Products />} />
         <Route path="users" element={<Users />} />
+        <Route path="users/:id" element={<Profile />} />
         <Route path="promocodes" element={<PromoCodes />} />
         <Route path="clients" element={<ClientDatabase />} />
         <Route path="landing" element={<LandingEditor />} />

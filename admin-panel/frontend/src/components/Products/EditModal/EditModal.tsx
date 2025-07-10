@@ -187,15 +187,17 @@ const EditModal: React.FC<Props> = ({ show, table, item, onClose, onSave }) => {
             </select>
 
             <label
-              className={styles.labelCheckbox}
+              className={styles.toggleWrapper}
               title="Отметьте, если ключ уже активирован"
             >
               <input
                 type="checkbox"
                 checked={form.used || false}
                 onChange={(e) => setForm({ ...form, used: e.target.checked })}
+                className={styles.toggleCheckbox}
               />
-              Ключ использован
+              <span className={styles.toggleSlider}></span>
+              <span className={styles.toggleLabel}>Ключ использован</span>
             </label>
           </>
         )}
