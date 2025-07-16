@@ -28,15 +28,27 @@ export const listProductKeys = async (_: Request, res: Response) => {
 };
 /* --------- POST /product-keys --------- */
 export const addProductKey = async (req: Request, res: Response) => {
-  const { key_encrypted, product_id, code } = req.body;
+  const { key_encrypted, product_id } = req.body;
 
   if (!key_encrypted || !product_id) {
     return res.status(400).json({ message: "Отсутствует одно из полей" });
   }
 
   try {
+    // 1. Получаем все ключи (можно оптимизировать позже)
+    const existingKeys = await prisma.product_keys.findMany();
+
+    // 2. Расшифровываем и сравниваем
+    const isDuplicate = existingKeys.some(
+      (k) => safeDecrypt(k.key_encrypted) === key_encrypted
+    );
+
+    if (isDuplicate) {
+      return res.status(409).json({ message: "Такой ключ уже существует" });
+    }
+
+    // 3. Шифруем и сохраняем
     const encryptedKey = encrypt(key_encrypted);
-    const encryptedCode = encrypt(code);
 
     const created = await prisma.product_keys.create({
       data: {
