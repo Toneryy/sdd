@@ -40,10 +40,11 @@ export const listUsers = async (_: Request, res: Response) => {
 };
 
 /* ------------------------------------------------------------------ */
-/*  GET /api/admin/users/:id  ─ профиль + подписки + обращения          */
+/*  GET /api/admin/users/:id  ─ профиль + подписки + продукты + обращения  */
 /* ------------------------------------------------------------------ */
 export const getUserById = async (req: Request, res: Response) => {
   const { id } = req.params;
+
   try {
     const user = await prisma.users.findUnique({
       where: { id },
@@ -59,12 +60,21 @@ export const getUserById = async (req: Request, res: Response) => {
     if (!user)
       return res.status(404).json({ message: "Пользователь не найден" });
 
+    /* подписки */
     const subscriptions = await prisma.user_subscriptions.findMany({
       where: { user_id: id },
       include: { subscriptions: true },
       orderBy: { start_date: "desc" },
     });
 
+    /* приобретённые продукты */
+    const products = await prisma.user_products.findMany({
+      where: { user_id: id },
+      include: { products: true }, // подтягиваем инфо о товаре
+      orderBy: { added_at: "desc" },
+    });
+
+    /* сервисные обращения */
     const supportRequests = await prisma.support_requests.findMany({
       where: { user_id: id },
       include: {
@@ -73,7 +83,7 @@ export const getUserById = async (req: Request, res: Response) => {
       orderBy: { created_at: "desc" },
     });
 
-    res.json({ user, subscriptions, supportRequests });
+    res.json({ user, subscriptions, products, supportRequests });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка при получении пользователя" });
@@ -102,6 +112,7 @@ export const addUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { username, email, phone, password } = req.body;
+
   try {
     const updated = await prisma.users.update({
       where: { id },
@@ -119,6 +130,7 @@ export const updateUser = async (req: Request, res: Response) => {
 /* ------------------------------------------------------------------ */
 export const deleteUser = async (req: Request, res: Response) => {
   const { id } = req.params;
+
   try {
     await prisma.users.delete({ where: { id } });
     res.json({ id });

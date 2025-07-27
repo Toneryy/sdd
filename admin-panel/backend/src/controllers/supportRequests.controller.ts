@@ -1,7 +1,10 @@
+// backend/src/controllers/supportRequests.controller.ts
 import { Request, Response } from "express";
 import { prisma } from "../config/prisma";
+import { SupportStatus } from "@prisma/client";
 
-// Получить все обращения
+const VALID_STATUS: SupportStatus[] = ["pending", "active", "closed"];
+
 export const listSupportRequests = async (_: Request, res: Response) => {
   try {
     const requests = await prisma.support_requests.findMany({
@@ -14,25 +17,32 @@ export const listSupportRequests = async (_: Request, res: Response) => {
   }
 };
 
-// Обновить обращение
 export const updateSupportRequest = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, description, status, operator_id, operator_description } =
-    req.body;
+  const { status, operator_id, operator_description } = req.body;
+
+  // валидация статуса
+  if (status !== undefined && !VALID_STATUS.includes(status as any)) {
+    return res.status(400).json({ message: `Неверный статус: ${status}` });
+  }
 
   try {
     const updated = await prisma.support_requests.update({
       where: { id },
-      data: { title, description, status, operator_id, operator_description },
+      data: {
+        // Вот здесь только те три поля, что реально меняем:
+        status,
+        operator_id,
+        operator_description,
+      },
     });
     res.json(updated);
   } catch (err) {
-    console.error(err);
+    console.error("Error in updateSupportRequest:", err);
     res.status(500).json({ message: "Ошибка при обновлении обращения" });
   }
 };
 
-// Удалить обращение
 export const deleteSupportRequest = async (req: Request, res: Response) => {
   try {
     await prisma.support_requests.delete({ where: { id: req.params.id } });
