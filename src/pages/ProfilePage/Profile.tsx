@@ -11,6 +11,12 @@ const Profile: React.FC = () => {
     const [profileData, setProfileData] = useState<any>(null);
     const navigate = useNavigate();
 
+    const STATUS_LABELS: Record<string, string> = {
+        pending: 'Ожидает ответа оператора',
+        active: 'Активно',
+        closed: 'Завершено',
+    };
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -87,7 +93,7 @@ const Profile: React.FC = () => {
                             <FiArchive className={styles.historyIcon} />
                             <div>
                                 <p className={styles.historyTitle}>{item.title}</p>
-                                <p className={styles.historyText}>Статус: <strong>{item.status}</strong></p>
+                                <p className={styles.historyText}>Статус: <strong>{STATUS_LABELS[item.status]}</strong></p>
                                 <p className={styles.historyDate}>Дата: <strong>{formatDate(item.created_at)}</strong></p>
                             </div>
                         </div>
