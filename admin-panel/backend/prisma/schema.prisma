@@ -9,16 +9,16 @@ datasource db {
 }
 
 model users {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username        String           @db.VarChar(50)
-  email           String           @unique @db.VarChar(100)
-  phone           String?          @db.VarChar(20)
-  password        String           @db.VarChar
-  subscription_id String?          @db.Uuid
-  created_at      DateTime?        @default(now()) @db.Timestamptz(6)
-  user_products   user_products[]
-  subscriptions   subscriptions?   @relation(fields: [subscription_id], references: [id], onUpdate: NoAction)
-  service_orders  service_orders[] @relation("UserOrders")
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username         String             @db.VarChar(50)
+  email            String             @unique @db.VarChar(100)
+  phone            String?            @db.VarChar(20)
+  password         String             @db.VarChar
+  subscription_id  String?            @db.Uuid
+  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  user_products    user_products[]
+  subscriptions    subscriptions?     @relation(fields: [subscription_id], references: [id])
+  support_requests support_requests[] @relation("UserSupportRequests")
 
   @@map("users")
 }
@@ -49,12 +49,18 @@ model user_subscriptions {
 }
 
 model support_requests {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id     String    @db.Uuid
-  title       String    @db.VarChar(255)
-  description String?
-  status      String?   @db.VarChar(20)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  id                   String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id              String        @db.Uuid
+  operator_id          String?       @db.Uuid
+  title                String        @db.VarChar(255)
+  description          String?
+  operator_description String?
+  status               String?       @db.VarChar(20) @default("pending")
+  created_at           DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?     @updatedAt
+
+  user     users         @relation("UserSupportRequests", fields: [user_id], references: [id])
+  operator staff_members? @relation("OperatorSupportRequests", fields: [operator_id], references: [id])
 
   @@map("support_requests")
 }
@@ -89,22 +95,6 @@ model promo_usage {
   @@map("promo_usage")
 }
 
-model service_orders {
-  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id              String    @db.Uuid
-  operator_id          String?   @db.Uuid
-  service_desc         String
-  status               String?   @default("pending") @db.VarChar(20)
-  created_at           DateTime? @default(now()) @db.Timestamp(6)
-  operator_description String?
-  updated_at           DateTime? @default(now()) @db.Timestamptz(6)
-
-  user     users          @relation("UserOrders", fields: [user_id], references: [id])
-  operator staff_members? @relation("OperatorOrders", fields: [operator_id], references: [id])
-
-  @@map("service_orders")
-}
-
 model categories {
   id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name       String     @unique @db.VarChar(100)
@@ -129,6 +119,8 @@ model products {
   product_keys  product_keys[]
   categories    categories?     @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
   user_products user_products[]
+
+  @@map("products")
 }
 
 model product_keys {
@@ -143,6 +135,8 @@ model product_keys {
   products                                                  products?       @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_keys_product")
   user_products_product_keys_user_product_idTouser_products user_products?  @relation("product_keys_user_product_idTouser_products", fields: [user_product_id], references: [id], onUpdate: NoAction, map: "fk_keys_purchase")
   user_products_user_products_product_key_idToproduct_keys  user_products[] @relation("user_products_product_key_idToproduct_keys")
+
+  @@map("product_keys")
 }
 
 model user_products {
@@ -156,6 +150,8 @@ model user_products {
   products                                                 products       @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_product")
   product_keys_user_products_product_key_idToproduct_keys  product_keys?  @relation("user_products_product_key_idToproduct_keys", fields: [product_key_id], references: [id], onUpdate: NoAction, map: "fk_product_key")
   users                                                    users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_purchases_user")
+
+  @@map("user_products")
 }
 
 model db_name_aliases {
@@ -166,15 +162,17 @@ model db_name_aliases {
 }
 
 model staff_members {
-  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username       String           @db.VarChar(50)
-  email          String           @unique @db.VarChar(100)
-  password       String           @db.VarChar
-  role           String           @db.VarChar(50)
-  created_at     DateTime?        @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime?        @default(now()) @db.Timestamptz(6)
-  staff_rights   staff_rights[]
-  service_orders service_orders[] @relation("OperatorOrders")
+  id                String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username          String               @db.VarChar(50)
+  email             String               @unique @db.VarChar(100)
+  password          String               @db.VarChar
+  role              String               @db.VarChar(50)
+  created_at        DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?            @default(now()) @db.Timestamptz(6)
+  staff_rights      staff_rights[]
+  support_requests  support_requests[]   @relation("OperatorSupportRequests")
+
+  @@map("staff_members")
 }
 
 model staff_rights {

@@ -2,31 +2,21 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/prisma";
 
-/**
- * GET /api/admin/users
- * Возвращает пользователей с полем lastEndDate (ISO-строка или null)
- */
-export const listUsers = async (
-  _req: Request,
-  res: Response
-): Promise<void> => {
+/* ------------------------------------------------------------------ */
+/*  GET /api/admin/users  ─ список пользователей с датой конца подписки  */
+/* ------------------------------------------------------------------ */
+export const listUsers = async (_: Request, res: Response) => {
   try {
-    // 1) Получаем по одной (самой свежей) подписке для каждого user_id
     const latestSubs = await prisma.user_subscriptions.findMany({
       orderBy: { end_date: "desc" },
-      distinct: ["user_id"], // берем только по одному на каждый user_id
-      select: {
-        user_id: true,
-        end_date: true,
-      },
+      distinct: ["user_id"],
+      select: { user_id: true, end_date: true },
     });
 
-    // Мапа user_id → end_date
     const lastEndMap = new Map<string, Date>(
       latestSubs.map((s) => [s.user_id, s.end_date])
     );
 
-    // 2) Запрашиваем всех пользователей
     const users = await prisma.users.findMany({
       select: {
         id: true,
@@ -37,13 +27,8 @@ export const listUsers = async (
       },
     });
 
-    // 3) Собираем плоский массив с lastEndDate
     const result = users.map((u) => ({
-      id: u.id,
-      username: u.username,
-      email: u.email,
-      phone: u.phone,
-      created_at: u.created_at,
+      ...u,
       lastEndDate: lastEndMap.get(u.id) ?? null,
     }));
 
@@ -54,6 +39,9 @@ export const listUsers = async (
   }
 };
 
+/* ------------------------------------------------------------------ */
+/*  GET /api/admin/users/:id  ─ профиль + подписки + обращения          */
+/* ------------------------------------------------------------------ */
 export const getUserById = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
@@ -76,52 +64,26 @@ export const getUserById = async (req: Request, res: Response) => {
       include: { subscriptions: true },
       orderBy: { start_date: "desc" },
     });
-    const serviceOrders = await prisma.service_orders.findMany({
+
+    const supportRequests = await prisma.support_requests.findMany({
       where: { user_id: id },
       include: {
-        operator: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-          },
-        },
+        operator: { select: { id: true, username: true, email: true } },
       },
       orderBy: { created_at: "desc" },
     });
 
-    res.json({ user, subscriptions, serviceOrders });
+    res.json({ user, subscriptions, supportRequests });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка при получении пользователя" });
   }
 };
 
-// PUT /api/admin/orders/:id
-export const updateServiceOrder = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { operator_description, operator_id } = req.body;
-
-  try {
-    const updated = await prisma.service_orders.update({
-      where: { id },
-      data: {
-        operator_description,
-        operator_id,
-        updated_at: new Date(),
-      },
-    });
-    res.json(updated);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Ошибка при обновлении обращения" });
-  }
-};
-
-/**
- * POST /api/admin/users
- */
-export const addUser = async (req: Request, res: Response): Promise<void> => {
+/* ------------------------------------------------------------------ */
+/*  POST /api/admin/users  ─ создать пользователя                       */
+/* ------------------------------------------------------------------ */
+export const addUser = async (req: Request, res: Response) => {
   const { username, email, phone, password } = req.body;
   try {
     const newUser = await prisma.users.create({
@@ -134,13 +96,10 @@ export const addUser = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-/**
- * PUT /api/admin/users/:id
- */
-export const updateUser = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+/* ------------------------------------------------------------------ */
+/*  PUT /api/admin/users/:id  ─ обновить пользователя                   */
+/* ------------------------------------------------------------------ */
+export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { username, email, phone, password } = req.body;
   try {
@@ -155,13 +114,10 @@ export const updateUser = async (
   }
 };
 
-/**
- * DELETE /api/admin/users/:id
- */
-export const deleteUser = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+/* ------------------------------------------------------------------ */
+/*  DELETE /api/admin/users/:id  ─ удалить пользователя                 */
+/* ------------------------------------------------------------------ */
+export const deleteUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await prisma.users.delete({ where: { id } });
