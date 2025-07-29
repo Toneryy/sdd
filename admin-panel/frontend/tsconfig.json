@@ -28,6 +28,6 @@
     "noFallthroughCasesInSwitch": true /* Ошибка для падения через кейс в switch */,
     "forceConsistentCasingInFileNames": true /* Ошибка, если у импортов разные регистры в именах файлов */
   },
-  "include": ["src"] /* Включение папки src в проект */,
+  "include": ["src", "declarations.d.ts"] /* Включение папки src в проект */,
   "exclude": ["node_modules"] /* Исключение node_modules */
 }

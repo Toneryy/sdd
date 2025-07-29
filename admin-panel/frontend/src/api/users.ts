@@ -30,3 +30,15 @@ export const getStaffMembers = async () => {
   const res = await axios.get(`${API_URL}/admin/staff-members`);
   return res.data;
 };
+
+export const searchUsers = async (q: string) => {
+  const { data } = await axios.get(`${API_URL}/admin/users/search`, {
+    params: { q },
+  });
+  return data as {
+    id: string;
+    username: string;
+    email: string;
+    phone: string | null;
+  }[];
+};

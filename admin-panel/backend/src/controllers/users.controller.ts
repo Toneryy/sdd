@@ -139,3 +139,41 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Ошибка при удалении пользователя" });
   }
 };
+
+export const searchUsers = async (req: Request, res: Response) => {
+  const q = String(req.query.q ?? "").trim();
+  if (!q) return res.json([]);
+
+  // 1) Вытаскиваем из ввода только цифры
+  const rawDigits = q.replace(/\D/g, ""); // ex: "8 995 123-45-67" → "89951234567"
+  // 2) Если начинается на "8", меняем первый символ на "7"
+  const normalizedDigits = rawDigits.startsWith("8")
+    ? "7" + rawDigits.slice(1) // "8995..." → "7995..."
+    : rawDigits; // иначе оставляем как есть
+
+  try {
+    const users = await prisma.$queryRawUnsafe<
+      { id: string; username: string; email: string; phone: string | null }[]
+    >(
+      `
+      SELECT id, username, email, phone
+      FROM users
+      WHERE username ILIKE '%' || $1 || '%'
+         OR email    ILIKE '%' || $1 || '%'
+         -- ищем по нормализованному номеру (если он не пустой)
+         OR (
+              $2 <> '' 
+              AND regexp_replace(phone, '\\D', '', 'g') LIKE '%' || $2 || '%'
+            )
+      ORDER BY username
+      LIMIT 15;
+      `,
+      q,
+      normalizedDigits
+    );
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Ошибка поиска пользователей" });
+  }
+};
