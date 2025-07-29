@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             <ul className={styles.submenu}>
               <li>
                 <NavLink to="/admin/keys" className={styles.link}>
-                  Связь ключей
+                  Связь кодов
                 </NavLink>
               </li>
               <li>

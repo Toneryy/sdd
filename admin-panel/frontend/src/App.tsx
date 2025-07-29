@@ -15,9 +15,11 @@ import Databases from 'components/Databases/Databases';
 import KeyAliasesTable from 'components/Products/Tables/KeyAliasesTable';
 import KeyLookup from 'components/Products/Tables/KeyLookup';
 import Profile from 'components/Users/Profile/Profile';
+import UserSearch from 'components/UserSearch/UserSearch';
 
 const App: React.FC = () => (
   <Router>
+    <UserSearch />
     <Routes>
       {/* редирект со «среды по-умолчанию» на панель */}
       <Route path="/" element={<Navigate to="/admin" replace />} />

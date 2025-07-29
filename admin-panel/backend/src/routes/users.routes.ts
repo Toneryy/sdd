@@ -5,9 +5,12 @@ import {
   updateUser,
   deleteUser,
   getUserById,
+  searchUsers,
 } from "../controllers/users.controller";
 
 const router = Router();
+
+router.get('/search', searchUsers);
 
 // Получить всех пользователей
 router.get("/", listUsers);
