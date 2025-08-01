@@ -1,36 +1,34 @@
 import crypto from "crypto";
 
-const algorithm = "aes-256-cbc";
-const secretKey =
-  process.env.ENCRYPTION_KEY || "defaultkey12345678901234567890"; // 32 байта!
-const ivLength = 16; // для AES
+const ALGO = "aes-256-cbc";
+const KEY = (process.env.ENCRYPTION_KEY ?? "defaultkey12345678901234567890")
+  .padEnd(32, "0") // ровно 32 байта
+  .slice(0, 32);
 
-if (secretKey.length !== 32) {
-  throw new Error("ENCRYPTION_KEY должен быть длиной 32 байта");
-}
+const ivFrom = (plain: string) =>
+  crypto
+    .createHash("sha256")
+    .update(plain + KEY)
+    .digest()
+    .subarray(0, 16); // 16-байтовый IV
 
-export const encrypt = (text: string): string => {
-  const iv = crypto.randomBytes(ivLength);
-  const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey), iv);
-  const encrypted = Buffer.concat([
-    cipher.update(text, "utf8"),
-    cipher.final(),
-  ]);
-  return iv.toString("hex") + ":" + encrypted.toString("hex");
+export const encrypt = (plain: string): string => {
+  const iv = ivFrom(plain); // фиксированный IV → детерминированно
+  const cipher = crypto.createCipheriv(ALGO, Buffer.from(KEY), iv);
+  const enc = Buffer.concat([cipher.update(plain, "utf8"), cipher.final()]);
+  return iv.toString("hex") + ":" + enc.toString("hex"); // iv:cipherHex
 };
 
 export const decrypt = (data: string): string => {
-  const [ivHex, encryptedHex] = data.split(":");
-  const iv = Buffer.from(ivHex, "hex");
-  const encryptedText = Buffer.from(encryptedHex, "hex");
+  const [ivHex, encHex] = data.split(":");
   const decipher = crypto.createDecipheriv(
-    algorithm,
-    Buffer.from(secretKey),
-    iv
+    ALGO,
+    Buffer.from(KEY),
+    Buffer.from(ivHex, "hex")
   );
-  const decrypted = Buffer.concat([
-    decipher.update(encryptedText),
+  const dec = Buffer.concat([
+    decipher.update(Buffer.from(encHex, "hex")),
     decipher.final(),
   ]);
-  return decrypted.toString("utf8");
+  return dec.toString("utf8");
 };

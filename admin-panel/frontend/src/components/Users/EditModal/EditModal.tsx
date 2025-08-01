@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
-import styles from './EditModal.module.scss';
+import React, { useEffect, useState } from "react";
+import ModalWrapper from "../Profile/ModalWrapper"; // путь к обертке
+import styles from "./EditModal.module.scss";
 
 interface Props {
     show: boolean;
@@ -9,22 +9,20 @@ interface Props {
     onSave: (data: Partial<User> & { id: string }) => void;
 }
 
-/** Плоское описание пользователя в UI */
 interface User {
     id: string;
     username: string | null;
     email: string | null;
     phone: string | null;
-    lastEndDate: string | null;   // только для отображения, на сохранение не отправляем
+    lastEndDate: string | null;
 }
 
 const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
     const [form, setForm] = useState<Partial<User>>({});
 
-    /* копируем данные выбранной строки */
     useEffect(() => {
         if (show && item) {
-            const { lastEndDate, ...editable } = item;   // не редактируем дату подписки
+            const { lastEndDate, ...editable } = item;
             setForm(editable);
         }
     }, [show, item]);
@@ -39,29 +37,29 @@ const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
 
     if (!show) return null;
 
-    return ReactDOM.createPortal(
-        <div className={styles.backdrop} onClick={onClose}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    return (
+        <ModalWrapper onClose={onClose}>
+            <div className={styles.modal}>
                 <h2 className={styles.title}>Редактирование</h2>
 
                 <input
                     className={styles.input}
                     name="username"
-                    value={form.username ?? ''}
+                    value={form.username ?? ""}
                     onChange={onChange}
                     placeholder="Имя пользователя"
                 />
                 <input
                     className={styles.input}
                     name="email"
-                    value={form.email ?? ''}
+                    value={form.email ?? ""}
                     onChange={onChange}
                     placeholder="Email"
                 />
                 <input
                     className={styles.input}
                     name="phone"
-                    value={form.phone ?? ''}
+                    value={form.phone ?? ""}
                     onChange={onChange}
                     placeholder="Телефон"
                 />
@@ -75,8 +73,7 @@ const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
                     </button>
                 </div>
             </div>
-        </div>,
-        document.body,
+        </ModalWrapper>
     );
 };
 

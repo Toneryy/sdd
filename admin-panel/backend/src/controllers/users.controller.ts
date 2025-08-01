@@ -1,23 +1,28 @@
 // backend/src/controllers/users.controller.ts
 import { Request, Response } from "express";
 import { prisma } from "../config/prisma";
+import {
+  withDecryptedUser,
+  RawUser, // тип описан в utils/withDecryptedUser.ts
+} from "../utils/withDecryptedUser";
+import { withEncryptedUser } from "../utils/withEncryptedUser";
 
-/* ------------------------------------------------------------------ */
-/*  GET /api/admin/users  ─ список пользователей с датой конца подписки  */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------- */
+/*  GET /api/admin/users  ─ список + дата последней подписки      */
+/* -------------------------------------------------------------- */
 export const listUsers = async (_: Request, res: Response) => {
   try {
+    /* берём даты окончания активных подписок */
     const latestSubs = await prisma.user_subscriptions.findMany({
       orderBy: { end_date: "desc" },
       distinct: ["user_id"],
       select: { user_id: true, end_date: true },
     });
-
     const lastEndMap = new Map<string, Date>(
       latestSubs.map((s) => [s.user_id, s.end_date])
     );
 
-    const users = await prisma.users.findMany({
+    const raw = await prisma.users.findMany({
       select: {
         id: true,
         username: true,
@@ -27,26 +32,26 @@ export const listUsers = async (_: Request, res: Response) => {
       },
     });
 
-    const result = users.map((u) => ({
-      ...u,
+    const users = raw.map((u) => ({
+      ...withDecryptedUser(u as RawUser),
       lastEndDate: lastEndMap.get(u.id) ?? null,
     }));
 
-    res.json(result);
+    res.json(users);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Не удалось получить пользователей" });
   }
 };
 
-/* ------------------------------------------------------------------ */
-/*  GET /api/admin/users/:id  ─ профиль + подписки + продукты + обращения  */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------- */
+/*  GET /api/admin/users/:id  ─ профиль + связки                  */
+/* -------------------------------------------------------------- */
 export const getUserById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const user = await prisma.users.findUnique({
+    const rawUser = await prisma.users.findUnique({
       where: { id },
       select: {
         id: true,
@@ -56,25 +61,23 @@ export const getUserById = async (req: Request, res: Response) => {
         created_at: true,
       },
     });
-
-    if (!user)
+    if (!rawUser)
       return res.status(404).json({ message: "Пользователь не найден" });
 
-    /* подписки */
+    const user = withDecryptedUser(rawUser as RawUser);
+
     const subscriptions = await prisma.user_subscriptions.findMany({
       where: { user_id: id },
       include: { subscriptions: true },
       orderBy: { start_date: "desc" },
     });
 
-    /* приобретённые продукты */
     const products = await prisma.user_products.findMany({
       where: { user_id: id },
-      include: { products: true }, // подтягиваем инфо о товаре
+      include: { products: true },
       orderBy: { added_at: "desc" },
     });
 
-    /* сервисные обращения */
     const supportRequests = await prisma.support_requests.findMany({
       where: { user_id: id },
       include: {
@@ -90,47 +93,58 @@ export const getUserById = async (req: Request, res: Response) => {
   }
 };
 
-/* ------------------------------------------------------------------ */
-/*  POST /api/admin/users  ─ создать пользователя                       */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------- */
+/*  POST /api/admin/users  ─ создать пользователя                 */
+/* -------------------------------------------------------------- */
 export const addUser = async (req: Request, res: Response) => {
   const { username, email, phone, password } = req.body;
+
+  // шифруем
+  const enc = withEncryptedUser({ username, email, phone });
+
   try {
-    const newUser = await prisma.users.create({
-      data: { username, email, phone, password },
+    const created = await prisma.users.create({
+      data: {
+        // non-null assertions (!) – говорим TS «тут точно строка»
+        username: enc.username!, // ← !
+        email: enc.email!, // ← !
+        phone: enc.phone ?? null, // phone опционален
+        password,
+      },
     });
-    res.status(201).json(newUser);
+
+    res.status(201).json(withDecryptedUser(created as RawUser));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка при добавлении пользователя" });
   }
 };
 
-/* ------------------------------------------------------------------ */
-/*  PUT /api/admin/users/:id  ─ обновить пользователя                   */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------- */
+/*  PUT /api/admin/users/:id  ─ обновить пользователя             */
+/* -------------------------------------------------------------- */
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { username, email, phone, password } = req.body;
+  const enc = withEncryptedUser({ username, email, phone });
 
   try {
     const updated = await prisma.users.update({
       where: { id },
-      data: { username, email, phone, password },
+      data: { ...enc, password },
     });
-    res.json(updated);
+    res.json(withDecryptedUser(updated as RawUser));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка при обновлении пользователя" });
   }
 };
 
-/* ------------------------------------------------------------------ */
-/*  DELETE /api/admin/users/:id  ─ удалить пользователя                 */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------- */
+/*  DELETE /api/admin/users/:id                                   */
+/* -------------------------------------------------------------- */
 export const deleteUser = async (req: Request, res: Response) => {
   const { id } = req.params;
-
   try {
     await prisma.users.delete({ where: { id } });
     res.json({ id });
@@ -140,37 +154,32 @@ export const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
+/* -------------------------------------------------------------- */
+/*  GET /api/admin/users/search?q=…                               */
+/*  ILIKE по шифрованным данным невозможен →                      */
+/*  делаем «в памяти» фильтрацию до 1 000 пользователей            */
+/* -------------------------------------------------------------- */
 export const searchUsers = async (req: Request, res: Response) => {
-  const q = String(req.query.q ?? "").trim();
+  const q = (req.query.q as string | undefined)?.trim()?.toLowerCase() ?? "";
   if (!q) return res.json([]);
 
-  // 1) Вытаскиваем из ввода только цифры
-  const rawDigits = q.replace(/\D/g, ""); // ex: "8 995 123-45-67" → "89951234567"
-  // 2) Если начинается на "8", меняем первый символ на "7"
-  const normalizedDigits = rawDigits.startsWith("8")
-    ? "7" + rawDigits.slice(1) // "8995..." → "7995..."
-    : rawDigits; // иначе оставляем как есть
-
   try {
-    const users = await prisma.$queryRawUnsafe<
-      { id: string; username: string; email: string; phone: string | null }[]
-    >(
-      `
-      SELECT id, username, email, phone
-      FROM users
-      WHERE username ILIKE '%' || $1 || '%'
-         OR email    ILIKE '%' || $1 || '%'
-         -- ищем по нормализованному номеру (если он не пустой)
-         OR (
-              $2 <> '' 
-              AND regexp_replace(phone, '\\D', '', 'g') LIKE '%' || $2 || '%'
-            )
-      ORDER BY username
-      LIMIT 15;
-      `,
-      q,
-      normalizedDigits
-    );
+    // берём первые 1000 юзеров, расшифровываем, фильтруем
+    const raw = await prisma.users.findMany({
+      take: 1000,
+      orderBy: { created_at: "desc" },
+      select: { id: true, username: true, email: true, phone: true },
+    });
+    const users = raw
+      .map((u) => withDecryptedUser(u as RawUser))
+      .filter(
+        (u) =>
+          u.username.toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q) ||
+          (u.phone ?? "").replace(/\D/g, "").includes(q.replace(/\D/g, ""))
+      )
+      .slice(0, 15); // отдаём максимум 15
+
     res.json(users);
   } catch (err) {
     console.error(err);

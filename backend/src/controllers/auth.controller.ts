@@ -1,31 +1,38 @@
-import { Request, Response } from "express";
+import { RequestHandler } from "express";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { hashPassword, comparePassword } from "../utils/hash";
+import { encrypt as enc, decrypt as dec } from "../crypto/crypto";
 import { sign, Secret } from "jsonwebtoken";
 import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/jwt";
 
-export const register = async (req: Request, res: Response) => {
+/* -------------------------  POST /auth/register  ------------------------- */
+export const register: RequestHandler = async (req, res) => {
   const { username, email, phone, password } = req.body;
-  const hashed = await hashPassword(password);
 
   try {
     await prisma.users.create({
-      data: { username, email, phone, password: hashed },
+      data: {
+        username: enc(username),
+        email: enc(email),
+        phone: phone ? enc(phone) : null,
+        password: await hashPassword(password),
+      },
     });
+
     res.status(201).json({ message: "Регистрация прошла успешно" });
-  } catch (err: any) {
+  } catch (err) {
     if (
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === "P2002"
     ) {
-      const target = err.meta?.target;
-      const field = Array.isArray(target) ? target[0] : "";
-      let msg = "Пользователь уже существует";
-      if (field === "username") msg = "Имя уже занято";
-      if (field === "email") msg = "Email уже зарегистрирован";
-      if (field === "phone") msg = "Телефон уже используется";
-      res.status(400).json({ message: msg });
+      const field = (err.meta?.target as string[])[0];
+      const map: Record<string, string> = {
+        username: "Имя уже занято",
+        email: "Email уже зарегистрирован",
+        phone: "Телефон уже используется",
+      };
+      res.status(400).json({ message: map[field] ?? "Дублирование данных" });
     } else {
       console.error(err);
       res.status(500).json({ message: "Ошибка при регистрации" });
@@ -33,33 +40,29 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+/* ---------------------------  POST /auth/login  -------------------------- */
+export const login: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
-  try {
-    const user = await prisma.users.findUnique({ where: { email } });
-    if (!user) {
-      res.status(404).json({ message: "Неверный логин или пароль" });
-      return;
-    }
-    const isMatch = await comparePassword(password, user.password);
-    if (!isMatch) {
-      res.status(401).json({ message: "Неверный логин или пароль" });
-      return;
-    }
 
-    // Вот так, без проблем с типами:
-    const token = sign(
-      { userId: user.id },
-      JWT_SECRET as Secret,
-      { expiresIn: JWT_EXPIRES_IN } as any
-    );
-
-    res.json({
-      token,
-      user: { id: user.id, email: user.email, username: user.username },
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Ошибка при входе" });
+  const user = await prisma.users.findUnique({ where: { email: enc(email) } });
+  if (!user || !(await comparePassword(password, user.password))) {
+    res.status(401).json({ message: "Неверный логин или пароль" });
+    return;
   }
+
+  const token = sign(
+    { userId: user.id },
+    JWT_SECRET as Secret,
+    { expiresIn: JWT_EXPIRES_IN } as any
+  );
+
+  res.json({
+    token,
+    user: {
+      id: user.id,
+      username: dec(user.username),
+      email: dec(user.email),
+      phone: user.phone ? dec(user.phone) : null,
+    },
+  });
 };
