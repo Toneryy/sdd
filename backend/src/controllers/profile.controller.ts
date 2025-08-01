@@ -2,6 +2,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { prisma } from "../config/prisma";
+import { withDecryptedUser } from "../utils/withDecryptedUser"; // ← добавили
 
 export const getProfile = async (
   req: AuthRequest,
@@ -10,7 +11,7 @@ export const getProfile = async (
   const userId = req.userId!;
 
   try {
-    const user = await prisma.users.findUnique({
+    const rawUser = await prisma.users.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -20,10 +21,13 @@ export const getProfile = async (
         created_at: true,
       },
     });
-    if (!user) {
+
+    if (!rawUser) {
       res.status(404).json({ message: "Пользователь не найден" });
       return;
     }
+
+    const user = withDecryptedUser(rawUser); // ← теперь человекочитаемо
 
     const activeSubscription = await prisma.user_subscriptions.findFirst({
       where: { user_id: userId, active: true },
@@ -37,12 +41,10 @@ export const getProfile = async (
       take: 10,
     });
 
-    // Получаем купленные товары
     const boughtProducts = await prisma.user_products.findMany({
       where: { user_id: userId },
       include: {
         products: {
-          // Исправляем на 'products'
           select: {
             id: true,
             name: true,
@@ -54,12 +56,7 @@ export const getProfile = async (
       },
     });
 
-    res.json({
-      user,
-      activeSubscription,
-      supportHistory,
-      boughtProducts, // добавляем купленные товары
-    });
+    res.json({ user, activeSubscription, supportHistory, boughtProducts });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка сервера" });

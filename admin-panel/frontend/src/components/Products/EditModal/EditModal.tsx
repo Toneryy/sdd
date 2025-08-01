@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import ReactDOM from "react-dom";
+import ModalWrapper from "../../Users/Profile/ModalWrapper";
 import styles from "./EditModal.module.scss";
 
 type TableName = "products" | "categories" | "subscriptions" | "product_keys";
@@ -51,9 +51,9 @@ const EditModal: React.FC<Props> = ({ show, table, item, onClose, onSave }) => {
 
   if (!show) return null;
 
-  return ReactDOM.createPortal(
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+  return (
+    <ModalWrapper onClose={onClose}>
+      <div className={styles.modal}>
         <h2 className={styles.title}>Редактирование</h2>
 
         {table === "products" && (
@@ -193,7 +193,9 @@ const EditModal: React.FC<Props> = ({ show, table, item, onClose, onSave }) => {
               <input
                 type="checkbox"
                 checked={form.used || false}
-                onChange={(e) => setForm({ ...form, used: e.target.checked })}
+                onChange={(e) =>
+                  setForm({ ...form, used: e.target.checked })
+                }
                 className={styles.toggleCheckbox}
               />
               <span className={styles.toggleSlider}></span>
@@ -211,8 +213,7 @@ const EditModal: React.FC<Props> = ({ show, table, item, onClose, onSave }) => {
           </button>
         </div>
       </div>
-    </div>,
-    document.body
+    </ModalWrapper>
   );
 };
 
