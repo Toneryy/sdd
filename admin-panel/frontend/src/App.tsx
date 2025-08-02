@@ -7,7 +7,6 @@ import Dashboard from './components/Dashboard/Dashboard';
 import Products from './components/Products/Products';
 import Users from './components/Users/Users';
 import PromoCodes from './components/PromoCodes/PromoCodes';
-import ClientDatabase from './components/ClientDatabase/ClientDatabase';
 import LandingEditor from './components/ProductEditor/ProductEditor';
 
 import './App.scss';
@@ -16,6 +15,7 @@ import KeyAliasesTable from 'components/Products/Tables/KeyAliasesTable';
 import KeyLookup from 'components/Products/Tables/KeyLookup';
 import Profile from 'components/Users/Profile/Profile';
 import UserSearch from 'components/UserSearch/UserSearch';
+import Clients from 'components/Clients/Clients';
 
 const App: React.FC = () => (
   <Router>
@@ -36,7 +36,7 @@ const App: React.FC = () => (
         <Route path="users" element={<Users />} />
         <Route path="users/:id" element={<Profile />} />
         <Route path="promocodes" element={<PromoCodes />} />
-        <Route path="clients" element={<ClientDatabase />} />
+        <Route path="clients" element={<Clients />} />
         <Route path="landing" element={<LandingEditor />} />
       </Route>
 

@@ -1,13 +1,6 @@
-import React, { useEffect, useState } from "react";
-import ModalWrapper from "../Profile/ModalWrapper"; // путь к обертке
+import React, { useEffect, useState, useCallback } from "react";
+import ModalWrapper from "../Profile/ModalWrapper"; // путь к обёртке-модалке
 import styles from "./EditModal.module.scss";
-
-interface Props {
-    show: boolean;
-    item: User | null;
-    onClose: () => void;
-    onSave: (data: Partial<User> & { id: string }) => void;
-}
 
 interface User {
     id: string;
@@ -17,24 +10,57 @@ interface User {
     lastEndDate: string | null;
 }
 
+interface Props {
+    show: boolean;
+    item: User | null;
+    onClose: () => void;
+    onSave: (data: Partial<User> & { id: string }) => void;
+}
+
 const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
+    /** Локальное состояние формы */
     const [form, setForm] = useState<Partial<User>>({});
 
+    /** Наполняем форму при открытии и очищаем при закрытии */
     useEffect(() => {
         if (show && item) {
             const { lastEndDate, ...editable } = item;
             setForm(editable);
+        } else {
+            setForm({});
         }
     }, [show, item]);
 
-    const onChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, [e.target.name]: e.target.value });
+    /** Закрываем модалку по Esc */
+    useEffect(() => {
+        if (!show) return; // слушаем только когда модалка открыта
 
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                onClose();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [show, onClose]);
+
+    /** Контролируемые инпуты */
+    const onChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const { name, value } = e.target;
+            setForm(prev => ({ ...prev, [name]: value }));
+        },
+        [],
+    );
+
+    /** Сохранение изменений */
     const handleSave = () => {
         if (!item) return;
         onSave({ ...form, id: item.id });
     };
 
+    /** Если show === false, ничего не рендерим */
     if (!show) return null;
 
     return (
