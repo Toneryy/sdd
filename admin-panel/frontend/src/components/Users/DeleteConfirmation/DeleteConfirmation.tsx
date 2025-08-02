@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import styles from './DeleteConfirmation.module.scss';
 
@@ -9,6 +9,19 @@ interface Props {
 }
 
 const DeleteConfirmation: React.FC<Props> = ({ show, onClose, onDelete }) => {
+    useEffect(() => {
+        if (!show) return;
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        document.addEventListener('keydown', handleKey);
+        return () => {
+            document.removeEventListener('keydown', handleKey);
+        };
+    }, [show, onClose]);
+
     if (!show) return null;
 
     return ReactDOM.createPortal(
