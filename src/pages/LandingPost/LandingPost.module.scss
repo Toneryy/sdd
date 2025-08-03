@@ -1,49 +1,94 @@
 /* src/components/LandingPost/LandingPost.module.scss */
+
+/* ---------- состояния ---------- */
 .loading {
   text-align: center;
-  padding: 40px;
-  font-size: 1.2rem;
+  padding: 4rem 1rem;
+  font-size: 1.25rem;
+  color: #666;
 }
 
 .rawHtml {
-  /* даём «сырым» стилям свободу, но можно ограничить область */
-  padding: 20px;
+  padding: 2rem;
 }
 
+/* ---------- главный баннер ---------- */
 .post {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px 20px;
+  /* фон-картинка приходит инлайном через style={{ backgroundImage }} */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 420px; /* высота баннера */
+  padding: 3rem 1.5rem;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  color: #fff;
   text-align: center;
+  overflow: hidden;
 }
 
-.imageWrapper {
-  margin-bottom: 20px;
+/* полупрозрачный тёмный градиент (чтобы текст читался) */
+.post::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.3) 35%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  z-index: 0;
 }
 
-.image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
+/* ---------- контент поверх градиента ---------- */
+.content {
+  position: relative; /* выводим над ::before */
+  z-index: 1;
+  max-width: 800px;
 }
 
 .description {
-  font-size: 1.1rem;
-  color: #333;
-  margin-bottom: 30px;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem); /* адаптивный размер */
   line-height: 1.6;
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
+/* ---------- кнопка ---------- */
 .button {
   display: inline-block;
-  padding: 12px 32px;
-  background-color: #007bff;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 4px;
+  padding: 0.9rem 2.8rem;
   font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+
+  color: #fff;
+  background: #ff6b00; /* тёплый акцент */
+  border-radius: 5px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .button:hover {
-  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- мобильная адаптация ---------- */
+@media (max-width: 576px) {
+  .post {
+    padding: 2.5rem 1rem;
+    min-height: 340px;
+  }
+  .button {
+    width: 100%;
+  }
 }
