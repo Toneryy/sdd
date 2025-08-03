@@ -7,6 +7,7 @@ import {
     Post,
 } from "../../api/posts";
 import styles from "./PostEditor.module.scss";
+import { toast } from "react-toastify";
 
 const PostEditor: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -48,10 +49,10 @@ const PostEditor: React.FC = () => {
                 button_text: rawMode ? null : buttonText || null,
                 button_href: rawMode ? null : buttonHref || null,
             });
-            console.info("Пост сохранён");     // ← замените на toast/notification
-            // никакого navigate — остаёмся на странице
+            toast.success("Пост сохранён ✅");
         } catch (err) {
-            console.error("Ошибка при сохранении поста:", err);
+            console.error(err);
+            toast.error("Ошибка при сохранении 😔");
         }
     };
 
@@ -65,9 +66,9 @@ const PostEditor: React.FC = () => {
             setImage("");
             setButtonText("");
             setButtonHref("");
-            console.info("Пост удалён");       // ← тоже можно тост
+            toast.success("Пост удалён 🗑️");
         } catch (err) {
-            console.error("Ошибка при удалении поста:", err);
+            toast.error("Ошибка при удалении");
         }
     };
 

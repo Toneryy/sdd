@@ -55,13 +55,15 @@ const DraftsList: React.FC = () => {
     };
 
     const save = async () => {
+        const sanitize = (v?: string | null) =>
+            (v ?? "").replace(/^[\s\t]+|[\s\t]+$/g, ""); // убираем пробелы и TABы с обоих концов
         try {
             const payload = {
-                raw_html: current.raw_html ?? "",
-                description: current.description ?? "",
-                image: current.image ?? "",
-                button_text: current.button_text ?? "",
-                button_href: current.button_href ?? "",
+                raw_html: sanitize(current.raw_html),
+                description: sanitize(current.description),
+                image: sanitize(current.image),
+                button_text: sanitize(current.button_text),
+                button_href: sanitize(current.button_href),
             };
             if (current.id) {
                 await updateDraft(current.id, payload);

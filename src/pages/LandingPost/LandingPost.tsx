@@ -39,21 +39,22 @@ const LandingPost: React.FC = () => {
 
     // иначе собираем шаблон из полей
     return (
-        <section className={styles.post}>
-            {post.image && (
-                <div className={styles.imageWrapper}>
-                    <img src={post.image} alt="" className={styles.image} />
-                </div>
-            )}
-            {post.description && (
-                <p className={styles.description}>{post.description}</p>
-            )}
-            {post.button_text && post.button_href && (
-                <a href={post.button_href} className={styles.button}>
-                    {post.button_text}
-                </a>
-            )}
+        <section
+            className={styles.post}
+            style={post.image ? { backgroundImage: `url(${post.image})` } : undefined}
+        >
+            <div className={styles.content}>
+                {post.description && (
+                    <p className={styles.description}>{post.description}</p>
+                )}
+                {post.button_text && post.button_href && (
+                    <a href={post.button_href} className={styles.button}>
+                        {post.button_text}
+                    </a>
+                )}
+            </div>
         </section>
+
     );
 };
 
