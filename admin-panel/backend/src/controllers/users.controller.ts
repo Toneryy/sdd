@@ -5,6 +5,7 @@ import {
   withDecryptedUser,
   RawUser, // тип описан в utils/withDecryptedUser.ts
 } from "../utils/withDecryptedUser";
+import { hashPassword } from "../utils/hash";
 import { withEncryptedUser } from "../utils/withEncryptedUser";
 
 /* -------------------------------------------------------------- */
@@ -109,7 +110,7 @@ export const addUser = async (req: Request, res: Response) => {
         username: enc.username!, // ← !
         email: enc.email!, // ← !
         phone: enc.phone ?? null, // phone опционален
-        password,
+        password: await hashPassword(password),
       },
     });
 
@@ -131,7 +132,10 @@ export const updateUser = async (req: Request, res: Response) => {
   try {
     const updated = await prisma.users.update({
       where: { id },
-      data: { ...enc, password },
+      data: {
+        ...enc,
+        ...(password ? { password: await hashPassword(password) } : {}),
+      },
     });
     res.json(withDecryptedUser(updated as RawUser));
   } catch (err) {
@@ -164,21 +168,30 @@ export const searchUsers = async (req: Request, res: Response) => {
   if (!q) return res.json([]);
 
   try {
-    // берём первые 1000 юзеров, расшифровываем, фильтруем
     const raw = await prisma.users.findMany({
       take: 1000,
       orderBy: { created_at: "desc" },
       select: { id: true, username: true, email: true, phone: true },
     });
+
+    // нормализуем телефонную часть запроса
+    const phoneQuery = q.replace(/\D/g, "");
+
     const users = raw
       .map((u) => withDecryptedUser(u as RawUser))
-      .filter(
-        (u) =>
-          u.username.toLowerCase().includes(q) ||
-          u.email.toLowerCase().includes(q) ||
-          (u.phone ?? "").replace(/\D/g, "").includes(q.replace(/\D/g, ""))
-      )
-      .slice(0, 15); // отдаём максимум 15
+      .filter((u) => {
+        const nameMatch = u.username.toLowerCase().includes(q);
+        const emailMatch = u.email.toLowerCase().includes(q);
+
+        let phoneMatch = false;
+        if (phoneQuery.length > 0 && u.phone) {
+          const digits = u.phone.replace(/\D/g, "");
+          phoneMatch = digits.includes(phoneQuery);
+        }
+
+        return nameMatch || emailMatch || phoneMatch;
+      })
+      .slice(0, 15);
 
     res.json(users);
   } catch (err) {
