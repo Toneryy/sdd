@@ -8,14 +8,14 @@ datasource db {
 }
 
 model users {
-  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username         String             @unique @db.Text
-  email            String             @unique @db.Text
-  phone            String?            @unique @db.Text
-  password         String             @db.VarChar
-  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
-  support_requests support_requests[]
-  user_products    user_products[]
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username           String               @unique
+  email              String               @unique
+  phone              String?              @unique
+  password           String               @db.VarChar
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  support_requests   support_requests[]
+  user_products      user_products[]
   user_subscriptions user_subscriptions[]
 
   @@map("users")
@@ -40,13 +40,12 @@ model user_subscriptions {
   start_date      DateTime      @db.Date
   end_date        DateTime      @db.Timestamp(6)
   active          Boolean       @default(false)
+  subscriptions   subscriptions @relation(fields: [subscription_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user            users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  user           users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  subscriptions  subscriptions  @relation(fields: [subscription_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@map("user_subscriptions")
   @@index([user_id])
   @@index([subscription_id])
+  @@map("user_subscriptions")
 }
 
 model support_requests {
@@ -184,6 +183,27 @@ model keys_aliases {
   created_at     DateTime?    @default(now()) @db.Timestamptz(6)
   updated_at     DateTime?    @default(now()) @db.Timestamptz(6)
   product_keys   product_keys @relation(fields: [product_key_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_keys_aliases_product_key")
+}
+
+model drafts {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  raw_html    String?
+  description String?
+  image       String?
+  button_text String?
+  button_href String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model posts {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  raw_html    String?
+  description String?
+  image       String?
+  button_text String?
+  button_href String?
+  updatedAt   DateTime
 }
 
 enum SupportStatus {

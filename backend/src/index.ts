@@ -6,6 +6,7 @@ import subscriptionRoutes from './routes/subscriptions.routes'
 import shopRoutes from "./routes/shop.routes";
 import purchaseRoutes from "./routes/purchase.routes";
 import promoRoutes from "./routes/promoRoutes";
+import postsRoutes from "./routes/posts.routes";
 import { PrismaClient } from '@prisma/client';
 
 export const prisma = new PrismaClient()
@@ -21,6 +22,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use("/api/shop", shopRoutes);
 app.use("/api/shop", purchaseRoutes);
 app.use("/api/promocodes", promoRoutes);
+app.use("/api/posts", postsRoutes);
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`))

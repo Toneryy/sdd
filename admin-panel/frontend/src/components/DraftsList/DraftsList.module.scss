@@ -1,0 +1,172 @@
+/* src/components/Admin/DraftsList/DraftsList.module.scss */
+.container {
+  margin: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.toolbar {
+  text-align: right;
+  margin-bottom: 12px;
+
+  .newBtn {
+    padding: 8px 16px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    &:hover {
+      background: #0069d9;
+    }
+  }
+}
+
+.form {
+  border-top: 1px solid #ddd;
+  padding-top: 16px;
+  margin-bottom: 24px;
+
+  h2 {
+    margin-bottom: 12px;
+    font-size: 1.2rem;
+  }
+
+  .toggle {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 16px;
+    font-weight: 500;
+
+    label {
+      cursor: pointer;
+      input {
+        margin-right: 6px;
+      }
+    }
+  }
+
+  .fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.95rem;
+
+      input,
+      textarea {
+        margin-top: 6px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        resize: vertical;
+      }
+    }
+  }
+
+  .rawLabel {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.95rem;
+
+    .raw {
+      margin-top: 6px;
+      height: 200px;
+      font-family: monospace;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+  }
+
+  .actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+
+      &.save {
+        background: #28a745;
+        color: #fff;
+        &:hover {
+          background: #218838;
+        }
+      }
+
+      &.cancel {
+        background: #6c757d;
+        color: #fff;
+        &:hover {
+          background: #5a6268;
+        }
+      }
+    }
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+
+  th {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+
+  tbody tr:hover {
+    background: #f1f1f1;
+  }
+
+  button {
+    margin-right: 8px;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+
+    &.editBtn {
+      background: #17a2b8;
+      color: #fff;
+      &:hover {
+        background: #138496;
+      }
+    }
+
+    &.delBtn {
+      background: #dc3545;
+      color: #fff;
+      &:hover {
+        background: #c82333;
+      }
+    }
+  }
+}
