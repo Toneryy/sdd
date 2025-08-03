@@ -8,6 +8,7 @@ import {
 } from "../../api/posts";
 import styles from "./PostEditor.module.scss";
 import { toast } from "react-toastify";
+import DraftPreview from "components/DraftPreview/DraftPreview";
 
 const PostEditor: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -146,6 +147,15 @@ const PostEditor: React.FC = () => {
                 </div>
             )}
 
+            <div className={styles.preview}>
+                <DraftPreview
+                    rawHtml={rawHtml}
+                    description={description}
+                    image={image}
+                    button_text={buttonText}
+                    button_href={buttonHref}
+                />
+            </div>
             {/* действия */}
             <div className={styles.actions}>
                 <button className={styles.save} onClick={handleSave}>

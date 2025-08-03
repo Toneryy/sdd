@@ -1,5 +1,6 @@
+// src/components/Admin/EditModal/EditModal.tsx
 import React, { useEffect, useState, useCallback } from "react";
-import ModalWrapper from "../Profile/ModalWrapper"; // путь к обёртке-модалке
+import ModalWrapper from "../Profile/ModalWrapper";
 import styles from "./EditModal.module.scss";
 
 interface User {
@@ -10,63 +11,66 @@ interface User {
     lastEndDate: string | null;
 }
 
+interface FormState extends Partial<User> {
+    password?: string; // ← добавили
+}
+
 interface Props {
     show: boolean;
     item: User | null;
     onClose: () => void;
-    onSave: (data: Partial<User> & { id: string }) => void;
+    onSave: (data: (Partial<User> & { id: string }) | (Partial<User> & { id: string; password: string })) => void;
 }
 
 const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
-    /** Локальное состояние формы */
-    const [form, setForm] = useState<Partial<User>>({});
+    const [form, setForm] = useState<FormState>({});
 
-    /** Наполняем форму при открытии и очищаем при закрытии */
+    /* наполняем форму при открытии */
     useEffect(() => {
         if (show && item) {
             const { lastEndDate, ...editable } = item;
-            setForm(editable);
+            setForm({ ...editable, password: "" });
         } else {
             setForm({});
         }
     }, [show, item]);
 
-    /** Закрываем модалку по Esc */
+    /* Esc — закрыть */
     useEffect(() => {
-        if (!show) return; // слушаем только когда модалка открыта
-
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                onClose();
-            }
-        };
-
+        if (!show) return;
+        const handleKeyDown = (e: KeyboardEvent) => e.key === "Escape" && onClose();
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [show, onClose]);
 
-    /** Контролируемые инпуты */
+    /* контролируемые инпуты */
     const onChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const { name, value } = e.target;
-            setForm(prev => ({ ...prev, [name]: value }));
+            setForm((prev) => ({ ...prev, [name]: value }));
         },
-        [],
+        []
     );
 
-    /** Сохранение изменений */
+    /* сохранить */
     const handleSave = () => {
         if (!item) return;
-        onSave({ ...form, id: item.id });
+
+        const { password, ...rest } = form;
+        const payload =
+            password && password.trim()
+                ? { ...rest, password: password.trim(), id: item.id }
+                : { ...rest, id: item.id };
+
+        onSave(payload);
     };
 
-    /** Если show === false, ничего не рендерим */
     if (!show) return null;
 
     return (
         <ModalWrapper onClose={onClose}>
             <div className={styles.modal}>
-                <h2 className={styles.title}>Редактирование</h2>
+                <h2 className={styles.title}>Редактирование пользователя</h2>
 
                 <input
                     className={styles.input}
@@ -88,6 +92,14 @@ const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
                     value={form.phone ?? ""}
                     onChange={onChange}
                     placeholder="Телефон"
+                />
+                <input
+                    className={styles.input}
+                    type="password"
+                    name="password"
+                    value={form.password ?? ""}
+                    onChange={onChange}
+                    placeholder="Новый пароль (не менять — оставьте пустым)"
                 />
 
                 <div className={styles.btnRow}>

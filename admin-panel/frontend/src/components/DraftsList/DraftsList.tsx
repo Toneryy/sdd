@@ -10,6 +10,7 @@ import {
 import DeleteConfirmation from "../Users/DeleteConfirmation/DeleteConfirmation";
 import { toast } from "react-toastify";
 import styles from "./DraftsList.module.scss";
+import DraftPreview from "components/DraftPreview/DraftPreview";
 
 const emptyDraft: Partial<Draft> = {
     raw_html: "",
@@ -24,9 +25,10 @@ const DraftsList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [current, setCurrent] = useState<Partial<Draft>>(emptyDraft);
-    const [confirmId, setConfirmId] = useState<string | null>(null); // ← модалка
+    const [rawMode, setRawMode] = useState(false);          // ← новый флаг
+    const [confirmId, setConfirmId] = useState<string | null>(null);
 
-    /* ---------- загрузка списка ---------- */
+    /* ---------- загрузка ---------- */
     const fetchDrafts = async () => {
         setLoading(true);
         try {
@@ -51,11 +53,11 @@ const DraftsList: React.FC = () => {
     const save = async () => {
         try {
             const payload = {
-                raw_html: sanitize(current.raw_html),
-                description: sanitize(current.description),
-                image: sanitize(current.image),
-                button_text: sanitize(current.button_text),
-                button_href: sanitize(current.button_href),
+                raw_html: rawMode ? sanitize(current.raw_html) : "",
+                description: rawMode ? "" : sanitize(current.description),
+                image: rawMode ? "" : sanitize(current.image),
+                button_text: rawMode ? "" : sanitize(current.button_text),
+                button_href: rawMode ? "" : sanitize(current.button_href),
             };
 
             if (current.id) {
@@ -68,6 +70,7 @@ const DraftsList: React.FC = () => {
 
             setEditing(false);
             setCurrent({ ...emptyDraft });
+            setRawMode(false);
             fetchDrafts();
         } catch (err) {
             console.error(err);
@@ -85,7 +88,7 @@ const DraftsList: React.FC = () => {
             console.error(err);
             toast.error("Не удалось удалить");
         } finally {
-            setConfirmId(null); // закрываем модалку
+            setConfirmId(null);
         }
     };
 
@@ -96,10 +99,17 @@ const DraftsList: React.FC = () => {
         <div className={styles.container}>
             <h1 className={styles.title}>Черновики</h1>
 
-            {/* ───────── панель / форма ───────── */}
+            {/* ─── панель / форма ─── */}
             {!editing ? (
                 <div className={styles.toolbar}>
-                    <button className={styles.newBtn} onClick={() => setEditing(true)}>
+                    <button
+                        className={styles.newBtn}
+                        onClick={() => {
+                            setCurrent({ ...emptyDraft });
+                            setRawMode(false);
+                            setEditing(true);
+                        }}
+                    >
                         Создать новый
                     </button>
                 </div>
@@ -113,25 +123,23 @@ const DraftsList: React.FC = () => {
                         <label>
                             <input
                                 type="radio"
-                                checked={!Boolean(current.raw_html)}
-                                onChange={() => setCurrent((c) => ({ ...c, raw_html: "" }))}
+                                checked={!rawMode}
+                                onChange={() => setRawMode(false)}
                             />{" "}
                             Визуальный
                         </label>
                         <label>
                             <input
                                 type="radio"
-                                checked={Boolean(current.raw_html)}
-                                onChange={() =>
-                                    setCurrent((c) => ({ ...c, raw_html: c.raw_html ?? "" }))
-                                }
+                                checked={rawMode}
+                                onChange={() => setRawMode(true)}
                             />{" "}
                             Raw HTML
                         </label>
                     </div>
 
                     {/* визуальный режим */}
-                    {current.raw_html === "" ? (
+                    {!rawMode ? (
                         <div className={styles.fields}>
                             <label>
                                 <span>Описание:</span>
@@ -196,15 +204,26 @@ const DraftsList: React.FC = () => {
                             onClick={() => {
                                 setEditing(false);
                                 setCurrent({ ...emptyDraft });
+                                setRawMode(false);
                             }}
                         >
                             Отмена
                         </button>
                     </div>
+                    <div className={styles.previewWrapper}>
+                        <h3 className={styles.previewTitle}>Превью</h3>
+                        <DraftPreview
+                            rawHtml={current.raw_html}
+                            description={current.description}
+                            image={current.image}
+                            button_text={current.button_text}
+                            button_href={current.button_href}
+                        />
+                    </div>
                 </div>
             )}
 
-            {/* ───────── таблица черновиков ───────── */}
+            {/* ─── таблица ─── */}
             {!editing && (
                 <table className={styles.table}>
                     <thead>
@@ -218,7 +237,9 @@ const DraftsList: React.FC = () => {
                         {drafts.map((d) => (
                             <tr key={d.id}>
                                 <td>
-                                    {d.description ? `${d.description.slice(0, 50)}…` : "Raw HTML"}
+                                    {d.description
+                                        ? `${d.description.slice(0, 50)}…`
+                                        : "Raw HTML"}
                                 </td>
                                 <td>{new Date(d.updatedAt).toLocaleString()}</td>
                                 <td>
@@ -226,6 +247,7 @@ const DraftsList: React.FC = () => {
                                         className={styles.editBtn}
                                         onClick={() => {
                                             setCurrent(d);
+                                            setRawMode(Boolean(d.raw_html && d.raw_html.trim()));
                                             setEditing(true);
                                         }}
                                     >
@@ -244,7 +266,7 @@ const DraftsList: React.FC = () => {
                 </table>
             )}
 
-            {/* ───────── модалка подтверждения ───────── */}
+            {/* ─── модалка подтверждения ─── */}
             <DeleteConfirmation
                 show={Boolean(confirmId)}
                 onClose={() => setConfirmId(null)}

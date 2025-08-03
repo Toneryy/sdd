@@ -1,4 +1,5 @@
-import { useState } from "react";
+// src/components/Admin/KeyLookup/KeyLookup.tsx
+import { useRef, useState } from "react";
 import { lookupKey } from "../../../api/keyLookup";
 import { toast } from "react-toastify";
 import styles from "../Products.module.scss";
@@ -7,9 +8,8 @@ const MAX_LEN = 18;
 
 /** Формат «xx-xxxx-xxxx-xxxx-xxxx» для строки ≤ 18 символов */
 const formatKey = (raw: string) => {
-  const digits = raw.replace(/\D/g, "").slice(0, MAX_LEN); // максимум 18 цифр
+  const digits = raw.replace(/\D/g, "").slice(0, MAX_LEN);
   if (digits.length <= 2) return digits;
-
   return [
     digits.slice(0, 2),
     digits.slice(2, 6),
@@ -24,23 +24,33 @@ const formatKey = (raw: string) => {
 export default function KeyLookup() {
   const [value, setValue] = useState("");
   const [result, setResult] = useState<any | null>(null);
+  const toastId = useRef<string | number>("key-lookup");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(formatKey(e.target.value));
   };
 
+  const pushToast = (fn: "success" | "error", msg: string) => {
+    toast.dismiss(toastId.current);             // закрываем прежний, если ещё висит
+    toast[fn](msg, { toastId: toastId.current });
+  };
+
   const handleSearch = async () => {
-    const raw = value.replace(/\D/g, ""); // только цифры
+    const raw = value.replace(/\D/g, "");
     if (raw.length !== MAX_LEN) {
-      toast.error("Введите ровно 18 цифр");
+      pushToast("error", "Введите ровно 18 цифр");
       return;
     }
     try {
       const data = await lookupKey(raw);
       setResult(data);
+      pushToast(
+        "success",
+        data.used ? "Ключ найден, уже использован" : "Ключ найден и свободен",
+      );
     } catch (err: any) {
       setResult(null);
-      toast.error(err?.response?.data?.message ?? "Не найдено");
+      pushToast("error", err?.response?.data?.message ?? "Ключ не найден");
     }
   };
 
