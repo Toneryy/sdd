@@ -7,6 +7,8 @@ import {
     deleteDraft,
     Draft,
 } from "../../api/posts";
+import DeleteConfirmation from "../Users/DeleteConfirmation/DeleteConfirmation";
+import { toast } from "react-toastify";
 import styles from "./DraftsList.module.scss";
 
 const emptyDraft: Partial<Draft> = {
@@ -22,14 +24,16 @@ const DraftsList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [current, setCurrent] = useState<Partial<Draft>>(emptyDraft);
+    const [confirmId, setConfirmId] = useState<string | null>(null); // ← модалка
 
+    /* ---------- загрузка списка ---------- */
     const fetchDrafts = async () => {
         setLoading(true);
         try {
-            const list = await getDrafts();
-            setDrafts(list);
+            setDrafts(await getDrafts());
         } catch (err) {
-            console.error("Не удалось загрузить черновики:", err);
+            console.error(err);
+            toast.error("Не удалось загрузить черновики");
         } finally {
             setLoading(false);
         }
@@ -39,24 +43,12 @@ const DraftsList: React.FC = () => {
         fetchDrafts();
     }, []);
 
-    const startNew = () => {
-        setCurrent({ ...emptyDraft });
-        setEditing(true);
-    };
+    /* ---------- helpers ---------- */
+    const sanitize = (v?: string | null) =>
+        (v ?? "").replace(/^[\s\t]+|[\s\t]+$/g, "");
 
-    const startEdit = (draft: Draft) => {
-        setCurrent({ ...draft });
-        setEditing(true);
-    };
-
-    const cancel = () => {
-        setEditing(false);
-        setCurrent({ ...emptyDraft });
-    };
-
+    /* ---------- CRUD ---------- */
     const save = async () => {
-        const sanitize = (v?: string | null) =>
-            (v ?? "").replace(/^[\s\t]+|[\s\t]+$/g, ""); // убираем пробелы и TABы с обоих концов
         try {
             const payload = {
                 raw_html: sanitize(current.raw_html),
@@ -65,39 +57,49 @@ const DraftsList: React.FC = () => {
                 button_text: sanitize(current.button_text),
                 button_href: sanitize(current.button_href),
             };
+
             if (current.id) {
                 await updateDraft(current.id, payload);
+                toast.success("Черновик обновлён");
             } else {
                 await createDraft(payload);
+                toast.success("Черновик создан");
             }
-            cancel();
+
+            setEditing(false);
+            setCurrent({ ...emptyDraft });
             fetchDrafts();
         } catch (err) {
-            console.error("Ошибка при сохранении черновика:", err);
+            console.error(err);
+            toast.error("Ошибка при сохранении");
         }
     };
 
-    const remove = async (id: string) => {
-        if (!window.confirm("Удалить этот черновик?")) return;
+    const handleDelete = async () => {
+        if (!confirmId) return;
         try {
-            await deleteDraft(id);
+            await deleteDraft(confirmId);
+            toast.success("Черновик удалён");
             fetchDrafts();
         } catch (err) {
-            console.error("Ошибка при удалении черновика:", err);
+            console.error(err);
+            toast.error("Не удалось удалить");
+        } finally {
+            setConfirmId(null); // закрываем модалку
         }
     };
 
-    if (loading) {
-        return <div className={styles.loading}>Загрузка черновиков…</div>;
-    }
+    /* ---------- UI ---------- */
+    if (loading) return <div className={styles.loading}>Загрузка черновиков…</div>;
 
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>Черновики</h1>
 
+            {/* ───────── панель / форма ───────── */}
             {!editing ? (
                 <div className={styles.toolbar}>
-                    <button className={styles.newBtn} onClick={startNew}>
+                    <button className={styles.newBtn} onClick={() => setEditing(true)}>
                         Создать новый
                     </button>
                 </div>
@@ -112,9 +114,7 @@ const DraftsList: React.FC = () => {
                             <input
                                 type="radio"
                                 checked={!Boolean(current.raw_html)}
-                                onChange={() =>
-                                    setCurrent((c) => ({ ...c, raw_html: "" }))
-                                }
+                                onChange={() => setCurrent((c) => ({ ...c, raw_html: "" }))}
                             />{" "}
                             Визуальный
                         </label>
@@ -130,6 +130,7 @@ const DraftsList: React.FC = () => {
                         </label>
                     </div>
 
+                    {/* визуальный режим */}
                     {current.raw_html === "" ? (
                         <div className={styles.fields}>
                             <label>
@@ -137,10 +138,7 @@ const DraftsList: React.FC = () => {
                                 <textarea
                                     value={current.description ?? ""}
                                     onChange={(e) =>
-                                        setCurrent((c) => ({
-                                            ...c,
-                                            description: e.target.value,
-                                        }))
+                                        setCurrent((c) => ({ ...c, description: e.target.value }))
                                     }
                                 />
                             </label>
@@ -160,10 +158,7 @@ const DraftsList: React.FC = () => {
                                     type="text"
                                     value={current.button_text ?? ""}
                                     onChange={(e) =>
-                                        setCurrent((c) => ({
-                                            ...c,
-                                            button_text: e.target.value,
-                                        }))
+                                        setCurrent((c) => ({ ...c, button_text: e.target.value }))
                                     }
                                 />
                             </label>
@@ -173,15 +168,13 @@ const DraftsList: React.FC = () => {
                                     type="text"
                                     value={current.button_href ?? ""}
                                     onChange={(e) =>
-                                        setCurrent((c) => ({
-                                            ...c,
-                                            button_href: e.target.value,
-                                        }))
+                                        setCurrent((c) => ({ ...c, button_href: e.target.value }))
                                     }
                                 />
                             </label>
                         </div>
                     ) : (
+                        /* rawHTML режим */
                         <label className={styles.rawLabel}>
                             <span>Raw HTML:</span>
                             <textarea
@@ -198,13 +191,20 @@ const DraftsList: React.FC = () => {
                         <button className={styles.save} onClick={save}>
                             Сохранить
                         </button>
-                        <button className={styles.cancel} onClick={cancel}>
+                        <button
+                            className={styles.cancel}
+                            onClick={() => {
+                                setEditing(false);
+                                setCurrent({ ...emptyDraft });
+                            }}
+                        >
                             Отмена
                         </button>
                     </div>
                 </div>
             )}
 
+            {/* ───────── таблица черновиков ───────── */}
             {!editing && (
                 <table className={styles.table}>
                     <thead>
@@ -218,21 +218,22 @@ const DraftsList: React.FC = () => {
                         {drafts.map((d) => (
                             <tr key={d.id}>
                                 <td>
-                                    {d.description
-                                        ? `${d.description.slice(0, 50)}…`
-                                        : "Raw HTML"}
+                                    {d.description ? `${d.description.slice(0, 50)}…` : "Raw HTML"}
                                 </td>
                                 <td>{new Date(d.updatedAt).toLocaleString()}</td>
                                 <td>
                                     <button
                                         className={styles.editBtn}
-                                        onClick={() => startEdit(d)}
+                                        onClick={() => {
+                                            setCurrent(d);
+                                            setEditing(true);
+                                        }}
                                     >
                                         Ред.
                                     </button>
                                     <button
                                         className={styles.delBtn}
-                                        onClick={() => remove(d.id)}
+                                        onClick={() => setConfirmId(d.id)}
                                     >
                                         Уд.
                                     </button>
@@ -242,6 +243,13 @@ const DraftsList: React.FC = () => {
                     </tbody>
                 </table>
             )}
+
+            {/* ───────── модалка подтверждения ───────── */}
+            <DeleteConfirmation
+                show={Boolean(confirmId)}
+                onClose={() => setConfirmId(null)}
+                onDelete={handleDelete}
+            />
         </div>
     );
 };
