@@ -1,3 +1,4 @@
+// src/components/Sidebar/Sidebar.tsx
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
@@ -19,6 +20,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const [productsOpen, setProductsOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
 
   return (
     <div className={`${styles.sidebar} ${className}`}>
@@ -36,6 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           </NavLink>
         </li>
 
+        {/* Товары */}
         <li>
           <div
             className={styles.link}
@@ -104,17 +107,48 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             Клиенты
           </NavLink>
         </li>
+
+        {/* Редактор (Посты / Черновики) */}
         <li>
-          <NavLink
-            to="/admin/landing"
-            className={({ isActive }) =>
-              isActive ? `${styles.link} ${styles.active}` : styles.link
-            }
+          <div
+            className={styles.link}
+            onClick={() => setEditorOpen(!editorOpen)}
+            style={{ cursor: "pointer" }}
           >
             <FiEdit className={styles.icon} />
             Редактор
-          </NavLink>
+            {editorOpen ? (
+              <FiChevronDown style={{ marginLeft: "auto" }} />
+            ) : (
+              <FiChevronRight style={{ marginLeft: "auto" }} />
+            )}
+          </div>
+          {editorOpen && (
+            <ul className={styles.submenu}>
+              <li>
+                <NavLink
+                  to="/admin/posts"
+                  className={({ isActive }) =>
+                    isActive ? `${styles.link} ${styles.active}` : styles.link
+                  }
+                >
+                  Посты
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/admin/drafts"
+                  className={({ isActive }) =>
+                    isActive ? `${styles.link} ${styles.active}` : styles.link
+                  }
+                >
+                  Черновики
+                </NavLink>
+              </li>
+            </ul>
+          )}
         </li>
+
         <li>
           <NavLink
             to="/admin/databases"

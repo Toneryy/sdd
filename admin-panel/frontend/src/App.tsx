@@ -7,7 +7,6 @@ import Dashboard from './components/Dashboard/Dashboard';
 import Products from './components/Products/Products';
 import Users from './components/Users/Users';
 import PromoCodes from './components/PromoCodes/PromoCodes';
-import LandingEditor from './components/ProductEditor/ProductEditor';
 
 import './App.scss';
 import Databases from 'components/Databases/Databases';
@@ -16,6 +15,8 @@ import KeyLookup from 'components/Products/Tables/KeyLookup';
 import Profile from 'components/Users/Profile/Profile';
 import UserSearch from 'components/UserSearch/UserSearch';
 import Clients from 'components/Clients/Clients';
+import PostEditor from 'components/PostEditor/PostEditor';
+import DraftsList from 'components/DraftsList/DraftsList';
 
 const App: React.FC = () => (
   <Router>
@@ -37,7 +38,8 @@ const App: React.FC = () => (
         <Route path="users/:id" element={<Profile />} />
         <Route path="promocodes" element={<PromoCodes />} />
         <Route path="clients" element={<Clients />} />
-        <Route path="landing" element={<LandingEditor />} />
+        <Route path="posts" element={<PostEditor />} />
+        <Route path="drafts" element={<DraftsList />} />
       </Route>
 
       {/* 404 – по желанию */}
