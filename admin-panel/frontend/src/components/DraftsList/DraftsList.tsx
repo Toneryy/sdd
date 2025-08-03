@@ -249,6 +249,8 @@ const DraftsList: React.FC = () => {
                 show={Boolean(confirmId)}
                 onClose={() => setConfirmId(null)}
                 onDelete={handleDelete}
+                title="Удалить черновик?"
+                text="Черновик будет удалён без возможности восстановления."
             />
         </div>
     );
