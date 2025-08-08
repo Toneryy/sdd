@@ -18,10 +18,11 @@ const ProductDetails: React.FC = () => {
 
             <div className={styles.card}>
                 <h1 className={styles.title}>{product.products?.name}</h1>
+                <p><strong>Номер заказа:</strong> 213-412</p>
                 <p><strong>Цена:</strong> {product.products?.price}₽</p>
                 <p><strong>Описание:</strong> {product.products?.description}</p>
                 <p><strong>Инструкция:</strong> {product.manual || 'Не предоставлена'}</p>
-                <p><strong>Ключ активации:</strong> {product.code || 'Скрыт/не выдан'}</p>
+                <p><strong>Ключ активации:</strong> {product.code || 'В обработке...'}</p>
             </div>
         </div>
     );
