@@ -10,6 +10,7 @@ import { getProducts } from "../../../api/products";
 import EditModal from "../EditModal/EditModal";
 import DeleteConfirmation from "../DeleteConfirmation/DeleteConfirmation";
 import styles from "../Products.module.scss";
+import { notifyOnce } from "../../../utils/notifyOnce";
 
 export default function ProductKeysTable() {
   const [allRows, setAllRows] = useState<any[]>([]);
@@ -134,11 +135,20 @@ export default function ProductKeysTable() {
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      if (toast.length < 3) {
-        toast.info("Скопировано", { autoClose: 2000 });
-      }
+      const toastId = `copy-key-${text}`;
+      notifyOnce(
+        toast.info,
+        "Скопировано в буфер 📋",
+        toastId,
+        { autoClose: 2000 }
+      );
     } catch (err) {
-      toast.error("Не удалось скопировать");
+      notifyOnce(
+        toast.error,
+        "Не удалось скопировать 😢",
+        "copy-error",
+        { autoClose: 3000 }
+      );
     }
   };
 
@@ -160,7 +170,7 @@ export default function ProductKeysTable() {
           Поиск
         </button>
       </div>
-      
+
       <form onSubmit={handleAdd} className={styles.form}>
         <div className={styles.formField}>
           <input
@@ -220,8 +230,8 @@ export default function ProductKeysTable() {
                   <td
                     style={{ cursor: "pointer" }}
                     onClick={() => {
-                      if (r.keys_aliases?.[0]?.code)
-                        copyToClipboard(r.keys_aliases[0].code);
+                      const code = r.keys_aliases?.[0]?.code;
+                      if (code) copyToClipboard(code);
                     }}
                   >
                     {r.keys_aliases?.[0]?.code ?? "—"}

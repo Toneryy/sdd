@@ -9,6 +9,7 @@ import {
 import styles from "./PostEditor.module.scss";
 import { toast } from "react-toastify";
 import DraftPreview from "components/DraftPreview/DraftPreview";
+import { notifyOnce } from "../../utils/notifyOnce";
 
 const PostEditor: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -42,18 +43,30 @@ const PostEditor: React.FC = () => {
     /* ---------- handlers ---------- */
     const handleSave = async () => {
         try {
-            await upsertPost({
+            const payload = {
+                // если у нас уже был пост — передаём его id, иначе создаём новый
                 id: postId ?? undefined,
+                // в зависимости от режима, либо raw_html, либо визуальные поля
                 raw_html: rawMode ? rawHtml || null : null,
                 description: rawMode ? null : description || null,
                 image: rawMode ? null : image || null,
                 button_text: rawMode ? null : buttonText || null,
                 button_href: rawMode ? null : buttonHref || null,
-            });
-            toast.success("Пост сохранён ✅");
+            };
+
+            // отправляем на бэк
+            const savedPost = await upsertPost(payload);
+
+            // если бэк вернул id нового поста — запомнить его в стейте,
+            // чтобы кнопка "Удалить" появилась сразу после создания
+            if ("id" in savedPost && savedPost.id) {
+                setPostId(savedPost.id);
+            }
+
+            notifyOnce(toast.success, "Пост сохранён ✅", "post-save-success");
         } catch (err) {
-            console.error(err);
-            toast.error("Ошибка при сохранении 😔");
+            console.error("Ошибка при сохранении поста:", err);
+            notifyOnce(toast.error, "Ошибка при сохранении 😔", "post-save-error");
         }
     };
 
@@ -67,9 +80,17 @@ const PostEditor: React.FC = () => {
             setImage("");
             setButtonText("");
             setButtonHref("");
-            toast.success("Пост удалён 🗑️");
+            notifyOnce(
+                toast.success,
+                "Пост удалён 🗑️",
+                "post-delete-success"
+            );
         } catch (err) {
-            toast.error("Ошибка при удалении");
+            notifyOnce(
+                toast.error,
+                "Ошибка при удалении",
+                "post-delete-error"
+            );
         }
     };
 
