@@ -1,15 +1,22 @@
-// backend/src/routes/staffMembers.routes.ts
 import { Router } from "express";
 import {
   listStaffMembers,
   getStaffMemberById,
   createStaffMember,
+  updateStaffMember,
+  deleteStaffMember,
 } from "../controllers/staffMembers.controller";
+import { authenticateJWT } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.get("/", listStaffMembers); // Получить всех сотрудников
-router.get("/:id", getStaffMemberById); // Получить сотрудника по ID
-router.post("/", createStaffMember); // Создать сотрудника
+// Закрываем эти ручки авторизацией (без ролей)
+router.use(authenticateJWT);
+
+router.get("/", listStaffMembers);
+router.get("/:id", getStaffMemberById);
+router.post("/", createStaffMember);
+router.put("/:id", updateStaffMember);
+router.delete("/:id", deleteStaffMember);
 
 export default router;

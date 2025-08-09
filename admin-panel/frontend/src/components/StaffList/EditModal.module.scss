@@ -1,0 +1,84 @@
+/* src/components/StaffList/EditModal.module.scss */
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 460px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+  text-align: center;
+  color: #2c3e50;
+}
+
+.label {
+  font-size: 0.9rem;
+  color: #5f6c72;
+  margin-top: 6px;
+}
+
+.input {
+  padding: 10px 12px;
+  border: 1px solid #dfe3e6;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  &:focus {
+    outline: none;
+    border-color: #4a90e2;
+  }
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  user-select: none;
+}
+
+.passwordBlock {
+  display: grid;
+  row-gap: 10px;
+}
+
+.divider {
+  height: 1px;
+  background: #eef1f4;
+  margin: 8px 0 2px;
+}
+
+.btnRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.saveBtn,
+.cancelBtn {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.saveBtn {
+  background: #28a745;
+  color: #fff;
+}
+.saveBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.cancelBtn {
+  background: #ecf0f1;
+  color: #2c3e50;
+}
