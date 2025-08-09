@@ -1,9 +1,9 @@
-// src/components/Users/Profile/hooks.ts
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
-import { API_URL } from "../../../utils/api";
+import { getUserProfile } from "../../../api/profile";
+import { updateSupportRequest as updateSupportRequestApi } from "../../../api/supportRequests";
+import { getStaffMembers } from "../../../api/staffMembers";
 
-/* ---------- типы ---------- */
+/* ---------- типы (экспортируем!) ---------- */
 
 export interface SubscriptionPlan {
   title?: string;
@@ -54,12 +54,11 @@ export function useProfileData(userId: string | undefined) {
   const [staff, setStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /* --- загрузка профиля --- */
   const fetchUser = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API_URL}/admin/users/${userId}`);
+      const data = await getUserProfile(userId);
       setUser(data.user);
       setSubs(data.subscriptions ?? []);
       setProducts(data.products ?? []);
@@ -69,7 +68,6 @@ export function useProfileData(userId: string | undefined) {
     }
   }, [userId]);
 
-  /* --- обновление обращения --- */
   const updateRequest = async (
     payload: Pick<
       SupportRequest,
@@ -77,21 +75,16 @@ export function useProfileData(userId: string | undefined) {
     >,
     requestId: string
   ) => {
-    const { data } = await axios.put<SupportRequest>(
-      `${API_URL}/admin/support-requests/${requestId}`,
-      payload
-    );
-    setRequests((prev) => prev.map((r) => (r.id === data.id ? data : r)));
+    const updated = await updateSupportRequestApi(requestId, payload);
+    setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   };
 
-  /* --- side‑effects --- */
-  useEffect(() => { fetchUser(); }, [fetchUser]);
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   useEffect(() => {
-    axios
-    .get(`${API_URL}/admin/staff-members`)
-      .then(({ data }) => setStaff(data))
-      .catch(console.error);
+    getStaffMembers().then(setStaff).catch(console.error);
   }, []);
 
   return { user, subs, products, requests, staff, loading, updateRequest };

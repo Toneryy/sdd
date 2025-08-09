@@ -1,13 +1,23 @@
-import axios from "axios";
+import axiosClient from "./client";
 import { API_URL } from "../utils/api";
 
 export const getSupportRequests = () =>
-  axios.get(`${API_URL}/admin/support-requests`).then((r) => r.data);
+  axiosClient.get(`${API_URL}/admin/support-requests`).then((r) => r.data);
 
-export const updateSupportRequest = (id: string, body: any) =>
-  axios
-    .put(`${API_URL}/admin/support-requests/${id}`, body)
-    .then((r) => r.data);
+export async function updateSupportRequest(
+  requestId: string,
+  payload: {
+    operator_description?: string;
+    operator_id?: string | null;
+    status?: string;
+  }
+) {
+  const { data } = await axiosClient.put(
+    `/admin/support-requests/${requestId}`,
+    payload
+  );
+  return data;
+}
 
 export const deleteSupportRequest = (id: string) =>
-  axios.delete(`${API_URL}/admin/support-requests/${id}`);
+  axiosClient.delete(`${API_URL}/admin/support-requests/${id}`);

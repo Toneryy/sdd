@@ -8,6 +8,13 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+enum StaffRole {
+  administrator
+  operator
+
+  @@map("staff_role")
+}
+
 model users {
   id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   username           String               @unique
@@ -153,13 +160,13 @@ model db_name_aliases {
 }
 
 model staff_members {
-  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username         String             @db.VarChar(50)
-  email            String             @unique @db.VarChar(100)
-  password         String             @db.VarChar
-  role             String             @db.VarChar(50)
-  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username         String   @db.VarChar(50)
+  email            String   @unique @db.VarChar(100)
+  password         String   @db.VarChar
+  role             StaffRole
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
   staff_rights     staff_rights[]
   support_requests support_requests[] @relation("OperatorSupportRequests")
 
@@ -167,11 +174,11 @@ model staff_members {
 }
 
 model staff_rights {
-  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role            String         @db.VarChar(50)
-  component_name  String         @db.VarChar(100)
-  can_access      Boolean?       @default(true)
-  staff_member_id String?        @db.Uuid
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role            StaffRole?
+  component_name  String      @db.VarChar(100)
+  can_access      Boolean?    @default(true)
+  staff_member_id String?     @db.Uuid
   staff_members   staff_members? @relation(fields: [staff_member_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 

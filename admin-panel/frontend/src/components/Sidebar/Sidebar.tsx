@@ -1,6 +1,6 @@
 // src/components/Sidebar/Sidebar.tsx
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiHome,
   FiPackage,
@@ -11,16 +11,42 @@ import {
   FiDatabase,
   FiChevronDown,
   FiChevronRight,
+  FiLogOut,
+  FiTool,
 } from "react-icons/fi";
 import styles from "./Sidebar.module.scss";
+import { notifyOnce } from "utils/notifyOnce";
+import { toast } from "react-toastify";
+import { useAuth } from "contexts/AuthContext";
 
 interface SidebarProps {
   className?: string;
 }
 
+const TOAST_ID_LOGOUT = 'logout-success';
+
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [serviceOpen, setServiceOpen] = useState(false);
+
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logout(); // <-- контекст чистит user и дергает /logout
+      notifyOnce(toast.info, "Вы вышли из системы", TOAST_ID_LOGOUT);
+      navigate("/login", { replace: true });
+    } catch (e) {
+      toast.error("Не удалось выйти. Попробуйте ещё раз.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <div className={`${styles.sidebar} ${className}`}>
@@ -160,8 +186,49 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             Базы данных
           </NavLink>
         </li>
+
+        {/* Служебные */}
+        <li>
+          <div
+            className={styles.link}
+            onClick={() => setServiceOpen(!serviceOpen)}
+            style={{ cursor: "pointer" }}
+          >
+            <FiTool className={styles.icon} />
+            Служебные
+            {serviceOpen ? (
+              <FiChevronDown style={{ marginLeft: "auto" }} />
+            ) : (
+              <FiChevronRight style={{ marginLeft: "auto" }} />
+            )}
+          </div>
+          {serviceOpen && (
+            <ul className={styles.submenu}>
+              <li>
+                <NavLink to="/admin/backup" className={styles.link}>
+                  Резервное копирование
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/admin/register" className={styles.link}>
+                  Регистрация
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/admin/staff-members" className={styles.link}>
+                  Персонал
+                </NavLink>
+              </li>
+            </ul>
+          )}
+        </li>
       </ul>
-    </div>
+      {/* Кнопка выхода */}
+      <div className={styles.logout} onClick={handleLogout}>
+        <FiLogOut className={styles.iconLogout} />
+        Выйти
+      </div>
+    </div >
   );
 };
 

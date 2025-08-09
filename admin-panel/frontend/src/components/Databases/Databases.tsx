@@ -1,26 +1,21 @@
-// src/components/Databases/Databases.tsx
-
-import React, { useEffect, useState } from 'react';
-import { getDbNameAliases, updateDbNameAlias } from '../../api/dbNameAliases'; // Импортируем API
-import styles from './Databases.module.scss';
-
-interface DbNameAlias {
-    id: string;
-    table_name: string;
-    alias_name: string;
-    description?: string; // Убираем null, оставляем только string или undefined
-}
+import React, { useEffect, useState, ChangeEvent } from "react";
+import {
+    getDbNameAliases,
+    updateDbNameAlias,
+    type DbNameAlias,
+} from "../../api/dbNameAliases";
+import styles from "./Databases.module.scss";
 
 const Databases: React.FC = () => {
     const [dbAliases, setDbAliases] = useState<DbNameAlias[]>([]);
-    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [editedDbAlias, setEditedDbAlias] = useState<DbNameAlias | null>(null);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        // Получаем данные с API
         getDbNameAliases()
-            .then((data) => setDbAliases(data))
-            .catch((error) => console.error('Ошибка при получении данных:', error));
+            .then(setDbAliases)
+            .catch((err) => console.error("Ошибка при получении данных:", err));
     }, []);
 
     const startEdit = (db: DbNameAlias) => {
@@ -33,28 +28,34 @@ const Databases: React.FC = () => {
         setEditedDbAlias(null);
     };
 
-    const saveEdit = () => {
-        if (!editedDbAlias) return;
-
-        updateDbNameAlias(editedDbAlias.id, {
-            alias_name: editedDbAlias.alias_name,
-            description: editedDbAlias.description ?? '', // Заменяем null на пустую строку
-        })
-            .then(() => {
-                setDbAliases((prev) =>
-                    prev.map((item) =>
-                        item.id === editedDbAlias.id ? editedDbAlias : item
-                    )
-                );
-                setIsEditing(false);
-                setEditedDbAlias(null);
-            })
-            .catch((error) => console.error('Ошибка при сохранении данных:', error));
+    const onFieldChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target; // name: 'alias_name' | 'description'
+        setEditedDbAlias((prev) =>
+            prev ? ({ ...prev, [name]: value } as DbNameAlias) : prev
+        );
     };
 
-    const onFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!editedDbAlias) return;
-        setEditedDbAlias({ ...editedDbAlias, [e.target.name]: e.target.value });
+    const saveEdit = async () => {
+        if (!editedDbAlias || saving) return;
+        setSaving(true);
+        try {
+            const updated = await updateDbNameAlias(editedDbAlias.id, {
+                alias_name: editedDbAlias.alias_name,
+                // если хочется хранить пустое поле как null — раскомментируй следующую строку:
+                // description: editedDbAlias.description?.trim() ? editedDbAlias.description : null,
+                description: editedDbAlias.description,
+            });
+
+            setDbAliases((prev) =>
+                prev.map((item) => (item.id === updated.id ? updated : item))
+            );
+            setIsEditing(false);
+            setEditedDbAlias(null);
+        } catch (err) {
+            console.error("Ошибка при сохранении данных:", err);
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -68,6 +69,9 @@ const Databases: React.FC = () => {
                             <div className={styles.dbDetails}>
                                 <h3 className={styles.dbAlias}>{alias.alias_name}</h3>
                                 <p className={styles.dbTableName}>{alias.table_name}</p>
+                                {alias.description && (
+                                    <p className={styles.dbDescription}>{alias.description}</p>
+                                )}
                             </div>
                             <button
                                 className={styles.editBtn}
@@ -101,16 +105,16 @@ const Databases: React.FC = () => {
                     <input
                         id="description"
                         name="description"
-                        value={editedDbAlias.description ?? ''}
+                        value={editedDbAlias.description ?? ""} // контролируемое поле
                         onChange={onFieldChange}
                         className={styles.inputField}
                     />
 
                     <div className={styles.buttonGroup}>
-                        <button className={styles.saveBtn} onClick={saveEdit}>
-                            Сохранить
+                        <button className={styles.saveBtn} onClick={saveEdit} disabled={saving}>
+                            {saving ? "Сохраняем…" : "Сохранить"}
                         </button>
-                        <button className={styles.cancelBtn} onClick={cancelEdit}>
+                        <button className={styles.cancelBtn} onClick={cancelEdit} disabled={saving}>
                             Отменить
                         </button>
                     </div>
