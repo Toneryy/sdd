@@ -25,7 +25,8 @@ export const fetchCategories = (): Promise<AxiosResponse<Category[]>> =>
 export const fetchProducts = (
   minPrice: string,
   maxPrice: string,
-  categoryId: string
+  categoryId: string,
+  inStock: boolean
 ): Promise<AxiosResponse<Product[]>> =>
   axios.get<Product[]>(`${API_URL}/api/shop/products`, {
     params: {
@@ -33,6 +34,7 @@ export const fetchProducts = (
       // если не передали max, ставим очень большое
       maxPrice: maxPrice || String(Number.MAX_SAFE_INTEGER),
       ...(categoryId ? { categoryId } : {}),
+      inStock: inStock ? 1 : 0,
     },
   });
 

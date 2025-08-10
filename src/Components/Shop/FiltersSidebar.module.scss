@@ -47,3 +47,100 @@
     background-color: #2980b9;
   }
 }
+
+
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.switchLabel {
+  font-weight: 600;
+  color: #111827;
+}
+
+.switchWrap {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+/* Сбиваем влияние .filterGroup input/select */
+.switchInput {
+  all: unset;
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Визуальный трек ровно по обёртке */
+.switch {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;   /* вместо inset: 0 — проще читать */
+  height: 100%;
+  display: block;
+  background: #e5eaf1;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.08);
+  transition: background .2s ease, box-shadow .2s ease;
+}
+
+/* Бегунок */
+.switchThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  transition: transform .2s ease;
+}
+
+/* Включено */
+.switchInput:checked + .switch {
+  background: #3498db;
+}
+
+.switchInput:checked + .switch .switchThumb {
+  transform: translateX(24px);
+}
+
+/* Фокус клавой */
+.switchInput:focus-visible + .switch {
+  outline: 2px solid #3498db;
+  outline-offset: 3px;
+}
+
+/* Hover */
+.switchInput:hover + .switch {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.12);
+}
+
+.switchHint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: #6b7280;
+}
+
+/* На всякий: обнулим глобальные стили чекбоксов именно для нашей зоны */
+.filterGroup input[type="checkbox"].switchInput {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}

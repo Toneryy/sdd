@@ -10,6 +10,7 @@
 }
 
 .card {
+  height: 220px;
   position: relative;
   overflow: hidden;
   background-color: #fff;
@@ -68,6 +69,11 @@
   margin: 0 0 8px;
   color: #333;
   text-align: center;
+  display: -webkit-box;
+  line-clamp: 2; /* Обрезка после двух строк */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Добавляем троеточие */
 }
 
 .price {

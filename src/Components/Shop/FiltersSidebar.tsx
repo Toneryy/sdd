@@ -1,4 +1,3 @@
-// src/components/FiltersSidebar/FiltersSidebar.tsx
 import React, { useState, useEffect } from "react";
 import styles from "./FiltersSidebar.module.scss";
 import { fetchCategories, Category } from "../../api/shop";
@@ -7,6 +6,7 @@ interface Filters {
     minPrice: string;
     maxPrice: string;
     category: string;
+    inStock: boolean;
 }
 
 interface FiltersProps {
@@ -20,32 +20,52 @@ const FiltersSidebar: React.FC<FiltersProps> = ({ onApply }) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [inStock, setInStock] = useState(true); // по умолчанию включен
 
-    // 1) Загрузить категории при монтировании
+    // утилита, чтобы не дублировать onApply
+    const apply = (patch: Partial<Filters> = {}) => {
+        onApply({
+            minPrice,
+            maxPrice,
+            category,
+            inStock,
+            ...patch, // patch перекрывает актуальные значения
+        });
+    };
+
+    // загрузка категорий
     useEffect(() => {
         setLoading(true);
         fetchCategories()
-            .then(res => {
+            .then((res) => {
                 setCategories(res.data);
                 setError(null);
             })
-            .catch(err => {
+            .catch((err) => {
                 console.error(err);
                 setError("Не удалось загрузить категории");
             })
             .finally(() => setLoading(false));
     }, []);
 
-    // 2) Если все поля пустые — сразу сбрасываем фильтры
-    useEffect(() => {
-        if (minPrice === "" && maxPrice === "" && category === "") {
-            onApply({ minPrice: "", maxPrice: "", category: "" });
-        }
-    }, [minPrice, maxPrice, category, onApply]);
+    // автоприменение для чекбокса «В наличии»
+    const handleInStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const next = e.target.checked;
+        setInStock(next);
+        apply({ inStock: next });
+    };
 
+    // (опционально можно тоже автоприменять категорию)
+    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        setCategory(val);
+        // apply({ category: val }); // ← если нужно автоприменение категории
+    };
+
+    // цены применяются по кнопке (чтобы не дергать запрос на каждый ввод)
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onApply({ minPrice, maxPrice, category });
+        apply();
     };
 
     return (
@@ -59,7 +79,7 @@ const FiltersSidebar: React.FC<FiltersProps> = ({ onApply }) => {
                     type="number"
                     min="0"
                     value={minPrice}
-                    onChange={e => setMinPrice(e.target.value)}
+                    onChange={(e) => setMinPrice(e.target.value)}
                     placeholder="0"
                 />
             </div>
@@ -71,7 +91,7 @@ const FiltersSidebar: React.FC<FiltersProps> = ({ onApply }) => {
                     type="number"
                     min="0"
                     value={maxPrice}
-                    onChange={e => setMaxPrice(e.target.value)}
+                    onChange={(e) => setMaxPrice(e.target.value)}
                     placeholder="10000"
                 />
             </div>
@@ -83,19 +103,37 @@ const FiltersSidebar: React.FC<FiltersProps> = ({ onApply }) => {
                 ) : error ? (
                     <p className={styles.error}>{error}</p>
                 ) : (
-                    <select
-                        id="category"
-                        value={category}
-                        onChange={e => setCategory(e.target.value)}
-                    >
+                    <select id="category" value={category} onChange={handleCategoryChange}>
                         <option value="">Все</option>
-                        {categories.map(cat => (
+                        {categories.map((cat) => (
                             <option key={cat.id} value={cat.id}>
                                 {cat.name}
                             </option>
                         ))}
                     </select>
                 )}
+            </div>
+
+            <div className={styles.filterGroup}>
+                <div className={styles.switchRow}>
+                    <span className={styles.switchLabel}>В наличии</span>
+
+                    <div className={styles.switchWrap}>
+                        <input
+                            id="inStock"
+                            type="checkbox"
+                            className={styles.switchInput}
+                            checked={inStock}
+                            onChange={handleInStockChange}
+                        />
+                        {/* Лейбл рисует сам переключатель */}
+                        <label htmlFor="inStock" className={styles.switch} aria-hidden="true">
+                            <span className={styles.switchThumb} />
+                        </label>
+                    </div>
+                </div>
+
+                <p className={styles.switchHint}>Показывать только товары на складе</p>
             </div>
 
             <button type="submit" className={styles.applyButton}>
