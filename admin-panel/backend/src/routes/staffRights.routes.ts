@@ -1,13 +1,23 @@
-// backend/src/routes/staffRights.routes.ts
 import { Router } from "express";
 import {
   listStaffRights,
-  createStaffRights,
+  listRightsForStaff,
+  listRightsForMe, // ← ДОбАВИТЬ
+  banFeature,
+  deleteRight,
 } from "../controllers/staffRights.controller";
+import { authenticateJWT } from "../middleware/auth.middleware";
 
 const router = Router();
+router.use(authenticateJWT);
 
-router.get("/", listStaffRights); // Получить все права доступа
-router.post("/", createStaffRights); // Создать права доступа для роли
+router.get("/", listStaffRights);
+
+// ← ДОбАВИТЬ ЭТО
+router.get("/me", listRightsForMe);
+
+router.get("/staff/:staffId", listRightsForStaff);
+router.post("/ban", banFeature);
+router.delete("/:id", deleteRight);
 
 export default router;

@@ -1,9 +1,10 @@
-// src/components/StaffList/EditModal.tsx
+// src/components/StaffList/EditModal.tsx// src/components/StaffList/EditModal.tsx
 import React, { useEffect, useState, useCallback } from "react";
 import ModalWrapper from "../Users/Profile/ModalWrapper";
 import { toast } from "react-toastify";
 import { updateStaffMember, Staff } from "../../api/staff";
 import styles from "./EditModal.module.scss";
+import { usePermissions } from "contexts/PermissionsContext";
 
 interface Props {
     show: boolean;
@@ -13,6 +14,9 @@ interface Props {
 }
 
 export default function EditModal({ show, staff, onClose, onUpdated }: Props) {
+    const { loading, hasAccess } = usePermissions();
+    const canEdit = !loading && hasAccess("EDIT_MODAL");
+
     const [form, setForm] = useState<{
         username: string;
         email: string;
@@ -26,17 +30,16 @@ export default function EditModal({ show, staff, onClose, onUpdated }: Props) {
 
     // заполнение формы при открытии
     useEffect(() => {
-        if (show && staff) {
-            setForm({
-                username: staff.username,
-                email: staff.email,
-                role: staff.role,
-            });
-            setChangePassword(false);
-            setNewPassword("");
-            setConfirm("");
-        }
-    }, [show, staff]);
+        if (!show || !staff || !canEdit) return;
+        setForm({
+            username: staff.username,
+            email: staff.email,
+            role: staff.role,
+        });
+        setChangePassword(false);
+        setNewPassword("");
+        setConfirm("");
+    }, [show, staff, canEdit]);
 
     const onChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -46,7 +49,7 @@ export default function EditModal({ show, staff, onClose, onUpdated }: Props) {
     };
 
     const handleSave = useCallback(async () => {
-        if (!staff) return;
+        if (!staff || !canEdit) return;
 
         // валидация пароля, если включили блок
         let passwordToSend: string | undefined = undefined;
@@ -73,7 +76,7 @@ export default function EditModal({ show, staff, onClose, onUpdated }: Props) {
                 email: form.email.trim(),
                 role: form.role,
                 ...(passwordToSend ? { password: passwordToSend } : {}),
-            });
+            } as any); // если TS ругается на password — можно ослабить тип
             toast.success("Данные сотрудника обновлены");
             onUpdated(updated);
             onClose();
@@ -83,11 +86,11 @@ export default function EditModal({ show, staff, onClose, onUpdated }: Props) {
         } finally {
             setSaving(false);
         }
-    }, [staff, form, changePassword, newPassword, confirm, onUpdated, onClose]);
+    }, [staff, form, changePassword, newPassword, confirm, onUpdated, onClose, canEdit]);
 
     // хоткеи
     useEffect(() => {
-        if (!show) return;
+        if (!show || !canEdit) return;
         const handler = (e: KeyboardEvent) => {
             const tag = (document.activeElement as HTMLElement)?.tagName;
             const typing = tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA";
@@ -101,10 +104,9 @@ export default function EditModal({ show, staff, onClose, onUpdated }: Props) {
         };
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
-    }, [show, handleSave, onClose]);
+    }, [show, handleSave, onClose, canEdit]);
 
-    if (!show || !staff) return null;
-
+    if (!show || !staff || !canEdit) return null;
     return (
         <ModalWrapper onClose={onClose}>
             <div className={styles.modal}>
