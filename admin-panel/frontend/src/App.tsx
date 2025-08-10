@@ -26,6 +26,7 @@ import StaffList from "./components/StaffList/StaffList";
 
 import "./App.scss";
 import StaffRightsManager from "components/StaffRightsManager/StaffRightsManager";
+import NotFound from "components/NotFound/NotFound";
 
 const App: React.FC = () => (
   <AuthProvider>
@@ -154,10 +155,12 @@ const App: React.FC = () => (
                 </GuardRoute>
               }
             /> */}
+            {/* 404 внутри админки */}
+            <Route path="*" element={<NotFound withinAdmin />} />
           </Route>
 
-          {/* опционально 404: */}
-          {/* <Route path="*" element={<Navigate to="/admin" replace />} /> */}
+          {/* глобальная 404 для любых левых путей вне /admin */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </PermissionsProvider>
