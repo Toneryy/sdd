@@ -11,8 +11,13 @@ import EditModal from "../EditModal/EditModal";
 import DeleteConfirmation from "../DeleteConfirmation/DeleteConfirmation";
 import styles from "../Products.module.scss";
 import { notifyOnce } from "../../../utils/notifyOnce";
+import { usePermissions } from "contexts/PermissionsContext";
 
 export default function ProductKeysTable() {
+  const { loading: pLoading, hasAccess } = usePermissions();
+  const canEdit = !pLoading && hasAccess("EDIT_MODAL");
+  const canDelete = !pLoading && hasAccess("DELETE_CONFIRMATION");
+
   const [allRows, setAllRows] = useState<any[]>([]);
   const [rows, setRows] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -136,19 +141,13 @@ export default function ProductKeysTable() {
     try {
       await navigator.clipboard.writeText(text);
       const toastId = `copy-key-${text}`;
-      notifyOnce(
-        toast.info,
-        "Скопировано в буфер 📋",
-        toastId,
-        { autoClose: 2000 }
-      );
+      notifyOnce(toast.info, "Скопировано в буфер 📋", toastId, {
+        autoClose: 2000,
+      });
     } catch (err) {
-      notifyOnce(
-        toast.error,
-        "Не удалось скопировать 😢",
-        "copy-error",
-        { autoClose: 3000 }
-      );
+      notifyOnce(toast.error, "Не удалось скопировать 😢", "copy-error", {
+        autoClose: 3000,
+      });
     }
   };
 
@@ -239,24 +238,30 @@ export default function ProductKeysTable() {
                   <td>{r.products?.name ?? "—"}</td>
                   <td>{r.used ? "Использован" : "Свободен"}</td>
                   <td>
-                    <button
-                      className={styles.editButton}
-                      onClick={() => {
-                        setCurrentItemId(r.id);
-                        setEditModalVisible(true);
-                      }}
-                    >
-                      ✎
-                    </button>
-                    <button
-                      className={styles.deleteButton}
-                      onClick={() => {
-                        setCurrentItemId(r.id);
-                        setDeleteModalVisible(true);
-                      }}
-                    >
-                      ✕
-                    </button>
+                    {canEdit && (
+                      <button
+                        className={`${styles.editButton} ${!canEdit ? 'permHidden' : ''}`}
+                        onClick={() => {
+                          setCurrentItemId(r.id);
+                          setEditModalVisible(true);
+                        }}
+                        title="Редактировать"
+                      >
+                        ✎
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        className={`${styles.deleteButton} ${!canDelete ? 'permHidden' : ''}`}
+                        onClick={() => {
+                          setCurrentItemId(r.id);
+                          setDeleteModalVisible(true);
+                        }}
+                        title="Удалить"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -297,14 +302,14 @@ export default function ProductKeysTable() {
       )}
 
       <EditModal
-        show={editModalVisible}
+        show={canEdit && editModalVisible}
         onClose={() => setEditModalVisible(false)}
         table="product_keys"
         item={currentItem ? { ...currentItem, productsList: products } : null}
         onSave={handleSaveEdit}
       />
       <DeleteConfirmation
-        show={deleteModalVisible}
+        show={canDelete && deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
         onDelete={handleDelete}
       />

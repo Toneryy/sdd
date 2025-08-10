@@ -122,27 +122,38 @@ const App: React.FC = () => (
             <Route
               path="register"
               element={
-                <GuardRoute feature="SERVICE_SECTION">
+                <GuardRoute feature="SERVICE_REGISTER">
                   <Register />
                 </GuardRoute>
               }
             />
+
             <Route
               path="staff-members"
               element={
-                <GuardRoute feature="SERVICE_SECTION">
+                <GuardRoute feature="SERVICE_STAFF_MEMBERS">
                   <StaffList />
                 </GuardRoute>
               }
             />
+
             <Route
               path="staff-rights"
               element={
-                <GuardRoute feature="SERVICE_SECTION">
+                <GuardRoute feature="SERVICE_STAFF_RIGHTS">
                   <StaffRightsManager />
                 </GuardRoute>
               }
             />
+
+            {/* <Route
+              path="backup"
+              element={
+                <GuardRoute feature="SERVICE_BACKUP">
+                  <BackupPage />
+                </GuardRoute>
+              }
+            /> */}
           </Route>
 
           {/* опционально 404: */}

@@ -1,9 +1,11 @@
+// src/components/Users/Users.tsx
 import React, { useState, useEffect } from "react";
 import styles from "./Users.module.scss";
-import { getUsers, addUser, updateUser, deleteUser } from "../../api/users"; // Импортируем API
+import { getUsers, addUser, updateUser, deleteUser } from "../../api/users";
 import DeleteConfirmation from "./DeleteConfirmation/DeleteConfirmation";
 import EditModal from "./EditModal/EditModal";
 import { useNavigate } from "react-router-dom";
+import { usePermissions } from "contexts/PermissionsContext";
 
 interface User {
   id: string;
@@ -30,14 +32,20 @@ const Users: React.FC = () => {
 
   const [currentEditItem, setCurrentEditItem] = useState<User | null>(null);
   const [currentDeleteId, setCurrentDeleteId] = useState<string | null>(null);
-  
+
   const navigate = useNavigate();
+
+  // Права
+  const { loading: permsLoading, hasAccess } = usePermissions();
+  const canEdit = !permsLoading && hasAccess("EDIT_MODAL");
+  const canDelete = !permsLoading && hasAccess("DELETE_CONFIRMATION");
+  const showActionsCol = canEdit || canDelete;
 
   useEffect(() => {
     getUsers()
       .then((data) => {
         setAllUsers(data);
-        setUsers(data); // показываем сразу весь список
+        setUsers(data);
       })
       .catch(console.error);
   }, []);
@@ -76,12 +84,14 @@ const Users: React.FC = () => {
     }
   };
 
-  const handleEditUser = async (id: string, patch: Partial<User>) => {
+  // позволяем передавать пароль в патч
+  const handleEditUser = async (
+    id: string,
+    patch: Partial<User> & { password?: string }
+  ) => {
     try {
-      // сохраняем предыдущую дату окончания
       const old = allUsers.find((u) => u.id === id);
       const updated = await updateUser(id, patch);
-      // вливаем lastEndDate из старой записи
       const withDate = { ...updated, lastEndDate: old?.lastEndDate ?? null };
 
       setAllUsers((prev) => prev.map((u) => (u.id === id ? withDate : u)));
@@ -118,7 +128,7 @@ const Users: React.FC = () => {
           placeholder="Поиск по пользователям"
           value={searchTerm}
           onChange={handleSearchChange}
-          onKeyDown={handleKeyPress} // обработка Enter
+          onKeyDown={handleKeyPress}
         />
         <button className={styles.searchButton} onClick={handleSearch}>
           Поиск
@@ -165,7 +175,7 @@ const Users: React.FC = () => {
             <th>Email</th>
             <th>Телефон</th>
             <th>Подписка до</th>
-            <th>Действия</th>
+            {showActionsCol && <th>Действия</th>}
           </tr>
         </thead>
         <tbody>
@@ -179,7 +189,6 @@ const Users: React.FC = () => {
                   {u.username ?? "—"}
                 </span>
               </td>
-
               <td>{u.email ?? "—"}</td>
               <td>{u.phone ?? "—"}</td>
               <td>
@@ -187,51 +196,66 @@ const Users: React.FC = () => {
                   ? new Date(u.lastEndDate).toLocaleDateString()
                   : "—"}
               </td>
-              <td>
-                <button
-                  className={styles.editButton}
-                  onClick={() => {
-                    setCurrentEditItem(u);
-                    setEditModalVisible(true);
-                  }}
-                >
-                  Изменить данные
-                </button>
 
-                <button
-                  className={styles.deleteButton}
-                  onClick={() => {
-                    setCurrentDeleteId(u.id);
-                    setDeleteModalVisible(true);
-                  }}
-                >
-                  Удалить
-                </button>
-              </td>
+              {showActionsCol && (
+                <td>
+                  {/* Редактировать — прячем, если бAN на EDIT_MODAL */}
+                  <button
+                    className={styles.editButton}
+                    style={{ display: canEdit ? undefined : "none" }}
+                    onClick={() => {
+                      if (!canEdit) return;
+                      setCurrentEditItem(u);
+                      setEditModalVisible(true);
+                    }}
+                  >
+                    Изменить данные
+                  </button>
+
+                  {/* Удалить — прячем, если бAN на DELETE_CONFIRMATION */}
+                  <button
+                    className={styles.deleteButton}
+                    style={{ display: canDelete ? undefined : "none" }}
+                    onClick={() => {
+                      if (!canDelete) return;
+                      setCurrentDeleteId(u.id);
+                      setDeleteModalVisible(true);
+                    }}
+                  >
+                    Удалить
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* Модалки */}
-      <EditModal
-        show={editModalVisible}
-        item={currentEditItem}
-        onClose={() => setEditModalVisible(false)}
-        onSave={(data) => {
-          handleEditUser(data.id, data);
-          setEditModalVisible(false);
-        }}
-      />
+      {/* Модалка редактирования — не монтируем при запрете */}
+      {canEdit && (
+        <EditModal
+          show={editModalVisible}
+          item={currentEditItem}
+          onClose={() => setEditModalVisible(false)}
+          onSave={(data) => {
+            handleEditUser(data.id, data);
+            setEditModalVisible(false);
+          }}
+        />
+      )}
 
-      <DeleteConfirmation
-        show={deleteModalVisible}
-        onClose={() => setDeleteModalVisible(false)}
-        onDelete={() => {
-          handleDeleteUser(currentDeleteId!);
-          setDeleteModalVisible(false);
-        }}
-      />
+      {/* Модалка удаления — не монтируем при запрете */}
+      {canDelete && (
+        <DeleteConfirmation
+          show={deleteModalVisible}
+          onClose={() => setDeleteModalVisible(false)}
+          onDelete={() => {
+            if (!currentDeleteId) return;
+            handleDeleteUser(currentDeleteId);
+            setDeleteModalVisible(false);
+          }}
+        />
+      )}
     </div>
   );
 };

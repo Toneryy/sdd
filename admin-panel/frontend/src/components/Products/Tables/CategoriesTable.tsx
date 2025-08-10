@@ -9,8 +9,13 @@ import {
 import EditModal from "../EditModal/EditModal";
 import DeleteConfirmation from "../DeleteConfirmation/DeleteConfirmation";
 import styles from "../Products.module.scss";
+import { usePermissions } from "contexts/PermissionsContext";
 
 export default function CategoriesTable() {
+  const { loading: pLoading, hasAccess } = usePermissions();
+  const canEdit = !pLoading && hasAccess("EDIT_MODAL");
+  const canDelete = !pLoading && hasAccess("DELETE_CONFIRMATION");
+
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -122,24 +127,30 @@ export default function CategoriesTable() {
                 <tr key={r.id}>
                   <td>{r.name}</td>
                   <td>
-                    <button
-                      className={styles.editButton}
-                      onClick={() => {
-                        setCurrentItemId(r.id);
-                        setEditModalVisible(true);
-                      }}
-                    >
-                      ✎
-                    </button>
-                    <button
-                      className={styles.deleteButton}
-                      onClick={() => {
-                        setCurrentItemId(r.id);
-                        setDeleteModalVisible(true);
-                      }}
-                    >
-                      ✕
-                    </button>
+                    {canEdit && (
+                      <button
+                        className={`${styles.editButton} ${!canEdit ? 'permHidden' : ''}`}
+                        onClick={() => {
+                          setCurrentItemId(r.id);
+                          setEditModalVisible(true);
+                        }}
+                        title="Редактировать"
+                      >
+                        ✎
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        className={`${styles.deleteButton} ${!canDelete ? 'permHidden' : ''}`}
+                        onClick={() => {
+                          setCurrentItemId(r.id);
+                          setDeleteModalVisible(true);
+                        }}
+                        title="Удалить"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -181,8 +192,9 @@ export default function CategoriesTable() {
         </>
       )}
 
+      {/* модалки показываем только если есть доступ */}
       <EditModal
-        show={editModalVisible}
+        show={canEdit && editModalVisible}
         onClose={() => setEditModalVisible(false)}
         table="categories"
         item={currentItem}
@@ -190,7 +202,7 @@ export default function CategoriesTable() {
       />
 
       <DeleteConfirmation
-        show={deleteModalVisible}
+        show={canDelete && deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
         onDelete={handleDelete}
       />

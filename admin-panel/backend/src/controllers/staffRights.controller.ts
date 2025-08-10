@@ -21,7 +21,13 @@ const ALLOWED_FEATURES = new Set<string>([
   "KEY_CHECK",
   "SUBSCRIPTIONS_PAGE",
   "PRODUCT_KEYS_PAGE",
-  "SERVICE_SECTION",
+  
+  // БЛОК «Служебные»
+  "SERVICE_SECTION",          // весь блок
+  "SERVICE_BACKUP",           // пункт «Резервное копирование»
+  "SERVICE_REGISTER",         // пункт «Регистрация»
+  "SERVICE_STAFF_MEMBERS",    // пункт «Персонал»
+  "SERVICE_STAFF_RIGHTS",     // пункт «Права доступа»
 ]);
 
 // ====== РАНЕЕ БЫЛО ======
