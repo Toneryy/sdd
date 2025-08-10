@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ModalWrapper from "../../Users/Profile/ModalWrapper";
 import styles from "./EditModal.module.scss";
+import { usePermissions } from "contexts/PermissionsContext";
 
 type TableName = "products" | "categories" | "subscriptions" | "product_keys";
 
@@ -13,20 +14,27 @@ interface Props {
 }
 
 const EditModal: React.FC<Props> = ({ show, table, item, onClose, onSave }) => {
+  const { loading, hasAccess } = usePermissions();
+  const canEdit = !loading && hasAccess("EDIT_MODAL");
+
   const [form, setForm] = useState<any>({});
 
   useEffect(() => {
-    if (show && item) setForm({ ...item });
-  }, [show, item]);
+    if (!show || !item || !canEdit) return;
+    setForm({ ...item });
+  }, [show, item, canEdit]);
 
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSave = useCallback(() => onSave(form), [form, onSave]);
+  const handleSave = useCallback(() => {
+    if (!canEdit) return;
+    onSave(form);
+  }, [form, onSave, canEdit]);
 
   useEffect(() => {
-    if (!show) return;
+    if (!show || !canEdit) return;
 
     const typingTags = ["INPUT", "TEXTAREA", "SELECT"];
     const handler = (e: KeyboardEvent) => {
@@ -47,9 +55,9 @@ const EditModal: React.FC<Props> = ({ show, table, item, onClose, onSave }) => {
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [show, handleSave, onClose]);
+  }, [show, handleSave, onClose, canEdit]);
 
-  if (!show) return null;
+  if (!show || !canEdit) return null;
 
   return (
     <ModalWrapper onClose={onClose}>

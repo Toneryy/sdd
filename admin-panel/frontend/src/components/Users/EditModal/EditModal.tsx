@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import ModalWrapper from "../Profile/ModalWrapper";
 import styles from "./EditModal.module.scss";
+import { usePermissions } from "contexts/PermissionsContext";
 
 interface User {
     id: string;
@@ -12,49 +13,53 @@ interface User {
 }
 
 interface FormState extends Partial<User> {
-    password?: string; // ← добавили
+    password?: string;
 }
 
 interface Props {
     show: boolean;
     item: User | null;
     onClose: () => void;
-    onSave: (data: (Partial<User> & { id: string }) | (Partial<User> & { id: string; password: string })) => void;
+    onSave: (
+        data:
+            | (Partial<User> & { id: string })
+            | (Partial<User> & { id: string; password: string })
+    ) => void;
 }
 
 const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
+    const { loading, hasAccess } = usePermissions();
+    const canEdit = !loading && hasAccess("EDIT_MODAL");
+
     const [form, setForm] = useState<FormState>({});
 
-    /* наполняем форму при открытии */
+    // наполняем форму при открытии
     useEffect(() => {
-        if (show && item) {
-            const { lastEndDate, ...editable } = item;
-            setForm({ ...editable, password: "" });
-        } else {
+        if (!show || !item || !canEdit) {
             setForm({});
+            return;
         }
-    }, [show, item]);
+        const { lastEndDate, ...editable } = item;
+        setForm({ ...editable, password: "" });
+    }, [show, item, canEdit]);
 
-    /* Esc — закрыть */
+    // Esc — закрыть
     useEffect(() => {
-        if (!show) return;
+        if (!show || !canEdit) return;
         const handleKeyDown = (e: KeyboardEvent) => e.key === "Escape" && onClose();
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [show, onClose]);
+    }, [show, onClose, canEdit]);
 
-    /* контролируемые инпуты */
-    const onChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const { name, value } = e.target;
-            setForm((prev) => ({ ...prev, [name]: value }));
-        },
-        []
-    );
+    // контролируемые инпуты
+    const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
+    }, []);
 
-    /* сохранить */
+    // сохранить
     const handleSave = () => {
-        if (!item) return;
+        if (!item || !canEdit) return;
 
         const { password, ...rest } = form;
         const payload =
@@ -62,10 +67,10 @@ const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
                 ? { ...rest, password: password.trim(), id: item.id }
                 : { ...rest, id: item.id };
 
-        onSave(payload);
+        onSave(payload as any);
     };
 
-    if (!show) return null;
+    if (!show || !canEdit) return null;
 
     return (
         <ModalWrapper onClose={onClose}>
