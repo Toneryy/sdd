@@ -7,6 +7,7 @@ import { getStaffMembers, deleteStaffMember, Staff } from "../../api/staff";
 import EditModal from "./EditModal";
 import ModalWrapper from "../Users/Profile/ModalWrapper";
 import styles from "./StaffList.module.scss";
+import { usePermissions } from "contexts/PermissionsContext";
 
 const ROLE_LABEL: Record<Staff["role"], string> = {
     administrator: "Администратор",
@@ -22,6 +23,12 @@ export default function StaffList() {
 
     const [editing, setEditing] = useState<Staff | null>(null);
     const [toDelete, setToDelete] = useState<Staff | null>(null);
+
+    // права
+    const { loading: permsLoading, hasAccess } = usePermissions();
+    const canEdit = !permsLoading && hasAccess("EDIT_MODAL");
+    const canDelete = !permsLoading && hasAccess("DELETE_CONFIRMATION");
+    const showActionsRow = canEdit || canDelete;
 
     // загрузка
     useEffect(() => {
@@ -111,11 +118,13 @@ export default function StaffList() {
                             Операторы
                         </button>
                     </div>
-
-                    <NavLink to="/admin/register" className={styles.addBtn} title="Создать сотрудника">
-                        <FiPlus />
-                        Новый сотрудник
-                    </NavLink>
+                    
+                    {hasAccess("EDIT_MODAL") && ( // +++ показываем только если есть доступ к EditModal
+                        <NavLink to="/admin/register" className={styles.addBtn} title="Создать сотрудника">
+                            <FiPlus />
+                            Новый сотрудник
+                        </NavLink>
+                    )}
                 </div>
             </div>
 
@@ -154,18 +163,31 @@ export default function StaffList() {
                                 <div className={styles.email}>{s.email}</div>
                             </div>
 
-                            <div className={styles.actionsRow}>
+                            {/* Кнопки действий — скрываем блок, если оба действия запрещены */}
+                            <div
+                                className={styles.actionsRow}
+                                style={{ display: showActionsRow ? undefined : "none" }}
+                            >
                                 <button
                                     className={styles.editBtn}
-                                    onClick={() => setEditing(s)}
+                                    style={{ display: canEdit ? undefined : "none" }}
+                                    onClick={() => {
+                                        if (!canEdit) return;
+                                        setEditing(s);
+                                    }}
                                     title="Редактировать"
                                 >
                                     <FiEdit2 />
                                     Редактировать
                                 </button>
+
                                 <button
                                     className={styles.deleteBtn}
-                                    onClick={() => setToDelete(s)}
+                                    style={{ display: canDelete ? undefined : "none" }}
+                                    onClick={() => {
+                                        if (!canDelete) return;
+                                        setToDelete(s);
+                                    }}
                                     title="Удалить"
                                 >
                                     <FiTrash2 />
@@ -177,16 +199,18 @@ export default function StaffList() {
                 </div>
             )}
 
-            {/* Edit modal */}
-            <EditModal
-                show={editing !== null}
-                staff={editing}
-                onClose={() => setEditing(null)}
-                onUpdated={handleUpdated}
-            />
+            {/* Edit modal — не монтируем, если бан на EDIT_MODAL */}
+            {canEdit && (
+                <EditModal
+                    show={editing !== null}
+                    staff={editing}
+                    onClose={() => setEditing(null)}
+                    onUpdated={handleUpdated}
+                />
+            )}
 
-            {/* Delete confirm */}
-            {toDelete && (
+            {/* Delete confirm — не монтируем, если бан на DELETE_CONFIRMATION */}
+            {toDelete && canDelete && (
                 <ModalWrapper onClose={() => setToDelete(null)}>
                     <div className={styles.confirm}>
                         <h3>Удалить сотрудника?</h3>

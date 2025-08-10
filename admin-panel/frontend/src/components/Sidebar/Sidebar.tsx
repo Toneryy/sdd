@@ -36,6 +36,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const { loading, hasAccess } = usePermissions(); // ← используем hasAccess
   const navigate = useNavigate();
 
+  const canSeeAnyServiceItem =
+    hasAccess("SERVICE_BACKUP") ||
+    hasAccess("SERVICE_REGISTER") ||
+    hasAccess("SERVICE_STAFF_MEMBERS") ||
+    hasAccess("SERVICE_STAFF_RIGHTS");
+
+  const canSeeServiceSection = hasAccess("SERVICE_SECTION") && canSeeAnyServiceItem;
+
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
@@ -212,7 +220,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           </li>
         )}
 
-        {hasAccess("SERVICE_SECTION") && (
+        {canSeeServiceSection && (
           <li>
             <div
               className={styles.link}
@@ -221,34 +229,39 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             >
               <FiTool className={styles.icon} />
               Служебные
-              {serviceOpen ? (
-                <FiChevronDown style={{ marginLeft: "auto" }} />
-              ) : (
-                <FiChevronRight style={{ marginLeft: "auto" }} />
-              )}
+              {serviceOpen ? <FiChevronDown style={{ marginLeft: "auto" }} /> : <FiChevronRight style={{ marginLeft: "auto" }} />}
             </div>
+
             {serviceOpen && (
               <ul className={styles.submenu}>
-                <li>
-                  <NavLink to="/admin/backup" className={styles.link}>
-                    Резервное копирование
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/admin/register" className={styles.link}>
-                    Регистрация
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/admin/staff-members" className={styles.link}>
-                    Персонал
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/admin/staff-rights" className={styles.link}>
-                    Права доступа
-                  </NavLink>
-                </li>
+                {hasAccess("SERVICE_BACKUP") && (
+                  <li>
+                    <NavLink to="/admin/backup" className={styles.link}>
+                      Резервное копирование
+                    </NavLink>
+                  </li>
+                )}
+                {hasAccess("SERVICE_REGISTER") && (
+                  <li>
+                    <NavLink to="/admin/register" className={styles.link}>
+                      Регистрация
+                    </NavLink>
+                  </li>
+                )}
+                {hasAccess("SERVICE_STAFF_MEMBERS") && (
+                  <li>
+                    <NavLink to="/admin/staff-members" className={styles.link}>
+                      Персонал
+                    </NavLink>
+                  </li>
+                )}
+                {hasAccess("SERVICE_STAFF_RIGHTS") && (
+                  <li>
+                    <NavLink to="/admin/staff-rights" className={styles.link}>
+                      Права доступа
+                    </NavLink>
+                  </li>
+                )}
               </ul>
             )}
           </li>
