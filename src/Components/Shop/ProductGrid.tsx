@@ -22,6 +22,7 @@ interface Filters {
     minPrice: string;
     maxPrice: string;
     category: string;
+    inStock: boolean;
 }
 
 interface Props {
@@ -52,7 +53,7 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
     useEffect(() => {
         setLoading(true);
         setError(null);
-        fetchProducts(filters.minPrice, filters.maxPrice, filters.category)
+        fetchProducts(filters.minPrice, filters.maxPrice, filters.category, filters.inStock)
             .then(res => {
                 setProducts(res.data);
                 setCurrentPage(1);
@@ -75,16 +76,20 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
         setFavIds(new Set(updated.map(p => p.id)));
     };
 
+    const sourceProducts = useMemo(() => {
+        return filters.inStock ? products.filter(p => p.available > 0) : products;
+    }, [products, filters.inStock]);
+
     // Fuse.js-инстанс
     const fuse = useMemo(
         () =>
-            new Fuse(products, {
+            new Fuse(sourceProducts, {
                 keys: ["name"],
                 threshold: 0.4,
                 ignoreLocation: true,
                 minMatchCharLength: 1,
             }),
-        [products]
+        [sourceProducts]
     );
 
     // Варианты поиска
@@ -95,22 +100,22 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
 
     // Точные substring результаты
     const substringResults = useMemo(() => {
-        if (!variants.length) return products;
-        return products.filter(p =>
+        if (!variants.length) return sourceProducts;
+        return sourceProducts.filter(p =>
             variants.some(v => p.name.toLowerCase().includes(v))
         );
-    }, [products, variants]);
+    }, [sourceProducts, variants]);
 
     // Итоговый список перед пагинацией
     const filtered = useMemo(() => {
-        if (!searchInput.trim()) return products;
+        if (!searchInput.trim()) return sourceProducts;
         if (substringResults.length > 0) return substringResults;
         const map = new Map<string, Product>();
         variants.forEach(term =>
             fuse.search(term).forEach(({ item }) => map.set(item.id, item))
         );
         return Array.from(map.values());
-    }, [products, searchInput, substringResults, fuse, variants]);
+    }, [sourceProducts, searchInput, substringResults, fuse, variants]);
 
     // Пагинированные данные
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
