@@ -1,10 +1,12 @@
 // src/routes/purchase.routes.ts
-import { Router } from "express";
-import { purchaseProduct } from "../controllers/purchase.controller";
+import { Router } from 'express';
+import { devCheckout, devPay, devActivate } from '../controllers/purchase.controller';
 
 const router = Router();
 
-// Совершить покупку товара
-router.post("/purchase", purchaseProduct);
+router.post('/dev/checkout', devCheckout);
+router.post('/dev/pay/:orderId', devPay);
+router.post('/dev/activate', devActivate);
 
 export default router;
+
