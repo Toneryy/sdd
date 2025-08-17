@@ -30,30 +30,18 @@ export const getProducts = async (
       ? Number(req.query.maxPrice)
       : Number.MAX_SAFE_INTEGER;
     const categoryId = req.query.categoryId as string | undefined;
+    const showOutOfStock = req.query.showOutOfStock === "1"; // опциональный фильтр
 
     const where: any = { price: { gte: minPrice, lte: maxPrice } };
     if (categoryId) where.category_id = categoryId;
+    if (!showOutOfStock) where.total_amount = { gt: 0 }; // скрыть распроданные, если нужно
 
-    // 1) Берём продукты с привязкой к categories
     const products = await prisma.products.findMany({
       where,
-      include: {
-        categories: { select: { name: true } }, // <-- здесь
-      },
+      include: { categories: { select: { name: true } } },
+      orderBy: { name: "asc" },
     });
 
-    // 2) Считаем доступные ключи
-    const counts = await prisma.product_keys.groupBy({
-      by: ["product_id"],
-      where: { used: false },
-      _count: { _all: true },
-    });
-    const countMap: Record<string, number> = {};
-    counts.forEach((c) => {
-      if (c.product_id) countMap[c.product_id] = c._count._all;
-    });
-
-    // 3) Собираем ответ
     const result = products.map((p) => ({
       id: p.id,
       name: p.name,
@@ -61,7 +49,7 @@ export const getProducts = async (
       category: p.categories?.name ?? null,
       img: p.img ?? null,
       description: p.description ?? null,
-      available: countMap[p.id] ?? 0,
+      available: p.total_amount ?? 0, // <-- берём из денормы
     }));
 
     res.json(result);
@@ -81,18 +69,12 @@ export const getProductById = async (
 
     const p = await prisma.products.findUnique({
       where: { id },
-      include: {
-        categories: { select: { name: true } },
-      },
+      include: { categories: { select: { name: true } } },
     });
     if (!p) {
       res.status(404).json({ message: "Товар не найден" });
       return;
     }
-
-    const available = await prisma.product_keys.count({
-      where: { product_id: id, used: false },
-    });
 
     res.json({
       id: p.id,
@@ -101,7 +83,7 @@ export const getProductById = async (
       category: p.categories?.name ?? null,
       img: p.img ?? null,
       description: p.description ?? null,
-      available,
+      available: p.total_amount ?? 0, // <-- тоже отсюда
     });
   } catch (error) {
     console.error("Ошибка получения товара:", error);
