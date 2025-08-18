@@ -62,3 +62,8 @@ export const updateQuantity = (id: string, quantity: number) => {
   );
   saveCart(updatedCart);
 };
+
+export const clearCart = () => {
+  localStorage.removeItem(CART_KEY);
+  // альтернативно: saveCart([])
+};

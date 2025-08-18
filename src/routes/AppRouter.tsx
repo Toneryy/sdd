@@ -17,6 +17,10 @@ import Cart from 'pages/Cart/Cart'
 import ScrollToTop from 'utils/ScrollToTop'
 import Favorites from 'pages/Favorites/Favorites'
 
+// 👉 добавь:
+import CheckoutDev from 'pages/CheckoutDev/CheckoutDev'
+import CheckoutSuccessDev from 'pages/CheckoutSuccessDev/CheckoutSuccessDev'
+
 const AppRouter: React.FC = () => {
   const { isAuth } = useContext(AuthContext)
 
@@ -31,10 +35,22 @@ const AppRouter: React.FC = () => {
           <Route path='/shop' element={<Shop />} />
           <Route path="/shop/:id" element={<ShopProduct />} />
           <Route path="/favorites" element={<Favorites />} />
+
           <Route
             path="/cart"
             element={isAuth ? <Cart /> : <Navigate to="/login" replace />}
           />
+
+          {/* 👉 dev-оплата */}
+          <Route
+            path="/checkout"
+            element={isAuth ? <CheckoutDev /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/checkout/success/:orderNumber"
+            element={isAuth ? <CheckoutSuccessDev /> : <Navigate to="/login" replace />}
+          />
+
           <Route
             path="/login"
             element={isAuth ? <Navigate to="/profile" replace /> : <LoginPage />}

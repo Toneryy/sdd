@@ -61,3 +61,12 @@ export const activateLimiter = rateLimit({
   keyGenerator: keyByUserOrIp,
   message: { message: "RATE_LIMIT_ACTIVATE" },
 });
+
+export const refundLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: keyByUserOrIp,
+  message: { message: "RATE_LIMIT_REFUND" },
+});

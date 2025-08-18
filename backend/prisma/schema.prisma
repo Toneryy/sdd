@@ -224,7 +224,9 @@ model posts {
 
 enum OrderStatus {
   pending
+  awaiting_payment
   paid
+  failed
   cancelled
   refunded
   expired
