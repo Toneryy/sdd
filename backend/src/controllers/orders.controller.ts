@@ -23,7 +23,12 @@ export const getOrderStatus: RequestHandler = async (req, res) => {
           include: {
             items: {
               include: {
-                units: { include: { key_alias: { select: { code: true } } } },
+                units: {
+                  include: {
+                    // добавили active, чтобы фильтровать после refund
+                    key_alias: { select: { code: true, active: true } },
+                  },
+                },
               },
             },
           },
@@ -33,7 +38,11 @@ export const getOrderStatus: RequestHandler = async (req, res) => {
           include: {
             items: {
               include: {
-                units: { include: { key_alias: { select: { code: true } } } },
+                units: {
+                  include: {
+                    key_alias: { select: { code: true, active: true } },
+                  },
+                },
               },
             },
           },
@@ -50,11 +59,12 @@ export const getOrderStatus: RequestHandler = async (req, res) => {
       productId: it.product_id,
       subscriptionId: it.subscription_id,
       qty: it.qty,
+      // показываем только alias, у которых active=true
       aliases:
         it.units
-          ?.map((u) => u.key_alias?.code)
-          .filter(Boolean)
-          .map(String) ?? [],
+          ?.map((u) => u.key_alias)
+          .filter((ka) => ka && ka.active)
+          .map((ka) => ka!.code) ?? [],
     }));
 
     res.json({
@@ -94,7 +104,6 @@ export const getMyAssets: RequestHandler = async (req, res) => {
           product_key: {
             select: {
               id: true,
-              // через алиасы можно понять, активирован ли ключ
               keys_aliases: {
                 select: { activated: true, activated_at: true, code: true },
               },

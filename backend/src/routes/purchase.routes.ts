@@ -1,22 +1,56 @@
 // src/routes/purchase.routes.ts
-import { Router } from 'express';
-import { devCheckout, devPay, devActivate } from '../controllers/purchase.controller';
-import { checkoutLimiter, payLimiter, activateLimiter } from "../middlewares/rateLimit";
-import { getMyAssets, getOrderStatus } from '../controllers/orders.controller';
-import { generalLimiter } from "../middlewares/rateLimit";
-import { devRefund } from '../controllers/refund.controller';
+import { Router } from "express";
+import { checkout, activate } from "../controllers/purchase.controller";
+import {
+  devCreatePayment,
+  devPay,
+} from "../controllers/dev-payments.controller";
+import {
+  checkoutLimiter,
+  payLimiter,
+  activateLimiter,
+  refundLimiter,
+} from "../middlewares/rateLimit";
+import { getMyAssets, getOrderStatus } from "../controllers/orders.controller";
+import { devRefund } from "../controllers/refund.controller";
 
 const router = Router();
 
-router.post('/dev/checkout', checkoutLimiter, devCheckout);
-router.post('/dev/pay/:orderId', payLimiter, devPay);
-router.post('/dev/activate', activateLimiter, devActivate);
+/**
+ * PROD endpoints
+ * (реальный флоу: резерв при checkout, активация по коду)
+ */
+router.post("/checkout", checkoutLimiter, checkout);
+router.post("/activate", activateLimiter, activate);
 
-router.get('/order/:idOrNumber', generalLimiter, getOrderStatus);
-router.get('/my', generalLimiter, getMyAssets);
+/**
+ * DEV: эмуляция платёжки
+ * create-payment переводит pending -> awaiting_payment и считает amount
+ * pay списывает резервы и помечает заказ как paid
+ */
+router.post("/dev/create-payment/:idOrNumber", payLimiter, devCreatePayment);
+router.post("/dev/pay/:idOrNumber", payLimiter, devPay);
 
-// возврат (dev)
-router.post("/dev/refund/:idOrNumber", payLimiter, devRefund);
+/**
+ * Back-compat алиасы (можно удалить, когда фронт обновишь)
+ */
+router.post("/dev/checkout", checkoutLimiter, checkout);
+router.post("/dev/activate", activateLimiter, activate);
+// старый маршрут ожидал :orderId — прокидываем в новый обработчик
+router.post("/dev/pay/:orderId", payLimiter, (req, res, next) => {
+  (req.params as any).idOrNumber = req.params.orderId;
+  return devPay(req, res, next);
+});
+
+/**
+ * Read-only
+ */
+router.get("/order/:idOrNumber", getOrderStatus);
+router.get("/my", getMyAssets);
+
+/**
+ * DEV: возврат (окно + без активированных alias + без подписок)
+ */
+router.post("/dev/refund/:idOrNumber", refundLimiter, devRefund);
 
 export default router;
-
