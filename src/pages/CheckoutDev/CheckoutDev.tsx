@@ -1,11 +1,15 @@
 // frontend/src/pages/CheckoutDev/CheckoutDev.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./CheckoutDev.module.scss";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { loadCart, CartItem as LocalCartItem, clearCart } from "../../utils/cartStorage";
-import { createOrder, getOrderStatus, CartItemPayload } from "../../api/purchase";
+import {
+    loadCart,
+    CartItem as LocalCartItem,
+    clearCart,
+} from "../../utils/cartStorage";
+import { createOrder, CartItemPayload } from "../../api/purchase";
 import { devCreatePayment, devPay } from "../../api/payments.dev";
 import { fetchProfile } from "../../api/profile";
 
@@ -18,8 +22,12 @@ const cardMask = (v: string) =>
 const expMask = (v: string) =>
     v.replace(/\D/g, "").slice(0, 4).replace(/(\d{2})(?=\d)/, "$1/");
 
+type LocationState = { promoCode?: string | null } | undefined;
+
 const CheckoutDev: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const promoCode = (location.state as LocationState)?.promoCode ?? null;
 
     const [cart, setCart] = useState<LocalCartItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +35,7 @@ const CheckoutDev: React.FC = () => {
     const [userId, setUserId] = useState<string>("");
     const [orderId, setOrderId] = useState<string>("");
     const [orderNumber, setOrderNumber] = useState<string>("");
+
     const [amount, setAmount] = useState<number | null>(null);
     const [currency, setCurrency] = useState<string>("RUB");
 
@@ -36,42 +45,82 @@ const CheckoutDev: React.FC = () => {
     const [cardExp, setCardExp] = useState("");
     const [cardCvv, setCardCvv] = useState("");
 
-    // 1) грузим корзину
+    // ===== анти-спам тостов: максимум 1 активный =====
+    const toastIdRef = useRef<React.ReactText | null>(null);
+    const showToast = (
+        type: "success" | "error" | "info" | "warning",
+        message: string
+    ) => {
+        const opts = { autoClose: 3000, closeOnClick: true } as const;
+
+        if (toastIdRef.current && toast.isActive(toastIdRef.current)) {
+            toast.update(toastIdRef.current, {
+                render: message,
+                type,
+                ...opts,
+            });
+        } else {
+            toastIdRef.current = toast(message, {
+                type,
+                ...opts,
+                onClose: () => {
+                    toastIdRef.current = null;
+                },
+            });
+        }
+    };
+    const tSuccess = (m: string) => showToast("success", m);
+    const tError = (m: string) => showToast("error", m);
+    const tInfo = (m: string) => showToast("info", m);
+    const tWarn = (m: string) => showToast("warning", m);
+
+    useEffect(() => {
+        return () => {
+            if (toastIdRef.current) {
+                toast.dismiss(toastIdRef.current);
+                toastIdRef.current = null;
+            }
+        };
+    }, []);
+    // ================================================
+
+    // 1) корзина
     useEffect(() => {
         const c = loadCart();
         if (!c.length) {
-            toast.info("Корзина пуста");
+            tInfo("Корзина пуста");
             navigate("/cart");
             return;
         }
         setCart(c);
     }, [navigate]);
 
-    // 2) подтягиваем userId с бэка (по токену)
+    // 2) userId из профиля
     useEffect(() => {
         (async () => {
             try {
                 const token = localStorage.getItem("token");
                 if (!token) {
-                    toast.error("Не найден токен авторизации");
+                    tError("Не найден токен авторизации");
                     navigate("/login");
                     return;
                 }
                 const { data } = await fetchProfile(token);
                 const uid = data?.id || data?.user?.id || data?.userId;
                 if (!uid) {
-                    toast.error("Бэкенд не вернул userId");
+                    tError("Бэкенд не вернул userId");
                     navigate("/login");
                     return;
                 }
                 setUserId(uid);
             } catch (e: any) {
-                toast.error(e?.response?.data?.message || "Не удалось получить профиль");
+                tError(e?.response?.data?.message || "Не удалось получить профиль");
                 navigate("/login");
             }
         })();
     }, [navigate]);
 
+    // полезные мемо
     const payloadItems: CartItemPayload[] = useMemo(
         () =>
             cart.map((i) => ({
@@ -82,31 +131,56 @@ const CheckoutDev: React.FC = () => {
         [cart]
     );
 
-    const total = useMemo(
+    const totalLocal = useMemo(
         () => cart.reduce((sum, i) => sum + i.price * i.quantity, 0),
         [cart]
     );
 
-    // 3) создаём заказ, когда есть userId и корзина
+    // стабильная подпись корзины
+    const cartSig = useMemo(
+        () =>
+            cart
+                .map((i) => `${i.id}:${i.quantity}`)
+                .sort()
+                .join("|"),
+        [cart]
+    );
+
+    // 3) создаём/находим активный заказ и сразу фиксируем сумму (devCreatePayment)
     useEffect(() => {
         if (!userId || !cart.length) return;
 
         (async () => {
             try {
                 setIsLoading(true);
-                const res = await createOrder(userId, payloadItems);
+
+                const res = await createOrder(userId, payloadItems, promoCode || undefined);
                 setOrderId(res.orderId);
                 setOrderNumber(res.orderNumber);
-                toast.success(`Заказ №${res.orderNumber} создан`);
+                tSuccess(`Заказ №${res.orderNumber} создан`);
+
+                try {
+                    const created = await devCreatePayment(res.orderId);
+                    setAmount(created.amount ?? totalLocal);
+                    setCurrency(created.currency ?? "RUB");
+                } catch (e: any) {
+                    setAmount(totalLocal);
+                    setCurrency("RUB");
+                    tWarn(
+                        e?.response?.data?.message ||
+                        "Не удалось зафиксировать сумму оплаты. Попробуйте ещё раз на шаге оплаты."
+                    );
+                }
             } catch (e: any) {
-                toast.error(e?.response?.data?.message || "Не удалось создать заказ");
+                tError(e?.response?.data?.message || "Не удалось создать заказ");
                 navigate("/cart");
             } finally {
                 setIsLoading(false);
             }
         })();
-    }, [userId, cart, payloadItems, navigate]);
+    }, [userId, cartSig, promoCode, navigate, cart.length, payloadItems, totalLocal]);
 
+    // ===== валидация формы карты =====
     const validateCard = () => {
         const num = cardNumber.replace(/\s/g, "");
         const exp = cardExp.replace(/\D/g, "");
@@ -120,42 +194,45 @@ const CheckoutDev: React.FC = () => {
         return null;
     };
 
-    const [showSuccess, setShowSuccess] = useState<{
-        orderNumber: string;
-        aliases: string[];
-        status: string;
-    } | null>(null);
-
+    // ===== обработчик оплаты =====
     const handlePay = async () => {
         if (!orderId) return;
         const err = validateCard();
         if (err) {
-            toast.error(err);
+            tError(err);
             return;
         }
 
         setIsLoading(true);
         try {
-            // 1) создаём dev-сессию (awaiting_payment), получаем сумму
-            const created = await devCreatePayment(orderId);
-            setAmount(created.amount ?? total);
-            setCurrency(created.currency ?? "RUB");
+            // на всякий случай ещё раз фиксируем сумму
+            try {
+                const created = await devCreatePayment(orderId);
+                setAmount(created.amount ?? totalLocal);
+                setCurrency(created.currency ?? "RUB");
+            } catch {
+                /* сумма могла быть зафиксирована раньше */
+            }
 
-            // 2) имитируем оплату
             const paid = await devPay(orderId);
             if (paid.status === "paid") {
-                toast.success(`Оплата прошла. Заказ №${paid.orderNumber} оплачен`);
-
-                // 3) чистим корзину и редиректим на страницу успеха
+                tSuccess(`Оплата прошла. Заказ №${paid.orderNumber} оплачен`);
                 clearCart();
                 navigate(`/checkout/success/${paid.orderNumber}`);
             }
         } catch (e: any) {
-            toast.error(e?.response?.data?.message || "Ошибка оплаты");
+            tError(e?.response?.data?.message || "Ошибка оплаты");
         } finally {
             setIsLoading(false);
         }
     };
+
+    // ===== отображаемые суммы =====
+    const subtotal = totalLocal;
+    const finalAmount = amount ?? subtotal;
+    const discountValue = Math.max(0, subtotal - finalAmount);
+    const discountPercent =
+        subtotal > 0 ? Math.round((discountValue / subtotal) * 100) : 0;
 
     return (
         <div className={styles.container}>
@@ -179,16 +256,46 @@ const CheckoutDev: React.FC = () => {
                                     </div>
                                 </li>
                             ))}
-                            <li className={styles.totalLine}>
-                                <span>Итого</span>
-                                <strong>{formatMoney(total)}</strong>
-                            </li>
+
+                            {discountValue > 0 ? (
+                                <>
+                                    <li className={styles.totalLine}>
+                                        <span>Итого к оплате</span>
+                                        <span>
+                                            <span
+                                                style={{
+                                                    textDecoration: "line-through",
+                                                    opacity: 0.6,
+                                                    marginRight: 8,
+                                                }}
+                                            >
+                                                {formatMoney(subtotal)}
+                                            </span>
+                                            <strong>{formatMoney(finalAmount)}</strong>
+                                        </span>
+                                    </li>
+                                    <li className={styles.totalLine}>
+                                        <span>Скидка (по промокоду)</span>
+                                        <strong>−{discountPercent}%</strong>
+                                    </li>
+                                </>
+                            ) : (
+                                <li className={styles.totalLine}>
+                                    <span>Итого</span>
+                                    <strong>{formatMoney(finalAmount)}</strong>
+                                </li>
+                            )}
                         </ul>
                     )}
 
                     {orderNumber && (
                         <p className={styles.orderMeta}>
                             Номер заказа: <strong>{orderNumber}</strong>
+                        </p>
+                    )}
+                    {promoCode && (
+                        <p className={styles.orderMeta}>
+                            Промокод: <strong>{promoCode}</strong>
                         </p>
                     )}
                 </section>
@@ -222,7 +329,9 @@ const CheckoutDev: React.FC = () => {
                                 inputMode="numeric"
                                 placeholder="123"
                                 value={cardCvv}
-                                onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                                onChange={(e) =>
+                                    setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))
+                                }
                             />
                         </div>
                     </div>
@@ -244,52 +353,14 @@ const CheckoutDev: React.FC = () => {
                         {isLoading ? "Оплата..." : "Оплатить (dev)"}
                     </button>
 
-                    {amount !== null && (
-                        <p className={styles.amountNote}>
-                            К списанию:{" "}
-                            <strong>
-                                {formatMoney(amount, currency === "RUB" ? "₽" : currency)}
-                            </strong>
-                        </p>
-                    )}
+                    <p className={styles.amountNote}>
+                        К списанию:{" "}
+                        <strong>
+                            {formatMoney(finalAmount, currency === "RUB" ? "₽" : currency)}
+                        </strong>
+                    </p>
                 </section>
             </div>
-
-            {showSuccess && (
-                <section className={styles.success}>
-                    <h3>Оплата успешна ✅</h3>
-                    <p>
-                        Заказ <strong>№{showSuccess.orderNumber}</strong> — статус:{" "}
-                        <strong>{showSuccess.status}</strong>
-                    </p>
-
-                    {showSuccess.aliases.length > 0 && (
-                        <>
-                            <h4>Коды активации:</h4>
-                            <ul className={styles.aliasList}>
-                                {showSuccess.aliases.map((code) => (
-                                    <li key={code}>
-                                        <code>{code}</code>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard?.writeText(code);
-                                                toast.info("Скопировано");
-                                            }}
-                                        >
-                                            Копировать
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    )}
-
-                    <div className={styles.successBtns}>
-                        <button onClick={() => navigate("/shop")}>В магазин</button>
-                        <button onClick={() => navigate(`/profile`)}>В профиль</button>
-                    </div>
-                </section>
-            )}
         </div>
     );
 };

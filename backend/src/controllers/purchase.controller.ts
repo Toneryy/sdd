@@ -1,7 +1,7 @@
 // src/controllers/purchase.controller.ts
 import type { RequestHandler } from "express";
 import { prisma } from "../config/prisma";
-import { randomInt } from "crypto";
+import { createHash, randomInt } from "crypto";
 import { safeDecryptKey } from "../utils/safeKey";
 import { logKeyEvents } from "../utils/keyEvents";
 
@@ -23,6 +23,18 @@ function genOrderNumber(len = 7): string {
   return s; // ведущие нули сохраняем
 }
 
+function makeCartHash(items: CartItem[]): string {
+  // нормализуем: p:<id>:<qty> / s:<id>:1; сортируем и хешируем
+  const norm = items.map((it) =>
+    it.type === "product"
+      ? `p:${it.productId}:${Math.max(1, Math.floor(it.qty ?? 1))}`
+      : `s:${it.subscriptionId}:1`
+  );
+  norm.sort();
+  const raw = norm.join("|");
+  return createHash("sha256").update(raw).digest("hex").slice(0, 64);
+}
+
 // ===========================================
 // ================ CHECKOUT =================
 // ===========================================
@@ -31,18 +43,61 @@ function genOrderNumber(len = 7): string {
  * Создаёт заказ в статусе pending, резервирует ключи и пишет key_events:reserved
  */
 export const checkout: RequestHandler = async (req, res) => {
-  const { userId, items } = req.body as { userId: string; items: CartItem[] };
+  const { userId, items, promoCode } = req.body as {
+    userId: string;
+    items: CartItem[];
+    promoCode?: string;
+  };
   if (!userId || !Array.isArray(items) || items.length === 0) {
     res.status(400).json({ message: "userId и items обязательны" });
     return;
   }
 
+  const cartHash = makeCartHash(items);
+
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // 0) Advisory lock на пользователя — запрет параллельных чекаутов
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}), 0)`;
 
-      // 1) Создаём заказ с рандомным order_number (строка), с ретраями на уникальность
+      // 0) Пытаемся найти активный заказ с тем же составом
+      const existing = await tx.orders.findFirst({
+        where: {
+          user_id: userId,
+          status: { in: ["pending", "awaiting_payment"] },
+          cart_hash: cartHash,
+        },
+        select: { id: true, order_number: true, status: true },
+      });
+      if (existing) {
+        // опционально — обновим снапшот промо, если пришёл явный promoCode и его ещё нет
+        if (promoCode) {
+          const promo = await tx.promocodes.findFirst({
+            where: { code: promoCode },
+            select: { id: true, type: true, denomination: true, code: true },
+          });
+          const usage = promo
+            ? await tx.promo_usage.findFirst({
+                where: { user_id: userId, promocode_id: promo.id },
+              })
+            : null;
+
+          if (promo && usage && promo.type === "discount") {
+            await tx.orders.update({
+              where: { id: existing.id },
+              data: {
+                applied_promocode_id: promo.id,
+                applied_promocode_code: promo.code,
+                applied_promocode_type: promo.type,
+                applied_promocode_denomination: Number(promo.denomination),
+              },
+            });
+          }
+        }
+
+        return existing;
+      }
+
+      // 1) Создаём заказ
       let order: { id: string; order_number: string } | undefined;
       for (let attempt = 1; attempt <= 10; attempt++) {
         const candidate = genOrderNumber(7);
@@ -52,49 +107,27 @@ export const checkout: RequestHandler = async (req, res) => {
               user_id: userId,
               status: "pending",
               order_number: candidate,
+              cart_hash: cartHash,
             },
             select: { id: true, order_number: true },
           });
           break;
         } catch (err: any) {
-          if (err?.code !== "P2002") throw err; // не конфликт уникальности — пробрасываем
+          if (err?.code !== "P2002") throw err;
         }
       }
       if (!order) throw new Error("ORDER_NUMBER_GEN_FAILED");
 
-      // 2) Общие данные для лимита
-      const now = new Date();
-      const pendingOrders = await tx.orders.findMany({
-        where: { user_id: userId, status: "pending" },
-        select: { id: true },
-      });
-      const pendingOrderIds = pendingOrders.map((o) => o.id);
-
-      // 3) Добавляем позиции и резервируем ключи
+      // 2) Строки + юниты
       for (const it of items) {
         if (it.type === "product") {
           const qty = Math.max(1, Math.floor(it.qty ?? 1));
-
           const prod = await tx.products.findUnique({
             where: { id: it.productId },
             select: { id: true },
           });
           if (!prod) throw new Error("PRODUCT_NOT_FOUND");
 
-          // Анти-хоардинг — сколько уже зарезервировано этим юзером по продукту
-          const userReservedNow = await tx.product_keys.count({
-            where: {
-              product_id: it.productId,
-              used: false,
-              reserved_by_order_id: { in: pendingOrderIds },
-              reserved_until: { gt: now },
-            },
-          });
-          if (userReservedNow + qty > MAX_PER_PRODUCT_PER_USER) {
-            throw new Error("USER_LIMIT_REACHED");
-          }
-
-          // Создаём order_item и юниты
           const oi = await tx.order_items.create({
             data: {
               order_id: order.id,
@@ -108,53 +141,43 @@ export const checkout: RequestHandler = async (req, res) => {
               data: { order_item_id: oi.id },
             });
           }
-
-          // Резервим ключи FIFO + SKIP LOCKED
-          const rows = await tx.$queryRaw<Array<{ id: string }>>`
-            SELECT id
-            FROM product_keys
-            WHERE product_id = ${it.productId}::uuid
-              AND used = false
-              AND (reserved_until IS NULL OR reserved_until < now())
-            ORDER BY created_at ASC, id ASC
-            FOR UPDATE SKIP LOCKED
-            LIMIT ${Number(qty)}
-          `;
-          if (rows.length !== qty) throw new Error("NO_STOCK");
-
-          await tx.product_keys.updateMany({
-            where: { id: { in: rows.map((r) => r.id) } },
-            data: {
-              reserved_by_order_id: order.id,
-              reserved_until: new Date(Date.now() + RESERVE_TTL_MS),
-            },
-          });
-
-          // LOG: reserved
-          await logKeyEvents(
-            tx,
-            rows.map((r) => ({
-              event: "reserved",
-              product_key_id: r.id,
-              order_id: order!.id,
-              order_item_id: oi.id,
-            }))
-          );
-        }
-
-        if (it.type === "subscription") {
+        } else if (it.type === "subscription") {
           const sub = await tx.subscriptions.findUnique({
             where: { id: it.subscriptionId },
             select: { id: true },
           });
           if (!sub) throw new Error("SUBSCRIPTION_NOT_FOUND");
-
           await tx.order_items.create({
             data: {
               order_id: order.id,
               item_type: "subscription",
               subscription_id: it.subscriptionId,
               qty: 1,
+            },
+          });
+        }
+      }
+
+      // 3) Если передан promoCode — сразу снапшотим в заказ (не считаем сумму здесь)
+      if (promoCode) {
+        const promo = await tx.promocodes.findFirst({
+          where: { code: promoCode },
+          select: { id: true, type: true, denomination: true, code: true },
+        });
+        const usage = promo
+          ? await tx.promo_usage.findFirst({
+              where: { user_id: userId, promocode_id: promo.id },
+            })
+          : null;
+
+        if (promo && usage && promo.type === "discount") {
+          await tx.orders.update({
+            where: { id: order.id },
+            data: {
+              applied_promocode_id: promo.id,
+              applied_promocode_code: promo.code,
+              applied_promocode_type: promo.type,
+              applied_promocode_denomination: Number(promo.denomination),
             },
           });
         }

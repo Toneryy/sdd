@@ -84,7 +84,11 @@ export const devRefund: RequestHandler = async (req, res) => {
           refunded: true,
         };
       }
-      if (order.status !== "paid") throw new Error("REFUND_NOT_ALLOWED_STATUS");
+      if (["pending", "awaiting_payment", "paid"].includes(order.status)) {
+        // разрешаем откат
+      } else {
+        return res.status(400).json({ message: "REFUND_NOT_ALLOWED_STATUS" });
+      }
 
       // Окно возврата
       const ageMs =

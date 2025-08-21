@@ -47,8 +47,10 @@ const Cart: React.FC = () => {
     try {
       const { data } = await fetchUsedPromos()
       setAppliedPromos(data)
-      const disc = data.find((p) => p.type === 'discount')
-      setDiscount(disc ? disc.denomination : 0)
+      const disc = data
+        .filter((p) => p.type === 'discount')
+        .reduce((max, p) => Math.max(max, p.denomination), 0);
+      setDiscount(disc);
     } catch {
       toast.error('Не удалось загрузить применённые промокоды')
     }
@@ -98,6 +100,11 @@ const Cart: React.FC = () => {
   // Общая сумма
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const discounted = total - (total * discount) / 100
+
+  const bestDiscountCode =
+    appliedPromos
+      .filter(p => p.type === 'discount')
+      .sort((a, b) => b.denomination - a.denomination)[0]?.code;
 
   return (
     <div className={styles.container}>
@@ -199,7 +206,7 @@ const Cart: React.FC = () => {
                 <strong>{discounted.toLocaleString()} ₽</strong>
               </p>
             )}
-            <button className={styles.checkout} onClick={() => navigate('/checkout')}>
+            <button className={styles.checkout} onClick={() => navigate('/checkout', { state: { promoCode: bestDiscountCode || null } })}>
               Оформить заказ
             </button>
           </div>
