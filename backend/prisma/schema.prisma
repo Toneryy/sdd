@@ -243,9 +243,21 @@ model orders {
   updated_at        DateTime?   @default(now()) @db.Timestamptz(6)
   order_number      String      @unique @db.VarChar(7)
 
+  amount_subtotal  Decimal? @db.Decimal(10, 2)
+  discount_percent Int?     @default(0)
+  discount_amount  Decimal? @db.Decimal(10, 2)
+
+  applied_promocode_id           String? @db.Uuid
+  applied_promocode_code         String? @db.VarChar(50)
+  applied_promocode_type         String? @db.VarChar(10)
+  applied_promocode_denomination Int?
+
+  cart_hash String? @db.VarChar(64)
+
   users users         @relation("UserOrders", fields: [user_id], references: [id], onDelete: Cascade)
   items order_items[]
 
+  @@index([user_id, status, cart_hash])
   @@map("orders")
 }
 

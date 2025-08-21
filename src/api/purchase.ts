@@ -12,10 +12,14 @@ export type CheckoutResponse = {
   status: "pending";
 };
 
-export async function createOrder(userId: string, items: CartItemPayload[]) {
+export async function createOrder(
+  userId: string,
+  items: CartItemPayload[],
+  promoCode?: string // <— добавили
+) {
   const { data } = await axios.post<CheckoutResponse>(
     `${API_URL}/api/purchase/checkout`,
-    { userId, items }
+    { userId, items, promoCode } // <— передаём на бэкенд
   );
   return data;
 }

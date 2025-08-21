@@ -1,9 +1,14 @@
 // src/controllers/dev-payments.controller.ts
 import type { RequestHandler } from "express";
 import { prisma } from "../config/prisma";
+import { Prisma } from "@prisma/client";
 import { logKeyEvents } from "../utils/keyEvents";
 
-// ---------- utils ----------
+const RESERVE_TTL_MS = Number(process.env.RESERVE_TTL_MS ?? 5 * 60 * 1000);
+const MAX_PER_PRODUCT_PER_USER = Number(
+  process.env.MAX_PER_PRODUCT_PER_USER ?? 3
+);
+
 function isUuidLike(s: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     s
@@ -24,28 +29,239 @@ function genAliasCode(): string {
 function isPayableStatus(s: string) {
   return s === "pending" || s === "awaiting_payment";
 }
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Бронирование ключей под заказ (вызываем при создании платёжной сессии и/или перед pay). */
+async function ensureReservations(
+  tx: Prisma.TransactionClient,
+  orderId: string
+) {
+  const order = await tx.orders.findUnique({
+    where: { id: orderId },
+    include: { items: true },
+  });
+  if (!order) throw new Error("ORDER_NOT_FOUND");
+
+  const now = new Date();
+
+  // Список заказов пользователя в awaiting_payment — они уже держат резервы
+  const awaiting = await tx.orders.findMany({
+    where: { user_id: order.user_id, status: "awaiting_payment" },
+    select: { id: true },
+  });
+  const awaitingIds = awaiting.map((o) => o.id);
+
+  for (const it of order.items) {
+    if (it.item_type !== "product" || !it.product_id) continue;
+
+    // Сколько уже зарезервировано этим юзером по этому продукту в его других сессиях
+    const userReservedNow = awaitingIds.length
+      ? await tx.product_keys.count({
+          where: {
+            product_id: it.product_id,
+            used: false,
+            reserved_by_order_id: { in: awaitingIds },
+            reserved_until: { gt: now },
+          },
+        })
+      : 0;
+
+    if (userReservedNow + it.qty > MAX_PER_PRODUCT_PER_USER) {
+      throw new Error("USER_LIMIT_REACHED");
+    }
+
+    // Сколько уже зарезервировано именно этим заказом
+    const alreadyByThisOrder = await tx.product_keys.count({
+      where: {
+        product_id: it.product_id,
+        used: false,
+        reserved_by_order_id: order.id,
+        reserved_until: { gt: now },
+      },
+    });
+
+    const need = it.qty - alreadyByThisOrder;
+    if (need <= 0) continue;
+
+    // Резерв FIFO + SKIP LOCKED
+    const rows = await tx.$queryRaw<Array<{ id: string }>>`
+      SELECT id
+      FROM product_keys
+      WHERE product_id = ${it.product_id}::uuid
+        AND used = false
+        AND (reserved_until IS NULL OR reserved_until < now())
+      ORDER BY created_at ASC, id ASC
+      FOR UPDATE SKIP LOCKED
+      LIMIT ${Number(need)}
+    `;
+    if (rows.length !== need) throw new Error("NO_STOCK");
+
+    await tx.product_keys.updateMany({
+      where: { id: { in: rows.map((r) => r.id) } },
+      data: {
+        reserved_by_order_id: order.id,
+        reserved_until: new Date(Date.now() + RESERVE_TTL_MS),
+      },
+    });
+
+    await logKeyEvents(
+      tx,
+      rows.map((r) => ({
+        event: "reserved",
+        product_key_id: r.id,
+        order_id: order.id,
+        order_item_id: it.id,
+      }))
+    );
+  }
+}
+
+/** Посчитать subtotal, выбрать лучший дисконт из promo_usage, зафиксировать снапшот. */
+async function computeAndSnapshotAmount(
+  tx: Prisma.TransactionClient,
+  orderId: string
+) {
+  const order = await tx.orders.findUnique({
+    where: { id: orderId },
+    include: { items: true },
+  });
+  if (!order) throw new Error("ORDER_NOT_FOUND");
+
+  // 1) subtotal
+  let subtotal = 0;
+  for (const it of order.items) {
+    if (it.item_type === "product" && it.product_id) {
+      const p = await tx.products.findUnique({
+        where: { id: it.product_id },
+        select: { price: true },
+      });
+      subtotal += Number(p?.price ?? 0) * it.qty;
+    }
+    if (it.item_type === "subscription" && it.subscription_id) {
+      const s = await tx.subscriptions.findUnique({
+        where: { id: it.subscription_id },
+        select: { price: true },
+      });
+      subtotal += Number(s?.price ?? 0) * it.qty;
+    }
+  }
+
+  // 2) Определяем скидку:
+  //    - если в заказе уже есть снапшот промокода — используем его (только type=discount)
+  //    - иначе берём лучший discount из promo_usage и СНАПШОТИМ его в заказ.
+  let discountPercent = 0;
+  let snapData: {
+    id: string;
+    code: string;
+    type: string;
+    denomination: number;
+  } | null = null;
+
+  if (
+    order.applied_promocode_type === "discount" &&
+    typeof order.applied_promocode_denomination === "number"
+  ) {
+    discountPercent = order.applied_promocode_denomination;
+    // ничего не перезаписываем — уже зафиксировано
+  } else {
+    const usages = await tx.promo_usage.findMany({
+      where: { user_id: order.user_id },
+      include: {
+        promocodes: {
+          select: { id: true, code: true, type: true, denomination: true },
+        },
+      },
+    });
+
+    const discountCandidates = usages
+      .map((u) => u.promocodes)
+      .filter(
+        (
+          p
+        ): p is {
+          id: string;
+          code: string;
+          type: string;
+          denomination: number;
+        } => !!p && p.type === "discount"
+      );
+
+    for (const p of discountCandidates) {
+      if (!snapData || Number(p.denomination) > Number(snapData.denomination)) {
+        snapData = {
+          id: p.id,
+          code: p.code,
+          type: p.type,
+          denomination: Number(p.denomination),
+        };
+      }
+    }
+
+    discountPercent = snapData?.denomination ?? 0;
+
+    if (snapData) {
+      // Сохраняем снимок промо в заказ
+      await tx.orders.update({
+        where: { id: order.id },
+        data: {
+          applied_promocode_id: snapData.id,
+          applied_promocode_code: snapData.code,
+          applied_promocode_type: snapData.type,
+          applied_promocode_denomination: snapData.denomination,
+        },
+      });
+    }
+  }
+
+  const amount_subtotal = round2(subtotal);
+  const amount_total = round2(subtotal * (1 - discountPercent / 100));
+  const discount_amount = round2(amount_subtotal - amount_total);
+
+  const providerOrderId =
+    order.provider_order_id ?? `DEV-${order.order_number}`;
+
+  const updated = await tx.orders.update({
+    where: { id: order.id },
+    data: {
+      status: "awaiting_payment",
+      provider_order_id: providerOrderId,
+      amount: amount_total,
+      amount_subtotal,
+      discount_percent: discountPercent,
+      discount_amount,
+      updated_at: new Date(),
+    },
+    select: {
+      id: true,
+      order_number: true,
+      status: true,
+      provider_order_id: true,
+      amount: true,
+      currency: true,
+    },
+  });
+
+  return {
+    orderId: updated.id,
+    orderNumber: updated.order_number,
+    status: updated.status,
+    providerOrderId: updated.provider_order_id,
+    amount: Number(updated.amount ?? 0),
+    currency: updated.currency ?? "RUB",
+  };
+}
 
 // ===========================================
 // ========== DEV: CREATE PAYMENT ============
 // ===========================================
-/**
- * POST /api/purchase/dev/create-payment/:idOrNumber
- * Переводит pending → awaiting_payment, считает amount, задаёт provider_order_id = DEV-XXXXXXX
- */
 export const devCreatePayment: RequestHandler = async (req, res) => {
   const { idOrNumber } = req.params as { idOrNumber: string };
 
   try {
     const out = await prisma.$transaction(async (tx) => {
       const order = isUuidLike(idOrNumber)
-        ? await tx.orders.findUnique({
-            where: { id: idOrNumber },
-            include: { items: true },
-          })
-        : await tx.orders.findFirst({
-            where: { order_number: idOrNumber },
-            include: { items: true },
-          });
+        ? await tx.orders.findUnique({ where: { id: idOrNumber } })
+        : await tx.orders.findFirst({ where: { order_number: idOrNumber } });
 
       if (!order) throw new Error("ORDER_NOT_FOUND");
       if (order.status === "paid") {
@@ -53,69 +269,18 @@ export const devCreatePayment: RequestHandler = async (req, res) => {
           orderId: order.id,
           orderNumber: order.order_number,
           status: "paid",
+          amount: order.amount ? Number(order.amount) : undefined,
+          currency: order.currency ?? "RUB",
         };
       }
       if (!isPayableStatus(order.status))
         throw new Error("ORDER_STATUS_NOT_PAYABLE");
 
-      // уже есть «сессия»
-      if (order.status === "awaiting_payment" && order.provider_order_id) {
-        return {
-          orderId: order.id,
-          orderNumber: order.order_number,
-          status: order.status,
-          providerOrderId: order.provider_order_id,
-          amount: order.amount ? Number(order.amount) : 0,
-          currency: order.currency ?? "RUB",
-        };
-      }
+      // 1) Бронируем ключи под заказ (идемпотентно добирая недостающее)
+      await ensureReservations(tx, order.id);
 
-      // посчитать сумму по строкам
-      let amount = 0;
-      for (const it of order.items) {
-        if (it.item_type === "product" && it.product_id) {
-          const p = await tx.products.findUnique({
-            where: { id: it.product_id },
-            select: { price: true },
-          });
-          amount += Number(p?.price ?? 0) * it.qty;
-        }
-        if (it.item_type === "subscription" && it.subscription_id) {
-          const s = await tx.subscriptions.findUnique({
-            where: { id: it.subscription_id },
-            select: { price: true },
-          });
-          amount += Number(s?.price ?? 0) * it.qty;
-        }
-      }
-
-      const providerOrderId = `DEV-${order.order_number}`;
-      const updated = await tx.orders.update({
-        where: { id: order.id },
-        data: {
-          status: "awaiting_payment",
-          provider_order_id: providerOrderId,
-          amount,
-          updated_at: new Date(),
-        },
-        select: {
-          id: true,
-          order_number: true,
-          status: true,
-          provider_order_id: true,
-          amount: true,
-          currency: true,
-        },
-      });
-
-      return {
-        orderId: updated.id,
-        orderNumber: updated.order_number,
-        status: updated.status,
-        providerOrderId: updated.provider_order_id,
-        amount: Number(updated.amount ?? 0),
-        currency: updated.currency ?? "RUB",
-      };
+      // 2) Считаем сумму и фиксируем снапшот (+ ставим awaiting_payment + provider_order_id)
+      return await computeAndSnapshotAmount(tx, order.id);
     });
 
     res.json(out);
@@ -123,6 +288,8 @@ export const devCreatePayment: RequestHandler = async (req, res) => {
     const map: Record<string, string> = {
       ORDER_NOT_FOUND: "ORDER_NOT_FOUND",
       ORDER_STATUS_NOT_PAYABLE: "ORDER_STATUS_NOT_PAYABLE",
+      USER_LIMIT_REACHED: "USER_LIMIT_REACHED",
+      NO_STOCK: "NO_STOCK",
     };
     res
       .status(400)
@@ -133,10 +300,6 @@ export const devCreatePayment: RequestHandler = async (req, res) => {
 // ===========================================
 // ================ DEV: PAY =================
 // ===========================================
-/**
- * POST /api/purchase/dev/pay/:idOrNumber
- * Имитация успешной оплаты: списывает зарезервированные ключи, создаёт алиасы, статус = paid.
- */
 export const devPay: RequestHandler = async (req, res) => {
   const { idOrNumber } = req.params as { idOrNumber: string };
 
@@ -154,7 +317,6 @@ export const devPay: RequestHandler = async (req, res) => {
 
       if (!order) throw new Error("ORDER_NOT_FOUND");
 
-      // Идемпотентность
       if (order.status === "paid") {
         const units = await tx.order_item_units.findMany({
           where: { order_item: { order_id: order.id } },
@@ -163,7 +325,6 @@ export const devPay: RequestHandler = async (req, res) => {
             order_item: { select: { id: true, product_id: true } },
           },
         });
-
         const aliases = units
           .filter((u) => u.key_alias)
           .map((u) => ({
@@ -171,22 +332,27 @@ export const devPay: RequestHandler = async (req, res) => {
             productId: u.order_item.product_id!,
             orderItemId: u.order_item.id,
           }));
-
         return {
           orderId: order.id,
           orderNumber: order.order_number,
           status: "paid",
           aliases,
+          amount: order.amount ? Number(order.amount) : undefined,
+          currency: order.currency ?? "RUB",
         };
       }
 
       if (!isPayableStatus(order.status))
         throw new Error("ORDER_STATUS_NOT_PAYABLE");
-      if (order.status === "pending") {
-        await tx.orders.update({
-          where: { id: order.id },
-          data: { status: "awaiting_payment", updated_at: new Date() },
-        });
+
+      // Гарантируем брони и снапшот суммы, даже если напрямую дернули pay
+      await ensureReservations(tx, order.id);
+      if (
+        !order.amount ||
+        !order.provider_order_id ||
+        order.status === "pending"
+      ) {
+        await computeAndSnapshotAmount(tx, order.id);
       }
 
       const created: Array<{
@@ -197,7 +363,6 @@ export const devPay: RequestHandler = async (req, res) => {
 
       for (const it of order.items) {
         if (it.item_type === "product" && it.product_id) {
-          // Берём зарезервированные этим заказом ключи
           const reserved = await tx.product_keys.findMany({
             where: {
               reserved_by_order_id: order.id,
@@ -209,7 +374,6 @@ export const devPay: RequestHandler = async (req, res) => {
           if (reserved.length < it.qty) throw new Error("RESERVE_MISMATCH");
 
           for (const pk of reserved) {
-            // Помечаем used и снимаем резерв
             await tx.product_keys.update({
               where: { id: pk.id },
               data: {
@@ -219,7 +383,6 @@ export const devPay: RequestHandler = async (req, res) => {
               },
             });
 
-            // LOG: paid (списали ключ)
             await logKeyEvents(tx, [
               {
                 event: "paid",
@@ -229,7 +392,6 @@ export const devPay: RequestHandler = async (req, res) => {
               },
             ]);
 
-            // Генерим alias с ретраями на P2002
             let aliasCode = "";
             let aliasId = "";
             for (;;) {
@@ -252,7 +414,6 @@ export const devPay: RequestHandler = async (req, res) => {
                 });
                 aliasId = alias.id;
 
-                // LOG: alias_created
                 await logKeyEvents(tx, [
                   {
                     event: "alias_created",
@@ -268,7 +429,6 @@ export const devPay: RequestHandler = async (req, res) => {
               }
             }
 
-            // Прикрепляем alias к свободному unit строки
             const freeUnit = await tx.order_item_units.findFirst({
               where: { order_item_id: it.id, key_alias_id: null },
               select: { id: true },
@@ -289,7 +449,6 @@ export const devPay: RequestHandler = async (req, res) => {
         }
 
         if (it.item_type === "subscription" && it.subscription_id) {
-          // Автоактивация подписки (как раньше)
           const sub = await tx.subscriptions.findUnique({
             where: { id: it.subscription_id },
           });
@@ -330,16 +489,19 @@ export const devPay: RequestHandler = async (req, res) => {
         }
       }
 
-      await tx.orders.update({
+      const paidOrder = await tx.orders.update({
         where: { id: order.id },
-        data: { status: "paid" },
+        data: { status: "paid", updated_at: new Date() },
+        select: { id: true, order_number: true, amount: true, currency: true },
       });
 
       return {
-        orderId: order.id,
-        orderNumber: order.order_number,
+        orderId: paidOrder.id,
+        orderNumber: paidOrder.order_number,
         status: "paid",
         aliases: created,
+        amount: paidOrder.amount ? Number(paidOrder.amount) : undefined,
+        currency: paidOrder.currency ?? "RUB",
       };
     });
 
@@ -349,6 +511,8 @@ export const devPay: RequestHandler = async (req, res) => {
     const map: Record<string, string> = {
       ORDER_NOT_FOUND: "ORDER_NOT_FOUND",
       ORDER_STATUS_NOT_PAYABLE: "ORDER_STATUS_NOT_PAYABLE",
+      USER_LIMIT_REACHED: "USER_LIMIT_REACHED",
+      NO_STOCK: "NO_STOCK",
       RESERVE_MISMATCH: "RESERVE_MISMATCH",
       SUB_NOT_FOUND: "SUB_NOT_FOUND",
     };
