@@ -1,20 +1,24 @@
 @import "../../Styles/variables";
 
+/* размеры */
+$header-height-desktop: 100px; /* как было ранее */
+$header-height-mobile: 64px;
+$bottom-bar-height: 64px;
+
+/* верхний хедер */
 .header {
   position: fixed;
   top: 0;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+  left: 0;
+  right: 0;
+  height: $header-height-desktop;
   z-index: 1000;
-  height: 100px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: saturate(1.05) blur(6px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 
   @media (max-width: 1024px) {
-    padding: 0 32px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 0 16px;
+    height: $header-height-mobile;
   }
 }
 
@@ -22,139 +26,117 @@
   max-width: 1200px;
   height: 100%;
   margin: 0 auto;
+  padding: 0 16px;
+
+  /* ключевая компоновка: слева лого, центр растёт, справа блок прижат */
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  position: relative;
+  justify-content: flex-start; /* центр через flex:1 у .navDesktop */
+  gap: 12px;
 }
 
 .logo {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: $primary-color;
   text-decoration: none;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
-.nav {
+/* центральная навигация (десктоп) */
+.navDesktop {
   display: flex;
-  gap: 1rem;
-  flex-grow: 1;
+  gap: 8px;
+  flex: 1 1 auto; /* растём между логотипом и правым блоком */
   justify-content: center;
-  align-items: center;
+  min-width: 0;
+  flex-wrap: nowrap;
 
   a {
-    background: none;
-    border: none;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    color: $text-color;
-    font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
     text-decoration: none;
-    transition: background 0.3s, color 0.3s;
-
-    &:hover {
-      background: $primary-color;
-      color: #fff;
-    }
-
-    &.active {
-      background: $primary-color;
-      color: #fff;
-    }
-  }
-}
-
-/* Секция «Услуги» */
-.services {
-  position: relative;
-}
-
-.servicesMenu {
-  position: absolute;
-  top: 100%; // было: calc(100% + 8px)
-  margin-top: 2px; // лучше чуть меньше отступ
-  right: 0;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  list-style: none;
-  padding: 0.5rem 0;
-  min-width: 220px;
-  z-index: 1001;
-
-  li {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.6rem 1rem;
-    font-size: 0.95rem;
     color: $text-color;
-    cursor: default;
-    transition: background 0.2s;
+    font-weight: 600;
+    padding: 10px 12px;
+    border-radius: 10px;
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
 
     &:hover {
-      background: rgba($primary-color, 0.1);
+      background: #f3f4f6;
     }
-    .name {
-      flex: 1;
+    &.active {
+      background: #eef2ff;
+      color: $primary-color;
+      box-shadow: inset 0 0 0 2px rgba(79, 70, 229, 0.18);
     }
-    .price {
-      margin-left: 0.5rem;
-      font-weight: 600;
-    }
+  }
+
+  @media (max-width: 1024px) {
+    display: none;
   }
 }
 
-/* Десктопные кнопки «Заказать звонок» + «Войти» */
-.desktopButtons {
+/* правый блок: звонок, избранное, корзина, профиль/войти */
+.right {
   display: flex;
   align-items: center;
-  position: relative;
+  gap: 12px; /* единый отступ между элементами */
+  margin-left: auto; /* прижим вправо */
+  white-space: nowrap; /* без переносов на десктопе */
 }
 
+/* кнопка звонка */
 .callButton {
-  background-color: $primary-color;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  border-radius: 10px;
+  background: $primary-color;
+  color: #fff;
+  padding: 10px 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: filter 0.2s ease;
 
   &:hover {
-    background-color: darken($primary-color, 10%);
-  }
-}
-
-.iconButton {
-  position: relative;
-  margin-left: 20px;
-  padding: 0.5rem;
-  border-radius: 50%;
-  transition: background 0.3s;
-  @media (max-width: 480px) {
-    margin: 0;
-  }
-
-  &:hover {
-    background: rgba($primary-color, 0.1);
+    filter: brightness(1.05);
   }
 
   svg {
-    font-size: 22px;
+    font-size: 18px;
   }
 
-  .badge {
-    position: absolute;
-    top: -6px;
-    right: -8px;
-    background-color: red;
-    color: white;
-    font-size: 12px;
-    padding: 2px 5px;
-    border-radius: 50%;
+  @media (max-width: 480px) {
+    span {
+      display: none;
+    } /* очень узко — только иконка */
+  }
+}
+
+/* Иконки: избранное, корзина (только на десктопе) */
+.iconButton {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: $text-color;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+
+  svg {
+    font-size: 20px;
+  }
+
+  @media (max-width: 1024px) {
+    display: none; /* на мобиле/планшете их роль берёт нижняя панель */
   }
 }
 
@@ -164,17 +146,35 @@
   }
 }
 
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+/* кнопка Войти — текст ВСЕГДА виден */
 .loginBtn {
-  margin-left: 1rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  background: transparent;
+  padding: 10px 16px;
   border: 2px solid $primary-color;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
   color: $primary-color;
-  border-radius: 8px;
-  font-weight: 500;
+  background: transparent;
   text-decoration: none;
-  transition: background 0.3s, color 0.3s;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
 
   &:hover {
     background: $primary-color;
@@ -182,229 +182,140 @@
   }
 }
 
-/* Меню пользователя */
-.userMenu {
+/* профиль */
+.user {
   position: relative;
-  margin-left: 1rem;
-
-  .userIcon {
-    display: flex;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: $text-color;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 50%;
-    transition: background 0.3s;
-
-    &:hover {
-      background: rgba($primary-color, 0.1);
-    }
-  }
-
-  .userDropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    width: 180px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    z-index: 1002;
-    overflow: hidden;
-
-    a,
-    button {
-      display: block;
-      width: 100%;
-      padding: 0.75rem 1rem;
-      text-align: left;
-      background: none;
-      border: none;
-      font-size: 1rem;
-      color: $text-color;
-      cursor: pointer;
-      transition: background 0.2s;
-
-      &:hover {
-        background: rgba($primary-color, 0.1);
-      }
-    }
-
-    button {
-      color: #e74c3c;
-    }
-  }
 }
 
-/* Бургер */
-.burger {
-  background: none;
+.userIcon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: transparent;
   border: none;
-  font-size: 1.5rem;
   color: $text-color;
   cursor: pointer;
-  display: none;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+  svg {
+    font-size: 20px;
+  }
 }
 
-/* Mobile */
-@media (max-width: 1024px) {
-  .desktopButtons {
-    display: flex;
-    margin-left: auto;
-  }
-  .desktopButtons .loginBtn {
-    display: none;
-  }
-  .desktopButtons .userMenu {
-    margin-left: auto;
-  }
+.userDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 180px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  z-index: 1001;
+  overflow: hidden;
 
-  .burger {
-    display: flex;
-  }
-
-  .nav {
-    display: none;
-  }
-
-  .callButton {
-    display: none;
-  }
-
-  .callButtonMobile {
+  a,
+  button {
     display: block;
-    margin: 1rem auto 0;
-    padding: 0.75rem 1.5rem;
-    background-color: $primary-color;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-
-    &:hover {
-      background-color: darken($primary-color, 10%);
-    }
-  }
-
-  .mobileOnly {
-    display: block;
-    padding: 0.75rem 1.5rem;
-    margin: 1rem auto 0;
-    background: transparent;
-    border: 2px solid $primary-color;
-    color: $primary-color;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: 500;
-    font-size: 1rem;
-    text-decoration: none;
-    transition: background 0.3s, color 0.3s;
-
-    &:hover {
-      background: $primary-color;
-      color: #fff;
-    }
-  }
-
-  .nav.open {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: absolute;
-    top: 100%;
-    left: 0;
     width: 100%;
-    max-height: calc(100vh - 100px);
-    overflow-y: auto;
-    background: #fff;
-    padding: 1rem 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 12px 14px;
+    text-align: left;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: $text-color;
+    font-weight: 600;
+    transition: background 0.15s ease;
 
-    > * {
-      margin: 0.5rem 0;
+    &:hover {
+      background: #f7f7fb;
     }
-
-    a,
-    button {
-      display: block;
-      margin: 0 auto;
-      width: 50%;
-      padding: 0.75rem;
-      text-align: center;
-      font-size: 1.1rem;
-      border-radius: 8px;
-    }
-    button {
-      width: 70%;
-    }
-
-    .callButtonMobile {
-      background-color: $primary-color;
-      color: #fff;
-      border-radius: 8px;
-      font-weight: 600;
-    }
-
-    .mobileOnly {
-      background: transparent;
-      border: 2px solid $primary-color;
-      color: $primary-color;
-
-      &:hover {
-        background: $primary-color;
-        color: #fff;
-      }
-    }
-
-    .services {
-      width: 100%;
-
-      .servicesBtn {
-        background: none;
-
-        color: $text-color;
-        font-weight: 500;
-
-        &:hover {
-          background: $primary-color;
-          color: #fff;
-        }
-      }
-      .servicesMenu {
-        position: static;
-        box-shadow: none;
-        background: #f9f9f9;
-        padding: 0.5rem 0;
-        border-radius: 8px;
-        margin-top: 0.5rem;
-
-        li {
-          margin: 0.25rem 1rem;
-          a {
-            display: block;
-            padding: 0.5rem;
-            background: #fff;
-            border-radius: 6px;
-            &:hover {
-              background: rgba($primary-color, 0.1);
-            }
-          }
-        }
-      }
-    }
+  }
+  button {
+    color: #e74c3c;
   }
 }
 
-@media (min-width: 1025px) {
-  .burger {
-    display: none;
+/* нижняя панель (мобайл/планшет) */
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(#{$bottom-bar-height} + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #fff;
+  border-top: 1px solid #eaeaea;
+  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.06);
+  display: none;
+  z-index: 999;
+
+  @media (max-width: 1024px) {
+    display: grid;
+    grid-template-columns: repeat(
+      5,
+      1fr
+    ); /* Главная, Услуги, Магазин, Избранное, Корзина */
+  }
+}
+
+.bottomItem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: #6b7280;
+  font-weight: 700;
+  padding: 6px 4px;
+  transition: color 0.15s ease;
+
+  svg {
+    font-size: 20px;
+  }
+  span {
+    font-size: 11px;
+    line-height: 1;
   }
 
-  .mobileOnly {
-    display: none;
+  &.active {
+    color: $primary-color;
   }
+}
+
+.smallBadge {
+  position: absolute;
+  top: 4px;
+  right: 25%;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* чтобы контент не уезжал под нижнюю панель на мобилке */
+:global(body) {
+  @media (max-width: 1024px) {
+    padding-bottom: calc(#{$bottom-bar-height} + env(safe-area-inset-bottom));
+  }
+}
+
+/* улучшение тач-опыта */
+a,
+button {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }

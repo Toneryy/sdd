@@ -1,24 +1,27 @@
-import React, { useState, useEffect, useRef, useContext } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { FiMenu, FiX, FiUser, FiShoppingCart } from 'react-icons/fi'
-import { loadFavorites } from 'utils/favoritesStorage'
-import CallRequestModal from './CallRequestModal'
-import styles from './Header.module.scss'
-import { AuthContext } from 'context/AuthContext'
-import { FaHeart } from 'react-icons/fa'
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import {
+  FiUser,
+  FiShoppingCart,
+  FiHome,
+  FiGrid,
+  FiPhoneCall,
+} from 'react-icons/fi';
+import { FaHeart } from 'react-icons/fa';
+import { loadFavorites } from 'utils/favoritesStorage';
+import CallRequestModal from './CallRequestModal';
+import styles from './Header.module.scss';
+import { AuthContext } from 'context/AuthContext';
 
 const Header: React.FC = () => {
-  const [callModalOpen, setCallModalOpen] = useState(false)
-  const { isAuth, logout } = useContext(AuthContext)
-  const [servicesOpen, setServicesOpen] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const servicesRef = useRef<HTMLDivElement>(null)
-  const userRef = useRef<HTMLDivElement>(null)
-  const [favCount, setFavCount] = useState(0)
-  const navigate = useNavigate()
+  const { logout } = useContext(AuthContext);
+  const [callModalOpen, setCallModalOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userRef = useRef<HTMLDivElement>(null);
+  const [favCount, setFavCount] = useState(0);
+  const navigate = useNavigate();
 
-  const isAuthenticated = Boolean(localStorage.getItem('token'))
+  const isAuthenticated = Boolean(localStorage.getItem('token'));
 
   const updateFavCount = () => {
     const raw = loadFavorites();
@@ -28,140 +31,145 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     updateFavCount();
-    window.addEventListener('favoritesChanged', updateFavCount)
+    window.addEventListener('favoritesChanged', updateFavCount);
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        servicesRef.current &&
-        !servicesRef.current.contains(event.target as Node)
-      ) {
-        setServicesOpen(false)
+      if (userRef.current && !userRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
       }
-      if (
-        userRef.current &&
-        !userRef.current.contains(event.target as Node)
-      ) {
-        setUserMenuOpen(false)
-      }
-    }
+    };
 
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [])
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('favoritesChanged', updateFavCount);
+    };
+  }, []);
 
-  const toggleMobile = () => setMobileOpen(prev => !prev)
-  const toggleServices = () => setServicesOpen(prev => !prev)
-  const toggleUserMenu = () => setUserMenuOpen(prev => !prev)
+  const toggleUserMenu = () => setUserMenuOpen(prev => !prev);
 
   const handleLogout = () => {
-    logout()
-    setUserMenuOpen(false)
-    navigate('/login')
-  }
+    logout();
+    setUserMenuOpen(false);
+    navigate('/login');
+  };
 
   return (
-    <header className={styles.header}>
-      <div className={styles.container}>
-        <NavLink to="/" className={styles.logo} onClick={() => setMobileOpen(false)}>bd-project</NavLink>
-
-        {/* --- Навигация --- */}
-        <nav
-          className={`${styles.nav} ${mobileOpen ? styles.open : ''}`}
-          onClick={e => e.stopPropagation()}
-        >
-          <NavLink
-            to="/"
-            onClick={() => setMobileOpen(false)}
-            className={({ isActive }) => isActive ? styles.active : ''}
-          >
-            Главное меню
+    <>
+      <header className={styles.header}>
+        <div className={styles.container}>
+          {/* ЛОГО слева */}
+          <NavLink to="/" className={styles.logo}>
+            bd-project
           </NavLink>
 
-          {/* Услуги */}
-          <div
-            className={styles.services}
-            ref={servicesRef}
-          >
-            <NavLink
-              to="/subscriptions"
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) => isActive ? styles.active : ''}
-            >
+          {/* Десктопная навигация по центру */}
+          <nav className={styles.navDesktop}>
+            <NavLink to="/" className={({ isActive }) => (isActive ? styles.active : '')}>
+              Главное меню
+            </NavLink>
+            <NavLink to="/subscriptions" className={({ isActive }) => (isActive ? styles.active : '')}>
               Услуги
             </NavLink>
-          </div>
+            <NavLink to="/shop" className={({ isActive }) => (isActive ? styles.active : '')}>
+              Магазин
+            </NavLink>
+          </nav>
 
-          <NavLink
-            to="/shop"
-            onClick={() => setMobileOpen(false)}
-            className={({ isActive }) => isActive ? styles.active : ''}
-          >
-            Магазин
-          </NavLink>
-
-          {/* Кнопка «Войти» для мобильного, если не авторизован */}
-          {!isAuthenticated && (
-            <Link
-              to="/login"
-              className={`${styles.loginBtn} ${styles.mobileOnly}`}
-              onClick={() => setMobileOpen(false)}
+          {/* СПРАВА: один ряд с единым gap: звонок, избранное, корзина, профиль/войти */}
+          <div className={styles.right}>
+            <button
+              className={styles.callButton}
+              onClick={() => setCallModalOpen(true)}
+              title="Заказать звонок"
+              aria-label="Заказать звонок"
             >
-              Войти
+              <FiPhoneCall />
+              <span>Заказать звонок</span>
+            </button>
+
+            {/* ДЕСКТОП: избранное и корзина */}
+            <Link
+              to="/favorites"
+              className={`${styles.iconButton} ${styles.favoriteButton}`}
+              title="Избранное"
+              aria-label="Избранное"
+            >
+              <FaHeart />
+              {favCount > 0 && <span className={styles.badge}>{favCount}</span>}
             </Link>
-          )}
-        </nav>
 
-        {/* --- Десктопные кнопки справа --- */}
-        <div className={styles.desktopButtons}>
-          <button
-            className={styles.callButton}
-            onClick={() => setCallModalOpen(true)}
-          >
-            Заказать звонок
-          </button>
-          <Link to="/favorites" className={`${styles.iconButton} ${styles.favoriteButton}`}>
-            <FaHeart />
-            {favCount > 0 && <span className={styles.badge}>{favCount}</span>}
-          </Link>
-
-          <Link to="/cart" className={styles.iconButton}>
-            <FiShoppingCart />
-          </Link>
-
-          {/* Если не авторизован — кнопка «Войти» */}
-          {!isAuthenticated && (
-            <Link to="/login" className={styles.loginBtn}>
-              Войти
+            <Link
+              to="/cart"
+              className={styles.iconButton}
+              title="Корзина"
+              aria-label="Корзина"
+            >
+              <FiShoppingCart />
             </Link>
-          )}
 
-          {/* Если авторизован — иконка профиля */}
-          {isAuthenticated && (
-            <div className={styles.userMenu} ref={userRef}>
-              <button className={styles.userIcon} onClick={toggleUserMenu}>
-                <FiUser />
-              </button>
-              {userMenuOpen && (
-                <div className={styles.userDropdown}>
-                  <Link to="/profile" onClick={() => setUserMenuOpen(false)}>
-                    Личный кабинет
-                  </Link>
-                  <button onClick={handleLogout}>
-                    Выйти
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+            {/* Войти (текст ВСЕГДА виден) или профиль */}
+            {!isAuthenticated ? (
+              <Link to="/login" className={styles.loginBtn}>
+                Войти
+              </Link>
+            ) : (
+              <div className={styles.user} ref={userRef}>
+                <button
+                  className={styles.userIcon}
+                  onClick={toggleUserMenu}
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                  aria-label="Меню профиля"
+                >
+                  <FiUser />
+                </button>
+                {userMenuOpen && (
+                  <div className={styles.userDropdown} role="menu">
+                    <Link to="/profile" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                      Личный кабинет
+                    </Link>
+                    <button onClick={handleLogout} role="menuitem">Выйти</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+      </header>
 
-        {/* Бургер для мобильной навигации */}
-        <button className={styles.burger} onClick={toggleMobile}>
-          {mobileOpen ? <FiX /> : <FiMenu />}
-        </button>
-      </div>
+      {/* НИЖНЯЯ НАВИГАЦИЯ (мобайл/планшет) */}
+      <nav className={styles.bottomBar} aria-label="Нижняя навигация">
+        <NavLink to="/" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
+          <FiHome />
+          <span>Главная</span>
+        </NavLink>
+
+        <NavLink to="/subscriptions" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
+          <FiGrid />
+          <span>Услуги</span>
+        </NavLink>
+
+        <NavLink to="/shop" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
+          <FiGrid />
+          <span>Магазин</span>
+        </NavLink>
+
+        <NavLink to="/favorites" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
+          <FaHeart />
+          {favCount > 0 && <span className={styles.smallBadge}>{favCount}</span>}
+          <span>Избранное</span>
+        </NavLink>
+
+        <NavLink to="/cart" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
+          <FiShoppingCart />
+          <span>Корзина</span>
+        </NavLink>
+      </nav>
+
       {callModalOpen && <CallRequestModal onClose={() => setCallModalOpen(false)} />}
-    </header>
-  )
-}
+    </>
+  );
+};
 
-export default Header
+export default Header;
