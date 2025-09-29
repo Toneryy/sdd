@@ -11,6 +11,8 @@
   left: 0;
   z-index: 1000;
   overflow-y: auto; /* Прокрутка, если контент больше */
+  scrollbar-width: 20px;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 .title {
@@ -59,18 +61,6 @@ li {
   color: #fff; /* Изменяем цвет иконки для активной ссылки */
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    width: 200px; /* Уменьшаем ширину на мобильных */
-  }
-  .title {
-    font-size: 1.2rem;
-  }
-  .link {
-    font-size: 1rem;
-  }
-}
-
 .submenu {
   padding-left: 25px;
   margin-top: 8px;
@@ -84,6 +74,7 @@ li {
   cursor: pointer;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   transition: background-color 0.3s ease;
+  margin: 10px 0 30px;
 }
 
 .logout:hover {
