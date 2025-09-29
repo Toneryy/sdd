@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import "dotenv/config";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
 import authRoutes from "./routes/auth.routes";
 import staffMembersRoutes from "./routes/staffMembers.routes";
 
@@ -18,6 +17,7 @@ import productKeysRoutes from "./routes/product_keys.routes";
 import keyLookupRoutes from "./routes/key_lookup.routes";
 import supportRequestsRouter from "./routes/supportRequests.routes";
 import postsRoutes from "./routes/posts.routes";
+import newsRoutes from "./routes/news.routes"
 
 import { scheduleSubscriptionRefresh } from "./jobs";
 import { authenticateJWT } from "./middleware/auth.middleware";
@@ -43,6 +43,7 @@ app.use("/api", (req, res, next) => {
   if (PUBLIC.some((rx) => rx.test(req.path))) return next();
   return authenticateJWT(req, res, next); // если не в allowlist — требуем JWT
 });
+
 // Остальные как есть (постепенно будем закрывать авторизацией)
 app.use("/api/staff-members", staffMembersRoutes);
 app.use("/api/staff-rights", staffRightsRoutes);
@@ -57,6 +58,7 @@ app.use("/api/admin/keys-aliases", keysAliasesRoutes);
 app.use("/api/admin/product-keys", productKeysRoutes);
 app.use("/api/admin/key-lookup", keyLookupRoutes);
 app.use("/api/admin/posts", postsRoutes);
+app.use("/api/admin/news", newsRoutes);
 
 const port = process.env.PORT || 4001;
 app.listen(port, () => console.log(`Server running on port ${port}`));

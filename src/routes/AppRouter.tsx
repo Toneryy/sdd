@@ -20,6 +20,8 @@ import Favorites from 'pages/Favorites/Favorites'
 // 👉 добавь:
 import CheckoutDev from 'pages/CheckoutDev/CheckoutDev'
 import CheckoutSuccessDev from 'pages/CheckoutSuccessDev/CheckoutSuccessDev'
+import NewsPage from 'pages/NewsPage/NewsPage'
+import NewsDetail from 'pages/NewsPage/NewsDetail'
 
 const AppRouter: React.FC = () => {
   const { isAuth } = useContext(AuthContext)
@@ -32,8 +34,10 @@ const AppRouter: React.FC = () => {
           <Route index element={<HomePage />} />
           <Route path='/subscriptions' element={<Services />} />
           <Route path="/subscriptions/:id" element={<ServiceDetails />} />
-          <Route path='/shop' element={<Shop />} />
-          <Route path="/shop/:id" element={<ShopProduct />} />
+          {/* <Route path='/shop' element={<Shop />} />
+          <Route path="/shop/:id" element={<ShopProduct />} /> */}
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/favorites" element={<Favorites />} />
 
           <Route

@@ -27,6 +27,7 @@ import StaffList from "./components/StaffList/StaffList";
 import "./App.scss";
 import StaffRightsManager from "components/StaffRightsManager/StaffRightsManager";
 import NotFound from "components/NotFound/NotFound";
+import NewsManager from "components/NewsManager/NewsManager";
 
 const App: React.FC = () => (
   <AuthProvider>
@@ -143,6 +144,14 @@ const App: React.FC = () => (
               element={
                 <GuardRoute feature="SERVICE_STAFF_RIGHTS">
                   <StaffRightsManager />
+                </GuardRoute>
+              }
+            />
+            <Route
+              path="news"
+              element={
+                <GuardRoute feature="NEWS_MANAGEMENT">
+                  <NewsManager />
                 </GuardRoute>
               }
             />

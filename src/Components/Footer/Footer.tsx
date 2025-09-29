@@ -20,7 +20,8 @@ const Footer: React.FC = () => {
                     <h3>Навигация</h3>
                     <ul>
                         <li><Link to="/profile">Личный кабинет</Link></li>
-                        <li><Link to="/shop">Магазин</Link></li>
+                        {/* <li><Link to="/shop">Магазин</Link></li> */}
+                        <li><Link to="/news">Новости</Link></li>
                         <li><Link to="/subscriptions">Услуги</Link></li>
                         <li><Link to="/news">Статьи</Link></li>
                     </ul>

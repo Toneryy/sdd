@@ -15,6 +15,7 @@ export const FEATURES = [
   // БЛОК «Служебные»
   "SERVICE_SECTION", // весь блок
   "SERVICE_BACKUP", // пункт «Резервное копирование»
+  "NEWS_MANAGEMENT",
   "SERVICE_REGISTER", // пункт «Регистрация»
   "SERVICE_STAFF_MEMBERS", // пункт «Персонал»
   "SERVICE_STAFF_RIGHTS", // пункт «Права доступа»
@@ -40,6 +41,7 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   PRODUCT_KEYS_PAGE: "Ключи товаров",
   SERVICE_SECTION: "Служебные (весь блок)",
   SERVICE_BACKUP: "Служебные → Резервное копирование",
+  NEWS_MANAGEMENT: "Служебные → Управление новостями",
   SERVICE_REGISTER: "Служебные → Регистрация",
   SERVICE_STAFF_MEMBERS: "Служебные → Персонал",
   SERVICE_STAFF_RIGHTS: "Служебные → Права доступа",

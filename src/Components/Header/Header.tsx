@@ -71,9 +71,12 @@ const Header: React.FC = () => {
             <NavLink to="/subscriptions" className={({ isActive }) => (isActive ? styles.active : '')}>
               Услуги
             </NavLink>
-            <NavLink to="/shop" className={({ isActive }) => (isActive ? styles.active : '')}>
-              Магазин
+            <NavLink to="/news" className={({ isActive }) => (isActive ? styles.active : '')}>
+              Новости
             </NavLink>
+            {/* <NavLink to="/shop" className={({ isActive }) => (isActive ? styles.active : '')}>
+              Магазин
+            </NavLink> */}
           </nav>
 
           {/* СПРАВА: один ряд с единым gap: звонок, избранное, корзина, профиль/войти */}
@@ -150,10 +153,16 @@ const Header: React.FC = () => {
           <span>Услуги</span>
         </NavLink>
 
-        <NavLink to="/shop" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
+        <NavLink to="/news" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
+          <FiGrid />
+          <span>Новости</span>
+        </NavLink>
+
+
+        {/* <NavLink to="/shop" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
           <FiGrid />
           <span>Магазин</span>
-        </NavLink>
+        </NavLink> */}
 
         <NavLink to="/favorites" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
           <FaHeart />

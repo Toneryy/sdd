@@ -234,6 +234,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
             {serviceOpen && (
               <ul className={styles.submenu}>
+                {hasAccess("NEWS_MANAGEMENT") && (
+                  <li>
+                    <NavLink to="/admin/news" className={styles.link}>
+                      Управление новостями
+                    </NavLink>
+                  </li>
+                )}
+
                 {hasAccess("SERVICE_BACKUP") && (
                   <li>
                     <NavLink to="/admin/backup" className={styles.link}>

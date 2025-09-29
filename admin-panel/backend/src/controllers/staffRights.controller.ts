@@ -24,6 +24,7 @@ const ALLOWED_FEATURES = new Set<string>([
   
   // БЛОК «Служебные»
   "SERVICE_SECTION",          // весь блок
+  "NEWS_MANAGEMENT",
   "SERVICE_BACKUP",           // пункт «Резервное копирование»
   "SERVICE_REGISTER",         // пункт «Регистрация»
   "SERVICE_STAFF_MEMBERS",    // пункт «Персонал»

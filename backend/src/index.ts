@@ -8,6 +8,7 @@ import shopRoutes from "./routes/shop.routes";
 import purchaseRoutes from "./routes/purchase.routes";
 import promoRoutes from "./routes/promoRoutes";
 import postsRoutes from "./routes/posts.routes";
+import publicNewsRoutes from "./routes/publicNews.routes";
 
 import { generalLimiter } from "./middlewares/rateLimit";
 import { startSchedulers } from "./jobs";
@@ -19,6 +20,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api", generalLimiter);
 
+app.use("/api/news", publicNewsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);

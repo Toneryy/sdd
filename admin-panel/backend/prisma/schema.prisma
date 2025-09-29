@@ -273,18 +273,39 @@ model order_items {
 }
 
 model orders {
-  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id           String        @db.Uuid
-  status            OrderStatus   @default(pending)
-  provider_order_id String?       @unique
-  amount            Decimal?      @db.Decimal(10, 2)
-  currency          String?       @default("RUB")
-  created_at        DateTime?     @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime?     @default(now()) @db.Timestamptz(6)
-  order_number      String        @unique @db.VarChar(7)
-  order_items       order_items[]
-  users             users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                        String        @db.Uuid
+  status                         OrderStatus   @default(pending)
+  provider_order_id              String?       @unique
+  amount                         Decimal?      @db.Decimal(10, 2)
+  currency                       String?       @default("RUB")
+  created_at                     DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at                     DateTime?     @default(now()) @db.Timestamptz(6)
+  order_number                   String        @unique @db.VarChar(7)
+  amount_subtotal                Decimal?      @db.Decimal(10, 2)
+  applied_promocode_code         String?       @db.VarChar(50)
+  applied_promocode_denomination Int?
+  applied_promocode_id           String?       @db.Uuid
+  applied_promocode_type         String?       @db.VarChar(20)
+  cart_hash                      String?       @db.VarChar(255)
+  order_items                    order_items[]
+  users                          users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
+
+model news {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String   @db.VarChar(255)
+  description String?  @db.VarChar(500)
+  image       String?  @db.VarChar(255)
+  content     String?  
+  styles      String?  
+  published   Boolean  @default(false)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("news")
+}
+
 
 enum StaffRole {
   administrator
