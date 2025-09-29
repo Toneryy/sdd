@@ -39,7 +39,7 @@ const NewsDetail: React.FC = () => {
     const wordCount = news.content
         ? news.content.replace(/<[^>]+>/g, "").trim().split(/\s+/).length
         : 0;
-    const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+    const readingTime = Math.max(1, Math.ceil(wordCount / 100));
 
     return (
         <div className={styles.newsDetail}>
