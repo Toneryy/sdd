@@ -1,5 +1,4 @@
-// src/components/Admin/DraftsList/DraftsList.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
     getDrafts,
     createDraft,
@@ -25,11 +24,11 @@ const DraftsList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [current, setCurrent] = useState<Partial<Draft>>(emptyDraft);
-    const [rawMode, setRawMode] = useState(false);          // ← новый флаг
+    const [rawMode, setRawMode] = useState(false);
     const [confirmId, setConfirmId] = useState<string | null>(null);
 
     /* ---------- загрузка ---------- */
-    const fetchDrafts = async () => {
+    const fetchDrafts = useCallback(async () => {
         setLoading(true);
         try {
             setDrafts(await getDrafts());
@@ -39,11 +38,11 @@ const DraftsList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchDrafts();
-    }, []);
+    }, [fetchDrafts]);
 
     /* ---------- helpers ---------- */
     const sanitize = (v?: string | null) =>
@@ -237,9 +236,7 @@ const DraftsList: React.FC = () => {
                         {drafts.map((d) => (
                             <tr key={d.id}>
                                 <td>
-                                    {d.description
-                                        ? `${d.description.slice(0, 50)}…`
-                                        : "Raw HTML"}
+                                    {d.description ? `${d.description.slice(0, 50)}…` : "Raw HTML"}
                                 </td>
                                 <td>{new Date(d.updatedAt).toLocaleString()}</td>
                                 <td>

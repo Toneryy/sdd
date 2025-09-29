@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    useCallback,
+} from "react";
 import { useAuth } from "./AuthContext";
 import { getMyRights, RightRecord } from "../api/staffRights";
 import { FeatureKey } from "../config/features";
@@ -17,12 +24,14 @@ const Ctx = createContext<PermsCtx>({
     refresh: async () => { },
 });
 
-export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+}) => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [banned, setBanned] = useState<Set<FeatureKey>>(new Set());
 
-    const load = async () => {
+    const load = useCallback(async () => {
         // нет юзера → чистим баны и точно снимаем loading
         if (!user) {
             setBanned(new Set());
@@ -34,8 +43,8 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
             const rows: RightRecord[] = await getMyRights();
             // бан — записи can_access === false
             const denied = rows
-                .filter(r => r.can_access === false)
-                .map(r => r.component_name as FeatureKey);
+                .filter((r) => r.can_access === false)
+                .map((r) => r.component_name as FeatureKey);
             setBanned(new Set(denied));
         } catch (e) {
             // на ошибках не баним ничего (разрешаем всё по умолчанию)
@@ -44,7 +53,7 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
         let cancelled = false;
@@ -52,16 +61,20 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({ c
             await load();
             if (cancelled) return;
         })();
-        return () => { cancelled = true; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.id]); // при смене юзера перезагружаем права
+        return () => {
+            cancelled = true;
+        };
+    }, [load]);
 
-    const value = useMemo<PermsCtx>(() => ({
-        loading,
-        banned,
-        hasAccess: (f: FeatureKey) => !banned.has(f),
-        refresh: load,
-    }), [loading, banned]);
+    const value = useMemo<PermsCtx>(
+        () => ({
+            loading,
+            banned,
+            hasAccess: (f: FeatureKey) => !banned.has(f),
+            refresh: load,
+        }),
+        [loading, banned, load]
+    );
 
     return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };

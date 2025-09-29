@@ -1,4 +1,3 @@
-// src/components/Admin/Clients/Clients.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Clients.module.scss";
@@ -11,6 +10,8 @@ interface Client {
     phone: string | null;
     lastEndDate: string | null;
 }
+
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000; // вынесено из хука
 
 const Clients: React.FC = () => {
     const [allClients, setAllClients] = useState<Client[]>([]);
@@ -29,9 +30,8 @@ const Clients: React.FC = () => {
             .catch(console.error);
     }, []);
 
-    // текущее время и неделя в миллисекундах
+    // текущее время фиксируем один раз
     const now = useMemo(() => new Date(), []);
-    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
 
     const displayedClients = useMemo(() => {
         return allClients
@@ -40,7 +40,7 @@ const Clients: React.FC = () => {
                 if (!needRenewOnly) return true;
                 if (!c.lastEndDate) return false;
                 const end = new Date(c.lastEndDate).getTime();
-                return end < now.getTime() || end - now.getTime() <= oneWeekMs;
+                return end < now.getTime() || end - now.getTime() <= ONE_WEEK_MS;
             })
             // фильтр по поисковой строке
             .filter((c) => {
@@ -70,7 +70,9 @@ const Clients: React.FC = () => {
                         placeholder="Поиск по клиентам"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && setSearchTerm(e.currentTarget.value)}
+                        onKeyDown={(e) =>
+                            e.key === "Enter" && setSearchTerm(e.currentTarget.value)
+                        }
                     />
                     <button
                         className={styles.searchButton}
@@ -109,7 +111,8 @@ const Clients: React.FC = () => {
                 </thead>
                 <tbody>
                     {displayedClients.map((c) => {
-                        const expired = c.lastEndDate !== null && new Date(c.lastEndDate) < now;
+                        const expired =
+                            c.lastEndDate !== null && new Date(c.lastEndDate) < now;
                         const formattedDate = c.lastEndDate
                             ? new Date(c.lastEndDate).toLocaleDateString()
                             : "—";
@@ -125,7 +128,9 @@ const Clients: React.FC = () => {
                                 </td>
                                 <td>{c.email ?? "—"}</td>
                                 <td>{c.phone ?? "—"}</td>
-                                <td className={expired ? styles.expired : ""}>{formattedDate}</td>
+                                <td className={expired ? styles.expired : ""}>
+                                    {formattedDate}
+                                </td>
                             </tr>
                         );
                     })}
