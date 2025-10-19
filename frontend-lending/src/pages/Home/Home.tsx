@@ -8,7 +8,7 @@ const Home = () => {
   return (
     <section className={styles.hero}>
       <div className={styles.content}>
-        <h1 className={styles.title}>Добро пожаловать в наш сервис!</h1>
+        <h1 className={styles.title} data-testid={'home-page-welcome-title'}>Добро пожаловать в наш сервис!</h1>
         <p className={styles.subtitle}>
           Мы помогаем бизнесам расти и развиваться с помощью инновационных решений.
         </p>
