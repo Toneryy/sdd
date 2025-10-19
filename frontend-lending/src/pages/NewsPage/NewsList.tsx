@@ -1,18 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { getNews } from "../../api/publicNews";
+import { News } from "../../types";
 import NewsCard from "./NewsCard";
 import styles from "./NewsPage.module.scss";
 
-interface News {
-    id: string;
-    title: string;
-    description?: string;
-    image?: string;
-    content?: string;
-    styles?: string;
-    published: boolean;
-    created_at: string;
-}
+// Тип перенесён в src/types
 
 const ITEMS_PER_PAGE = 5;
 

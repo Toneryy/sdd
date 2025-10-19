@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getNewsById } from "../../api/publicNews";
+import { News } from "../../types";
 import styles from "./NewsPage.module.scss";
 
-interface News {
-    id: string;
-    title: string;
-    description?: string;
-    image?: string;
-    content?: string;
-    created_at: string;
-}
+// Тип перенесён в src/types
 
 const NewsDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();

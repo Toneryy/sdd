@@ -90,7 +90,7 @@ export default function EditModal({ show, staff, onClose, onUpdated }: Props) {
 
     // хоткеи
     useEffect(() => {
-        if (!show || !canEdit) return;
+        if (!show || !canEdit) return undefined;
         const handler = (e: KeyboardEvent) => {
             const tag = (document.activeElement as HTMLElement)?.tagName;
             const typing = tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA";

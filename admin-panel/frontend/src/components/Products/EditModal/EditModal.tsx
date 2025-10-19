@@ -34,7 +34,7 @@ const EditModal: React.FC<Props> = ({ show, table, item, onClose, onSave }) => {
   }, [form, onSave, canEdit]);
 
   useEffect(() => {
-    if (!show || !canEdit) return;
+    if (!show || !canEdit) return undefined;
 
     const typingTags = ["INPUT", "TEXTAREA", "SELECT"];
     const handler = (e: KeyboardEvent) => {

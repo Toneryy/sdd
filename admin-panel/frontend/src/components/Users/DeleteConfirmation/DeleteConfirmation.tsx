@@ -19,7 +19,7 @@ const DeleteConfirmation: React.FC<Props> = ({
     text = "Это действие нельзя отменить.",
 }) => {
     useEffect(() => {
-        if (!show) return;
+        if (!show) return undefined;
         const handleKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
         document.addEventListener("keydown", handleKey);
         return () => document.removeEventListener("keydown", handleKey);

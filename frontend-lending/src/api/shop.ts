@@ -1,21 +1,11 @@
 // src/api/shop.ts
 import axios, { AxiosResponse } from "axios";
 import { API_URL } from "utils/api";
+import { Category, Product } from "../types";
 
-export interface Category {
-  id: string;
-  name: string;
-}
+// Типы переехали в src/types
 
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  category?: string;
-  img?: string;
-  description?: string;
-  available: number;
-}
+export type { Category, Product };
 
 // GET /api/shop/categories
 export const fetchCategories = (): Promise<AxiosResponse<Category[]>> =>

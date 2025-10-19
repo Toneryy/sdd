@@ -10,7 +10,7 @@ interface Props {
 
 const DeleteConfirmation: React.FC<Props> = ({ show, onClose, onDelete }) => {
   useEffect(() => {
-    if (!show) return;
+    if (!show) return undefined;
 
     const typingTags = ["INPUT", "TEXTAREA", "SELECT"];
     const handler = (e: KeyboardEvent) => {

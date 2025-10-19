@@ -45,7 +45,7 @@ const EditModal: React.FC<Props> = ({ show, item, onClose, onSave }) => {
 
     // Esc — закрыть
     useEffect(() => {
-        if (!show || !canEdit) return;
+        if (!show || !canEdit) return undefined;
         const handleKeyDown = (e: KeyboardEvent) => e.key === "Escape" && onClose();
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);

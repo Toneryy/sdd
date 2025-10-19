@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import InputMask from 'react-input-mask'
+import { formatRuPhone, normalizeRuPhoneToE164 } from '../../utils/phone'
 import styles from './Contact.module.scss'
 import { FiUser, FiPhone } from 'react-icons/fi'
 
@@ -10,23 +10,7 @@ export const Contact = () => {
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault()
         const pasted = e.clipboardData.getData('Text')
-        const digitsOnly = pasted.replace(/\D/g, '')
-
-        let number = digitsOnly
-
-        if (number.length === 11 && (number.startsWith('8') || number.startsWith('7'))) {
-            number = number.slice(1)
-        } else if (number.length === 12 && number.startsWith('7')) {
-            number = number.slice(2)
-        }
-
-        number = number.slice(0, 10)
-
-        const formatted = number.replace(/(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/, (_, a, b, c, d) =>
-            `+7 (${a}${b ? ') ' + b : ''}${c ? '-' + c : ''}${d ? '-' + d : ''}`
-        )
-
-        setPhone(formatted)
+        setPhone(formatRuPhone(pasted))
     }
 
     return (
@@ -54,23 +38,15 @@ export const Contact = () => {
 
                     <div className={styles.inputGroup}>
                         <FiPhone className={styles.icon} />
-                        <InputMask
-                            mask="+7 (999) 999-99-99"
-                            maskChar="_"
+                        <input
+                            type="tel"
+                            placeholder="+7 (___) ___-__-__"
+                            className={styles.input}
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            onChange={(e) => setPhone(formatRuPhone(e.target.value))}
                             onPaste={handlePaste}
-                        >
-                            {(inputProps: any) => (
-                                <input
-                                    {...inputProps}
-                                    type="tel"
-                                    placeholder="+7 (___) ___-__-__"
-                                    className={styles.input}
-                                    required
-                                />
-                            )}
-                        </InputMask>
+                            required
+                        />
                     </div>
 
                     <button type="submit" className={styles.submitBtn}>Отправить запрос</button>

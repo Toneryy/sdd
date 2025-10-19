@@ -19,7 +19,8 @@ const LoginPage: React.FC = () => {
         e.preventDefault()
         try {
             const res = await loginUser(form)
-            login(res.data.token)
+            // ApiResponse<AuthResponse>
+            login(res.data.data.accessToken)
             toast.success('Успешный вход!', { toastId: 'login-success' })
             navigate('/profile')
         } catch (error: any) {

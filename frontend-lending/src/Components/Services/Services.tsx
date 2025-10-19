@@ -32,7 +32,7 @@ const Services: React.FC = () => {
                     <Link to={`/subscriptions/${svc.id}`} key={svc.id} className={styles.card}>
                         <div className={styles.imageWrapper}>
                             <img
-                                src={svc.image || `https://via.placeholder.com/300x180?text=${encodeURIComponent(svc.title)}`}
+                                src={svc.image || `https://picsum.photos/seed/${encodeURIComponent(svc.title)}/300/180`}
                                 alt={svc.title}
                                 className={styles.image}
                             />

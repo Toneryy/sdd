@@ -4,7 +4,7 @@ import { register as registerUser } from '../../api/auth'
 import { toast } from 'react-toastify'
 import styles from './RegisterPage.module.scss'
 import { FiUser, FiMail, FiLock, FiPhone } from 'react-icons/fi'
-import InputMask from 'react-input-mask'
+import { formatRuPhone, normalizeRuPhoneToE164 } from '../../utils/phone'
 
 const RegisterPage: React.FC = () => {
     const [form, setForm] = useState({
@@ -30,10 +30,7 @@ const RegisterPage: React.FC = () => {
         }
 
         // Удаляем все нецифровые символы из телефона и форматируем
-        const cleanedPhone = form.phone.replace(/\D/g, '')
-        const formattedPhone = cleanedPhone.startsWith('7')
-            ? `+${cleanedPhone}`
-            : `+7${cleanedPhone.slice(-10)}`
+        const formattedPhone = normalizeRuPhoneToE164(form.phone)
 
         try {
             await registerUser({
@@ -82,17 +79,13 @@ const RegisterPage: React.FC = () => {
 
                 <div className={styles.inputGroup}>
                     <FiPhone className={styles.icon} />
-                    <InputMask
+                    <input
                         name="phone"
-                        mask="+7 (999) 999-99-99"
+                        placeholder="Телефон"
                         value={form.phone}
-                        onChange={handleChange}
+                        onChange={(e) => setForm({ ...form, phone: formatRuPhone(e.target.value) })}
                         required
-                    >
-                        {(inputProps: any) => (
-                            <input {...inputProps} placeholder="Телефон" />
-                        )}
-                    </InputMask>
+                    />
                 </div>
 
                 <div className={styles.inputGroup}>

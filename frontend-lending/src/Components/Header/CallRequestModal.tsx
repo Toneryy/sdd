@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import InputMask from "react-input-mask";
+import { formatRuPhone } from "../../utils/phone";
 import styles from "./CallRequestModal.module.scss";
 
 interface Props {
@@ -51,21 +51,13 @@ const CallRequestModal: React.FC<Props> = ({ onClose }) => {
                         onChange={(e) => setName(e.target.value)}
                         required
                     />
-                    <InputMask
-                        mask="+7 (999) 999-99-99"
-                        maskChar="_"
+                    <input
+                        type="tel"
+                        placeholder="+7 (___) ___-__-__"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                    >
-                        {(inputProps: any) => (
-                            <input
-                                {...inputProps}
-                                type="tel"
-                                placeholder="+7 (___) ___-__-__"
-                                required
-                            />
-                        )}
-                    </InputMask>
+                        onChange={(e) => setPhone(formatRuPhone(e.target.value))}
+                        required
+                    />
                     <textarea
                         placeholder="Опишите проблему (опционально)"
                         value={problem}
