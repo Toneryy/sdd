@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { fetchSubscriptions, Subscription } from 'api/subscriptions'
 import styles from './Services.module.scss'
+import Skeleton from '../Skeleton/Skeleton'
 import { toast } from 'react-toastify'
 import { Link } from 'react-router-dom'
 
@@ -20,7 +21,22 @@ const Services: React.FC = () => {
     }, [])
 
     if (loading) {
-        return <p className={styles.loading}>Загрузка услуг…</p>
+        return (
+            <section className={styles.services}>
+                <h2 className={styles.title}>Наши услуги</h2>
+                <div className={styles.grid}>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className={styles.card}>
+                            <div className={styles.imageWrapper}>
+                                <Skeleton width={300} height={180} />
+                            </div>
+                            <Skeleton width={180} height={20} />
+                            <Skeleton width={80} height={16} />
+                        </div>
+                    ))}
+                </div>
+            </section>
+        )
     }
 
     return (

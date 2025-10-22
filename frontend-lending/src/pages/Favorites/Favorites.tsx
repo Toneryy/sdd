@@ -11,7 +11,7 @@ import {
     saveFavorites,
     clearFavorites,
 } from "../../utils/favoritesStorage";
-import { addToCart } from "../../utils/cartStorage";
+import { useCartStore } from "../../store/cart";
 
 interface FavItem {
     product: Product;
@@ -108,16 +108,17 @@ const Favorites: React.FC = () => {
             );
             return;
         }
-        selected.forEach((it) =>
-            addToCart({
+        selected.forEach((it) => {
+            const add = useCartStore(s => s.add)
+            add({
                 id: it.product.id,
                 name: it.product.name,
                 price: it.product.price,
                 img: it.product.img,
-                quantity: it.quantity,
+                quantity: Math.min(it.quantity, it.available),
                 available: it.available,
             })
-        );
+        });
         const remaining = items.filter((it) => !selected.includes(it));
         setItems(remaining);
         saveFavorites(

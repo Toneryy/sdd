@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import styles from './Cart.module.scss'
-import {
-  loadCart,
-  removeFromCart,
-  updateQuantity,
-  CartItem,
-} from '../../utils/cartStorage'
+import { useCartStore } from '../../store/cart'
 import { Link, useNavigate } from 'react-router-dom'
 import { applyPromo, fetchUsedPromos, removePromo, UsedPromo } from '../../api/promocodes'
 import { toast } from 'react-toastify'
 import { fetchProductById } from '../../api/shop'
+import type { CartItem } from '../../utils/cartStorage'
 
 const Cart: React.FC = () => {
   const [items, setItems] = useState<CartItem[]>([])
@@ -18,11 +14,15 @@ const Cart: React.FC = () => {
   const [appliedPromos, setAppliedPromos] = useState<UsedPromo[]>([])
   const navigate = useNavigate()
 
+  // Селекторы стора (хуки вызываются на верхнем уровне компонента)
+  const cartStoreItems = useCartStore(s => s.items)
+  const removeItem = useCartStore(s => s.remove)
+  const updateQty = useCartStore(s => s.update)
+
   // Загружает корзину и подтягивает актуальные данные
   const refreshCart = async () => {
-    const rawCart = loadCart()
     const updatedCart: CartItem[] = await Promise.all(
-      rawCart.map(async (item) => {
+      cartStoreItems.map(async (item) => {
         try {
           const { data } = await fetchProductById(item.id)
           return {
@@ -38,7 +38,7 @@ const Cart: React.FC = () => {
         }
       })
     )
-    updatedCart.forEach((it) => updateQuantity(it.id, it.quantity))
+    updatedCart.forEach((it) => updateQty(it.id, it.quantity))
     setItems(updatedCart)
   }
 
@@ -62,16 +62,13 @@ const Cart: React.FC = () => {
   }, [])
 
   // Обновление количества товара в корзине
-  const handleQuantityChange = async (id: string, quantity: number) => {
-    const newQuantity = Math.max(1, Math.min(quantity, items.find(item => item.id === id)?.available || 1))
-    updateQuantity(id, newQuantity)
-    await refreshCart()
+  const handleQuantityChange = (id: string, newQuantity: number) => {
+    updateQty(id, newQuantity)
   }
 
   // Удаление товара из корзины
-  const handleRemove = async (id: string) => {
-    removeFromCart(id)
-    await refreshCart()
+  const handleRemove = (id: string) => {
+    removeItem(id)
   }
 
   // Применение промокода
@@ -98,7 +95,7 @@ const Cart: React.FC = () => {
   }
 
   // Общая сумма
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+  const total = items.reduce((sum, it) => sum + it.price * it.quantity, 0)
   const discounted = total - (total * discount) / 100
 
   const bestDiscountCode =

@@ -29,5 +29,8 @@
   "include": [
     "src",
     "src/global.d.ts"
+  ],
+  "exclude": [
+    "src/components/**"
   ]
 }

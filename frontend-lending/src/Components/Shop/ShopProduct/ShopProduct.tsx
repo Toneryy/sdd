@@ -4,11 +4,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import styles from "./ShopProduct.module.scss";
 import { fetchProductById, Product } from "../../../api/shop";
-import {
-    addToCart,
-    isInCart,
-    CartItem,
-} from "../../../utils/cartStorage";
+import { useCartStore } from "../../../store/cart";
 
 const ShopProduct: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -18,42 +14,31 @@ const ShopProduct: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [inCart, setInCart] = useState(false);
 
+    const isInCartFn = useCartStore(s => s.isInCart)
+    const add = useCartStore(s => s.add)
     useEffect(() => {
         if (!id) return;
         setLoading(true);
         fetchProductById(id)
             .then((res) => {
                 setProduct(res.data);
-                setInCart(isInCart(res.data.id));
+                setInCart(isInCartFn(res.data.id));
             })
-            .catch(() => {
-                setError("Не удалось загрузить товар");
-            })
+            .catch(() => setError('Ошибка при загрузке товара'))
             .finally(() => setLoading(false));
-    }, [id]);
+    }, [id, isInCartFn]);
 
     const handleAddToCart = () => {
-        if (!product) {
-            toast.error("Товар не найден");
-            return;
-        }
-        if (product.available === 0) {
-            toast.error("Товар отсутствует на складе");
-            return;
-        }
-
-        const item: CartItem = {
+        if (!product) return;
+        add({
             id: product.id,
             name: product.name,
             price: product.price,
             img: product.img,
             quantity: 1,
             available: product.available,
-        };
-
-        addToCart(item);
+        })
         setInCart(true);
-        toast.success("Товар добавлен в корзину");
     };
 
     if (loading) return <p className={styles.status}>Загрузка...</p>;

@@ -6,7 +6,7 @@ import styles from "./ProductGrid.module.scss";
 import { fetchProducts, Product } from "../../api/shop";
 import { getSearchVariants } from "../../utils/keyboardAndTranslit";
 import { FaHeart } from "react-icons/fa";
-import { loadFavorites, saveFavorites } from "utils/favoritesStorage";
+import { useFavoritesStore } from "../../store/favorites";
 
 function useWindowWidth() {
     const [width, setWidth] = useState(window.innerWidth);
@@ -35,19 +35,17 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Для управления «избранным»
-    const [favIds, setFavIds] = useState<Set<string>>(new Set());
+    // Для управления «избранным» (Zustand)
+    const favIdsArr = useFavoritesStore(s => s.ids);
+    const toggleFav = useFavoritesStore(s => s.toggle);
+    const favIds = useMemo(() => new Set(favIdsArr), [favIdsArr]);
 
     // Пагинация
     const width = useWindowWidth();
     const itemsPerPage = width >= 1024 ? 12 : width >= 768 ? 8 : 4;
     const [currentPage, setCurrentPage] = useState(1);
 
-    // При монтировании читаем текущее «избранное»
-    useEffect(() => {
-        const raw = loadFavorites();
-        setFavIds(new Set(raw.map(p => p.id)));
-    }, []);
+    // (инициализация не нужна — persist zustand восстанавливает ids)
 
     // Загрузка товаров
     useEffect(() => {
@@ -65,15 +63,7 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
     // Добавление/удаление из «избранного»
     const toggleFavorite = (product: Product, e: React.MouseEvent) => {
         e.preventDefault();
-        const raw = loadFavorites();
-        let updated: Product[];
-        if (favIds.has(product.id)) {
-            updated = raw.filter(p => p.id !== product.id);
-        } else {
-            updated = [...raw, product];
-        }
-        saveFavorites(updated);
-        setFavIds(new Set(updated.map(p => p.id)));
+        toggleFav(product.id);
     };
 
     const sourceProducts = useMemo(() => {

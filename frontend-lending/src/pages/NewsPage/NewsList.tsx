@@ -3,6 +3,7 @@ import { getNews } from "../../api/publicNews";
 import { News } from "../../types";
 import NewsCard from "./NewsCard";
 import styles from "./NewsPage.module.scss";
+import Skeleton from "../../Components/Skeleton/Skeleton";
 
 // Тип перенесён в src/types
 
@@ -27,7 +28,21 @@ const NewsList: React.FC = () => {
         fetchNews();
     }, []);
 
-    if (loading) return <div className={styles.loading}>Загрузка...</div>;
+    if (loading)
+        return (
+            <div className={styles.newsList}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className={styles.newsCard}>
+                        <Skeleton width={320} height={180} />
+                        <div className={styles.newsContent}>
+                            <Skeleton width={240} height={24} />
+                            <Skeleton width={280} height={16} />
+                            <Skeleton width={180} height={14} />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
     if (!news.length) return <div className={styles.empty}>Нет опубликованных новостей</div>;
 
     // пагинация

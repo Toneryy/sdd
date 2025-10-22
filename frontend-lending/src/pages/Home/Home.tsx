@@ -1,4 +1,5 @@
 import React from 'react';
+import Seo from '../../Components/Seo';
 import styles from './Home.module.scss';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,6 +8,7 @@ const Home = () => {
 
   return (
     <section className={styles.hero}>
+      <Seo title="SDD — Лендинг" description="Мы помогаем бизнесам расти" />
       <div className={styles.content}>
         <h1 className={styles.title} data-testid={'home-page-welcome-title'}>Добро пожаловать в наш сервис!</h1>
         <p className={styles.subtitle}>

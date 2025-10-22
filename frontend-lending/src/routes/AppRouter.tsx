@@ -1,27 +1,28 @@
 // src/routes/AppRouter.tsx
-import React, { useContext } from 'react'
+import React, { Suspense, lazy, useContext } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import Skeleton from 'Components/Skeleton/Skeleton'
 import MainLayout from '../layouts/MainLayout'
-import LoginPage from 'pages/LoginPage/LoginPage'
-import RegisterPage from 'pages/RegisterPage/RegisterPage'
-import HomePage from 'pages/HomePage/HomePage'
-import ForgotPasswordPage from 'pages/ForgotPassword/ForgotPasswordPage'
-import Profile from 'pages/ProfilePage/Profile'
+const LoginPage = lazy(() => import('pages/LoginPage/LoginPage'))
+const RegisterPage = lazy(() => import('pages/RegisterPage/RegisterPage'))
+const HomePage = lazy(() => import('pages/HomePage/HomePage'))
+const ForgotPasswordPage = lazy(() => import('pages/ForgotPassword/ForgotPasswordPage'))
+const Profile = lazy(() => import('pages/ProfilePage/Profile'))
 import { AuthContext } from '../context/AuthContext'
-import Services from 'Components/Services/Services'
-import ServiceDetails from 'pages/ServiceDetails/ServiceDetails'
-import Shop from 'Components/Shop/Shop'
-import ShopProduct from 'Components/Shop/ShopProduct/ShopProduct'
-import ProductDetails from 'pages/ProductDetailsPage/ProductDetails'
-import Cart from 'pages/Cart/Cart'
+const Services = lazy(() => import('Components/Services/Services'))
+const ServiceDetails = lazy(() => import('pages/ServiceDetails/ServiceDetails'))
+// const Shop = lazy(() => import('Components/Shop/Shop'))
+// const ShopProduct = lazy(() => import('Components/Shop/ShopProduct/ShopProduct'))
+const ProductDetails = lazy(() => import('pages/ProductDetailsPage/ProductDetails'))
+const Cart = lazy(() => import('pages/Cart/Cart'))
 import ScrollToTop from 'utils/ScrollToTop'
-import Favorites from 'pages/Favorites/Favorites'
+const Favorites = lazy(() => import('pages/Favorites/Favorites'))
 
 // 👉 добавь:
-import CheckoutDev from 'pages/CheckoutDev/CheckoutDev'
-import CheckoutSuccessDev from 'pages/CheckoutSuccessDev/CheckoutSuccessDev'
-import NewsPage from 'pages/NewsPage/NewsPage'
-import NewsDetail from 'pages/NewsPage/NewsDetail'
+const CheckoutDev = lazy(() => import('pages/CheckoutDev/CheckoutDev'))
+const CheckoutSuccessDev = lazy(() => import('pages/CheckoutSuccessDev/CheckoutSuccessDev'))
+const NewsPage = lazy(() => import('pages/NewsPage/NewsPage'))
+const NewsDetail = lazy(() => import('pages/NewsPage/NewsDetail'))
 
 const AppRouter: React.FC = () => {
   const { isAuth } = useContext(AuthContext)
@@ -29,6 +30,7 @@ const AppRouter: React.FC = () => {
   return (
     <>
       <ScrollToTop />
+      <Suspense fallback={<div style={{ padding: 24 }}><Skeleton width={200} height={24} /><div style={{height:8}} /><Skeleton height={16} /><div style={{height:8}} /><Skeleton width={280} height={16} /></div>}>
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomePage />} />
@@ -78,6 +80,7 @@ const AppRouter: React.FC = () => {
           />
         </Route>
       </Routes>
+      </Suspense>
     </>
   )
 }
