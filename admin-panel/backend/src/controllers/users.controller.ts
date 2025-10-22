@@ -13,16 +13,7 @@ import { withEncryptedUser } from "../utils/withEncryptedUser";
 /* -------------------------------------------------------------- */
 export const listUsers = async (_: Request, res: Response) => {
   try {
-    /* берём даты окончания активных подписок */
-    const latestSubs = await prisma.user_subscriptions.findMany({
-      orderBy: { end_date: "desc" },
-      distinct: ["user_id"],
-      select: { user_id: true, end_date: true },
-    });
-    const lastEndMap = new Map<string, Date>(
-      latestSubs.map((s) => [s.user_id, s.end_date])
-    );
-
+    // Один запрос с LEFT JOIN и подзапросом для последней подписки
     const raw = await prisma.users.findMany({
       select: {
         id: true,
@@ -30,12 +21,17 @@ export const listUsers = async (_: Request, res: Response) => {
         email: true,
         phone: true,
         created_at: true,
+        user_subscriptions: {
+          orderBy: { end_date: "desc" },
+          take: 1,
+          select: { end_date: true },
+        },
       },
     });
 
     const users = raw.map((u) => ({
       ...withDecryptedUser(u as RawUser),
-      lastEndDate: lastEndMap.get(u.id) ?? null,
+      lastEndDate: u.user_subscriptions[0]?.end_date ?? null,
     }));
 
     res.json(users);
@@ -197,5 +193,79 @@ export const searchUsers = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка поиска пользователей" });
+  }
+};
+
+/* -------------------------------------------------------------- */
+/*  GET /api/admin/clients  ─ только клиенты с подписками        */
+/* -------------------------------------------------------------- */
+export const listClients = async (req: Request, res: Response) => {
+  try {
+    const { page = "1", limit = "50", search = "" } = req.query;
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Запрос только пользователей с подписками
+    const raw = await prisma.users.findMany({
+      where: {
+        user_subscriptions: {
+          some: {}, // есть хотя бы одна подписка
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phone: true,
+        created_at: true,
+        user_subscriptions: {
+          orderBy: { end_date: "desc" },
+          take: 1,
+          select: { end_date: true },
+        },
+      },
+      skip,
+      take: limitNum,
+    });
+
+    const clients = raw.map((u) => ({
+      ...withDecryptedUser(u as RawUser),
+      lastEndDate: u.user_subscriptions[0]?.end_date ?? null,
+    }));
+
+    // Фильтрация по поиску в памяти (т.к. данные зашифрованы)
+    const filtered = search
+      ? clients.filter((c) => {
+          const q = (search as string).toLowerCase();
+          return (
+            c.username.toLowerCase().includes(q) ||
+            c.email.toLowerCase().includes(q) ||
+            c.phone?.toLowerCase().includes(q)
+          );
+        })
+      : clients;
+
+    // Подсчёт общего количества клиентов
+    const total = await prisma.users.count({
+      where: {
+        user_subscriptions: {
+          some: {},
+        },
+      },
+    });
+
+    res.json({
+      data: filtered,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Не удалось получить клиентов" });
   }
 };

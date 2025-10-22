@@ -70,3 +70,14 @@ export const refundLimiter = rateLimit({
   keyGenerator: keyByUserOrIp,
   message: { message: "RATE_LIMIT_REFUND" },
 });
+
+// Строгий лимит для авторизации (защита от брутфорса)
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 минут
+  max: 5, // 5 попыток за 15 минут
+  skipSuccessfulRequests: true, // Не считаем успешные попытки
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: keyByUserOrIp,
+  message: { message: "RATE_LIMIT_AUTH" },
+});

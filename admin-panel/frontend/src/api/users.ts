@@ -6,6 +6,11 @@ export const getUsers = async () => {
   return data;
 };
 
+export const getClients = async (params?: { page?: number; limit?: number; search?: string }) => {
+  const { data } = await axiosClient.get(`${API_URL}/admin/users/clients`, { params });
+  return data;
+};
+
 export const addUser = async (u: any) => {
   const { data } = await axiosClient.post(`${API_URL}/admin/users`, u);
   return data;

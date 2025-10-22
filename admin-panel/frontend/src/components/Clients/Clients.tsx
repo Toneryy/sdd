@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Clients.module.scss";
-import { getUsers } from "../../api/users";
+import { getClients } from "../../api/users";
 
 interface Client {
     id: string;
@@ -11,23 +11,29 @@ interface Client {
     lastEndDate: string | null;
 }
 
-const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000; // вынесено из хука
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const Clients: React.FC = () => {
     const [allClients, setAllClients] = useState<Client[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [needRenewOnly, setNeedRenewOnly] = useState(false);
     const [sortAsc, setSortAsc] = useState<boolean>(true);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        getUsers()
-            .then((data) => {
-                // оставляем только тех, у кого была подписка
-                const withSubs = data.filter((u: Client) => u.lastEndDate !== null);
-                setAllClients(withSubs);
+        let cancelled = false;
+        setLoading(true);
+        getClients({ page: 1, limit: 100 })
+            .then((response) => {
+                if (cancelled) return;
+                setAllClients(response.data ?? []);
             })
-            .catch(console.error);
+            .catch(console.error)
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+        return () => { cancelled = true; };
     }, []);
 
     // текущее время фиксируем один раз
@@ -57,6 +63,10 @@ const Clients: React.FC = () => {
                 return sortAsc ? da - db : db - da;
             });
     }, [allClients, searchTerm, needRenewOnly, sortAsc, now]);
+
+    if (loading) {
+        return <div className={styles.clients}><p>Загрузка клиентов...</p></div>;
+    }
 
     return (
         <div className={styles.clients}>
