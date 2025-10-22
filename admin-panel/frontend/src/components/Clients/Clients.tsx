@@ -27,9 +27,14 @@ const Clients: React.FC = () => {
         getClients({ page: 1, limit: 100 })
             .then((response) => {
                 if (cancelled) return;
+                console.log('[Clients] Response:', response);
+                console.log('[Clients] Data array:', response.data);
+                console.log('[Clients] Data length:', response.data?.length);
                 setAllClients(response.data ?? []);
             })
-            .catch(console.error)
+            .catch((err) => {
+                console.error('[Clients] Error:', err);
+            })
             .finally(() => {
                 if (!cancelled) setLoading(false);
             });

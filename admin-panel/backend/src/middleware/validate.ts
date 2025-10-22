@@ -51,7 +51,8 @@ export const validateQuery = (schema: Joi.ObjectSchema) => {
       });
     }
 
-    req.query = value;
+    // В Express 5 req.query readonly, используем Object.assign
+    Object.assign(req.query, value);
     next();
   };
 };
@@ -78,7 +79,8 @@ export const validateParams = (schema: Joi.ObjectSchema) => {
       });
     }
 
-    req.params = value;
+    // В Express 5 req.params readonly, используем Object.assign
+    Object.assign(req.params, value);
     next();
   };
 };

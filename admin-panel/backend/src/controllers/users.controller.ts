@@ -206,6 +206,14 @@ export const listClients = async (req: Request, res: Response) => {
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
 
+    console.log('[listClients] Query params:', { page, limit, search, pageNum, limitNum, skip });
+
+    // DEBUG: Проверим общее количество пользователей
+    const totalUsers = await prisma.users.count();
+    const totalSubs = await prisma.user_subscriptions.count();
+    console.log('[listClients] Total users in DB:', totalUsers);
+    console.log('[listClients] Total subscriptions in DB:', totalSubs);
+
     // Запрос только пользователей с подписками
     const raw = await prisma.users.findMany({
       where: {
@@ -234,6 +242,9 @@ export const listClients = async (req: Request, res: Response) => {
       lastEndDate: u.user_subscriptions[0]?.end_date ?? null,
     }));
 
+    console.log('[listClients] Found raw users:', raw.length);
+    console.log('[listClients] Decrypted clients:', clients.length);
+
     // Фильтрация по поиску в памяти (т.к. данные зашифрованы)
     const filtered = search
       ? clients.filter((c) => {
@@ -255,6 +266,9 @@ export const listClients = async (req: Request, res: Response) => {
       },
     });
 
+    console.log('[listClients] Filtered clients:', filtered.length);
+    console.log('[listClients] Total clients in DB:', total);
+
     res.json({
       data: filtered,
       pagination: {
@@ -265,7 +279,7 @@ export const listClients = async (req: Request, res: Response) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error('[listClients] Error:', err);
     res.status(500).json({ message: "Не удалось получить клиентов" });
   }
 };
