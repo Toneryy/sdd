@@ -4,6 +4,11 @@
   max-width: 1100px;
   margin: 120px auto 100px;
   padding: 0 16px;
+
+  @media (max-width: 540px) {
+    margin: 100px auto 60px;
+    padding: 0 12px;
+  }
 }
 
 /* ===== Hero ===== */
@@ -24,6 +29,11 @@
   color: #fff;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
   padding: 24px;
+
+  @media (max-width: 540px) {
+    padding: 16px;
+    border-radius: 14px;
+  }
 }
 
 .heroInner {
@@ -31,6 +41,11 @@
   grid-template-columns: auto 1fr auto;
   gap: 16px;
   align-items: center;
+
+  @media (max-width: 540px) {
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+  }
 }
 
 .avatar {
@@ -44,6 +59,12 @@
   background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(6px);
   user-select: none;
+
+  @media (max-width: 540px) {
+    width: 52px;
+    height: 52px;
+    font-size: 1rem;
+  }
 }
 
 .heroText {
@@ -51,6 +72,10 @@
     margin: 0;
     font-size: 1.8rem;
     line-height: 1.2;
+
+    @media (max-width: 540px) {
+      font-size: 1.3rem;
+    }
   }
   .subtitle {
     margin: 6px 0 0;
@@ -58,6 +83,10 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+
+    @media (max-width: 540px) {
+      font-size: 0.85rem;
+    }
   }
 }
 
@@ -80,6 +109,15 @@
   }
   svg {
     pointer-events: none;
+  }
+
+  @media (max-width: 540px) {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    gap: 6px;
   }
 }
 
@@ -104,6 +142,12 @@
   background: rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(8px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+  @media (max-width: 540px) {
+    grid-template-columns: 40px 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
 }
 
 .metricIconWrap {
@@ -116,21 +160,41 @@
   svg {
     font-size: 22px;
   }
+
+  @media (max-width: 540px) {
+    width: 40px;
+    height: 40px;
+    svg {
+      font-size: 18px;
+    }
+  }
 }
 
 .metricBody {
   .metricLabel {
     opacity: 0.9;
     font-size: 0.9rem;
+
+    @media (max-width: 540px) {
+      font-size: 0.8rem;
+    }
   }
   .metricValue {
     font-weight: 700;
     font-size: 1.1rem;
     margin: 2px 0;
+
+    @media (max-width: 540px) {
+      font-size: 1rem;
+    }
   }
   .metricHint {
     opacity: 0.85;
     font-size: 0.9rem;
+
+    @media (max-width: 540px) {
+      font-size: 0.8rem;
+    }
   }
 }
 
@@ -146,6 +210,12 @@
   position: sticky;
   top: 72px;
   z-index: 5;
+
+  @media (max-width: 540px) {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+  }
 }
 
 .tabBtn {
@@ -167,6 +237,14 @@
     color: $primary-color;
     box-shadow: inset 0 0 0 2px rgba(79, 70, 229, 0.2);
   }
+
+  @media (max-width: 540px) {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    min-width: 0;
+  }
 }
 
 /* ===== Sections ===== */
@@ -183,6 +261,10 @@
   gap: 8px;
   padding-bottom: 6px;
   border-bottom: 2px solid rgba(79, 70, 229, 0.2);
+
+  @media (max-width: 540px) {
+    font-size: 1rem;
+  }
 }
 
 /* ===== Info grid ===== */
@@ -211,9 +293,26 @@
   }
   .infoLabel {
     font-weight: 600;
+
+    @media (max-width: 540px) {
+      font-size: 0.9rem;
+    }
   }
   .infoValue {
     color: $text-color;
+
+    @media (max-width: 540px) {
+      font-size: 0.9rem;
+    }
+  }
+
+  @media (max-width: 540px) {
+    padding: 10px 12px;
+    gap: 8px;
+
+    .icon {
+      font-size: 18px;
+    }
   }
 }
 
@@ -237,6 +336,12 @@
 
   &:hover {
     transform: translateY(-1px);
+  }
+
+  @media (max-width: 540px) {
+    padding: 10px;
+    grid-template-columns: 24px 1fr;
+    gap: 8px;
   }
 }
 
@@ -262,6 +367,10 @@
   font-weight: 700;
   line-height: 1.2;
   color: #2c3e50;
+
+  @media (max-width: 540px) {
+    font-size: 0.95rem;
+  }
 }
 
 .statusPill {
@@ -270,6 +379,11 @@
   border-radius: 999px;
   font-weight: 700;
   white-space: nowrap;
+
+  @media (max-width: 540px) {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
 }
 .status_pending {
   background: #fff7ed;
@@ -305,6 +419,10 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px;
   margin-top: 8px;
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .purchaseCard {
@@ -371,6 +489,10 @@
   line-height: 1.25;
   max-height: 2.6em; // 2 строки
   overflow: hidden;
+
+  @media (max-width: 540px) {
+    font-size: 0.95rem;
+  }
 }
 
 .purchaseMeta {
@@ -443,6 +565,10 @@
   display: flex;
   gap: 8px;
   margin-top: 6px;
+
+  @media (max-width: 540px) {
+    gap: 6px;
+  }
 }
 
 .actionBtn,
@@ -459,6 +585,12 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+
+  @media (max-width: 540px) {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    letter-spacing: 0;
+  }
 }
 
 .actionBtn {

@@ -48,11 +48,9 @@ export const loginSchema = Joi.object({
       'any.required': 'Email обязателен',
     }),
   password: Joi.string()
-    .min(6)
     .required()
     .messages({
       'string.empty': 'Пароль обязателен',
-      'string.min': 'Пароль должен быть не менее 6 символов',
       'any.required': 'Пароль обязателен',
     }),
 });

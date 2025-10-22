@@ -3,6 +3,11 @@
   max-width: 1000px;
   margin: 120px auto;
   padding: 0 20px;
+
+  @media (max-width: 540px) {
+    margin: 100px auto 60px;
+    padding: 0 12px;
+  }
 }
 
 .title {
@@ -10,6 +15,11 @@
   text-align: center;
   margin-bottom: 32px;
   font-weight: 600;
+
+  @media (max-width: 540px) {
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+  }
 }
 
 .empty {
@@ -40,6 +50,10 @@
   display: flex;
   flex-direction: column;
   transition: box-shadow 0.2s;
+
+  @media (max-width: 540px) {
+    padding: 12px;
+  }
 }
 
 .card:hover {
@@ -50,6 +64,10 @@
   display: flex;
   align-items: center;
   gap: 16px;
+
+  @media (max-width: 540px) {
+    gap: 12px;
+  }
 }
 
 .checkbox {
@@ -64,6 +82,11 @@
   height: 80px;
   object-fit: cover;
   border-radius: 4px;
+
+  @media (max-width: 540px) {
+    width: 70px;
+    height: 70px;
+  }
 }
 
 .placeholder {
@@ -76,6 +99,12 @@
   background: #f5f5f5;
   border-radius: 4px;
   color: #aaa;
+
+  @media (max-width: 540px) {
+    width: 70px;
+    height: 70px;
+    font-size: 1.6rem;
+  }
 }
 
 .info {
@@ -89,6 +118,10 @@
   font-weight: 500;
   color: #333;
   margin-bottom: 8px;
+
+  @media (max-width: 540px) {
+    font-size: 0.95rem;
+  }
 }
 
 .price {
@@ -96,17 +129,29 @@
   color: #4f46e5;
   font-weight: 600;
   margin-bottom: 4px;
+
+  @media (max-width: 540px) {
+    font-size: 1rem;
+  }
 }
 
 .avail {
   font-size: 0.85rem;
   color: #555;
+
+  @media (max-width: 540px) {
+    font-size: 0.8rem;
+  }
 }
 
 .outOfStock {
   font-size: 0.85rem;
   color: #c62828;
   font-weight: 600;
+
+  @media (max-width: 540px) {
+    font-size: 0.8rem;
+  }
 }
 
 .bottomRow {
@@ -114,6 +159,11 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 12px;
+
+  @media (max-width: 540px) {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 
 .qtyControls {
@@ -129,18 +179,32 @@
   padding: 4px 8px;
   font-size: 1.1rem;
   cursor: pointer;
+
+  @media (max-width: 540px) {
+    padding: 3px 6px;
+    font-size: 1rem;
+  }
 }
 
 .qtyControls span {
   display: inline-block;
   width: 32px;
   text-align: center;
+
+  @media (max-width: 540px) {
+    width: 28px;
+    font-size: 0.9rem;
+  }
 }
 
 .lineTotal {
   font-weight: 600;
   font-size: 1rem;
   color: #333;
+
+  @media (max-width: 540px) {
+    font-size: 0.95rem;
+  }
 }
 
 .removeBtn {
@@ -166,12 +230,20 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
+
+  @media (max-width: 540px) {
+    font-size: 1.1rem;
+  }
 }
 
 .totalValue {
   font-size: 1.4rem;
   font-weight: 700;
   color: #4f46e5;
+
+  @media (max-width: 540px) {
+    font-size: 1.3rem;
+  }
 }
 
 .actions {
@@ -188,6 +260,11 @@
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
+
+  @media (max-width: 540px) {
+    padding: 9px 18px;
+    font-size: 0.95rem;
+  }
 }
 
 .buyBtn:hover {
@@ -203,6 +280,11 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s;
+
+  @media (max-width: 540px) {
+    padding: 9px 14px;
+    font-size: 0.85rem;
+  }
 }
 
 .clearBtn:hover {
@@ -232,5 +314,16 @@
   .clearBtn {
     width: 100%;
     box-sizing: border-box;
+  }
+}
+
+@media (max-width: 540px) {
+  .footer {
+    margin-top: 20px;
+    padding-top: 12px;
+  }
+
+  .actions {
+    gap: 6px;
   }
 }

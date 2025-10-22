@@ -20,7 +20,10 @@ export const register: RequestHandler = async (req, res) => {
       },
     });
 
-    res.status(201).json({ message: "Регистрация прошла успешно" });
+    res.status(201).json({ 
+      success: true,
+      message: "Регистрация прошла успешно" 
+    });
   } catch (err) {
     if (
       err instanceof Prisma.PrismaClientKnownRequestError &&
@@ -57,12 +60,15 @@ export const login: RequestHandler = async (req, res) => {
   );
 
   res.json({
-    token,
-    user: {
-      id: user.id,
-      username: dec(user.username),
-      email: dec(user.email),
-      phone: user.phone ? dec(user.phone) : null,
+    success: true,
+    data: {
+      accessToken: token,
+      user: {
+        id: user.id,
+        username: dec(user.username),
+        email: dec(user.email),
+        phone: user.phone ? dec(user.phone) : null,
+      },
     },
   });
 };

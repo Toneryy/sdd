@@ -3,6 +3,11 @@
   max-width: 960px;
   margin: 140px auto;
   padding: 0 16px;
+
+  @media (max-width: 540px) {
+    margin: 100px auto 60px;
+    padding: 0 12px;
+  }
 }
 
 .title {
@@ -10,6 +15,11 @@
   margin-bottom: 24px;
   color: #2c3e50;
   font-weight: 700;
+
+  @media (max-width: 540px) {
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+  }
 }
 
 .empty {
@@ -41,6 +51,12 @@
     flex-direction: column;
     align-items: center;
   }
+
+  @media (max-width: 540px) {
+    padding: 14px;
+    gap: 14px;
+    border-radius: 12px;
+  }
 }
 
 .img {
@@ -62,6 +78,15 @@
   .placeholder {
     font-size: 40px;
   }
+
+  @media (max-width: 540px) {
+    width: 100px;
+    height: 100px;
+
+    .placeholder {
+      font-size: 32px;
+    }
+  }
 }
 
 .info {
@@ -78,6 +103,10 @@
     &:hover {
       text-decoration: underline;
     }
+
+    @media (max-width: 540px) {
+      font-size: 1rem;
+    }
   }
 
   p {
@@ -85,6 +114,10 @@
     font-size: 1rem;
     font-weight: 600;
     margin: 6px 0;
+
+    @media (max-width: 540px) {
+      font-size: 0.95rem;
+    }
   }
 }
 
@@ -169,6 +202,11 @@
     border-radius: 10px;
     font-size: 1rem;
     background: #fff;
+
+    @media (max-width: 540px) {
+      padding: 12px 14px;
+      font-size: 0.95rem;
+    }
   }
 
   button {
@@ -184,6 +222,15 @@
     &:hover {
       background: #4338ca;
     }
+
+    @media (max-width: 540px) {
+      padding: 12px 20px;
+      font-size: 0.95rem;
+    }
+  }
+
+  @media (max-width: 540px) {
+    margin: 24px 0;
   }
 
   @media (max-width: 500px) {
@@ -253,6 +300,10 @@
     font-size: 1.2rem;
     margin-bottom: 10px;
     color: #2c3e50;
+
+    @media (max-width: 540px) {
+      font-size: 1.1rem;
+    }
   }
 
   strong {
@@ -274,5 +325,14 @@
     &:hover {
       background: #219150;
     }
+
+    @media (max-width: 540px) {
+      padding: 14px 24px;
+      font-size: 0.95rem;
+    }
+  }
+
+  @media (max-width: 540px) {
+    padding: 16px;
   }
 }
