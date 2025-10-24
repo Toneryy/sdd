@@ -1,0 +1,24 @@
+# pycharm
+.idea
+.idea/
+.DS_Store
+
+# python
+.venv
+__pycache__
+
+# allure
+allure-results
+allure-report
+
+# testing artifacts
+*.html
+*.json
+videos
+tracing
+
+# coverage
+coverage-results
+coverage-history.json
+coverage-report.json
+coverage.html
