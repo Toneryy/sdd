@@ -70,14 +70,14 @@ const RegisterPage: React.FC = () => {
         </div>
 
         <div className={styles.inputGroup}>
-          <FiMail className={styles.icon} />
+          <FiMail className={styles.icon} data-testid={`${testId}-email-input-icon`} />
           <input
             name="email"
             type="email"
             placeholder="Email"
             required
             onChange={handleChange}
-            data-testid={`${testId}-email-input-icon`}
+            data-testid={`${testId}-email-input`}
           />
         </div>
 

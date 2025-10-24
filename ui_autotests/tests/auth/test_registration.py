@@ -33,3 +33,4 @@ class TestRegistration:
         )
         registration_page.registration_form.registration_button_click()
 
+
