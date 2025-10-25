@@ -13,17 +13,17 @@ from elements.text import Text
 
 
 class LoginFormComponent(BaseComponent):
-    def __init__(self, page: Page):
-        super().__init__(page)
+    def __init__(self, page_frontend: Page):
+        super().__init__(page_frontend)
 
-        self.login_title_text = Text(page, 'login-page-login-form-title-text', 'Login title text')
-        self.email_input = Input(page, 'login-page-email-input', 'Email input')
-        self.email_input_icon = Icon(page, 'login-page-email-icon', 'Email input icon')
-        self.password_input = Input(page, 'login-page-password-input', 'Password input')
-        self.password_input_icon = Icon(page, 'login-page-password-input-icon', 'Password input icon')
-        self.login_button = Button(page, 'login-page-login-button', 'Login button')
-        self.forgot_password_link = Link(page, 'login-page-forgot-password-link', 'Forgot password link')
-        self.registration_link = Link(page, 'login-page-registration-link', 'Registration link')
+        self.login_title_text = Text(page_frontend, 'login-page-login-form-title-text', 'Login title text')
+        self.email_input = Input(page_frontend, 'login-page-email-input', 'Email input')
+        self.email_input_icon = Icon(page_frontend, 'login-page-email-icon', 'Email input icon')
+        self.password_input = Input(page_frontend, 'login-page-password-input', 'Password input')
+        self.password_input_icon = Icon(page_frontend, 'login-page-password-input-icon', 'Password input icon')
+        self.login_button = Button(page_frontend, 'login-page-login-button', 'Login button')
+        self.forgot_password_link = Link(page_frontend, 'login-page-forgot-password-link', 'Forgot password link')
+        self.registration_link = Link(page_frontend, 'login-page-registration-link', 'Registration link')
 
     @allure.step('Checking ui logic of login form')
     def check_ui_logic(self):

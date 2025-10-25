@@ -17,6 +17,10 @@ class TestUser(BaseModel):
     username: str
     password: str
 
+class TestAdmin(BaseModel):
+    login: str
+    password: str
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -25,6 +29,7 @@ class Settings(BaseSettings):
         env_file_encoding='utf-8',
         env_nested_delimiter='.'
     )
+    admin_app_url: HttpUrl
     app_url: HttpUrl
     headless: bool
     browsers: list[Browser]
@@ -32,9 +37,13 @@ class Settings(BaseSettings):
     videos_dir: DirectoryPath
     tracing_dir: DirectoryPath
     allure_results_dir: DirectoryPath
+    test_admin: TestAdmin
 
     def get_base_url(self) -> str:
         return f"{self.app_url}/"
+
+    def get_base_admin_url(self) -> str:
+        return f"{self.admin_app_url}/"
 
     @classmethod
     def initialize(cls) -> Self:

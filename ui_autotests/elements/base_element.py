@@ -6,8 +6,8 @@ from tools.logger import get_logger
 logger = get_logger("BASE_ELEMENT")
 
 class BaseElement:
-    def __init__(self, page: Page, locator: str, name: str):
-        self.page = page
+    def __init__(self, page_frontend: Page, locator: str, name: str):
+        self.page = page_frontend
         self.locator = locator
         self.name = name
 

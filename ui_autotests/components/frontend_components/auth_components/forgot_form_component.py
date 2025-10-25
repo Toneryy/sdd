@@ -15,15 +15,15 @@ logger = get_logger("FORGOT_FORM")
 
 
 class ForgotFormComponent(BaseComponent):
-    def __init__(self, page: Page):
-        super().__init__(page)
+    def __init__(self, page_frontend: Page):
+        super().__init__(page_frontend)
 
-        self.forgot_title_text = Text(page, 'forgot-page-title-text', 'Forgot title text')
-        self.forgot_subtitle_text = Text(page, 'forgot-page-subtitle-text', 'Forgot subtitle text')
-        self.email_input = Input(page, 'forgot-page-email-input', 'Email input')
-        self.email_input_icon = Input(page, 'forgot-page-email-input-icon', 'Email input icon')
-        self.submit_button = Button(page, 'forgot-page-submit-button', 'Submit button')
-        self.login_link = Link(page, 'forgot-page-login-link', 'Login link')
+        self.forgot_title_text = Text(page_frontend, 'forgot-page-title-text', 'Forgot title text')
+        self.forgot_subtitle_text = Text(page_frontend, 'forgot-page-subtitle-text', 'Forgot subtitle text')
+        self.email_input = Input(page_frontend, 'forgot-page-email-input', 'Email input')
+        self.email_input_icon = Input(page_frontend, 'forgot-page-email-input-icon', 'Email input icon')
+        self.submit_button = Button(page_frontend, 'forgot-page-submit-button', 'Submit button')
+        self.login_link = Link(page_frontend, 'forgot-page-login-link', 'Login link')
 
     @allure.step('Checking ui logic of forgot component')
     def check_ui_logic(self):

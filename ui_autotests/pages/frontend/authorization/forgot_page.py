@@ -5,7 +5,7 @@ from pages.base_page import BasePage
 
 
 class ForgotPage(BasePage):
-    def __init__(self, page: Page):
-        super().__init__(page)
+    def __init__(self, page_frontend: Page):
+        super().__init__(page_frontend)
 
-        self.login_form = ForgotFormComponent(page)
+        self.login_form = ForgotFormComponent(page_frontend)

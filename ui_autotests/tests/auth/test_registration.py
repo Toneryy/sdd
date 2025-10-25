@@ -1,15 +1,14 @@
-from time import sleep
-
 import allure
 import pytest
 from allure_commons.types import Severity
 
 from config import settings
-from pages.authorization.registration_page import RegistrationPage
+from pages.frontend.authorization.registration_page import RegistrationPage
 from tools.allure.epics import AllureEpic
 from tools.allure.features import AllureFeature
 from tools.allure.stories import AllureStory
 from tools.app_route import AppRoute
+
 
 @allure.epic(AllureEpic.FRONTEND)
 @allure.feature(AllureFeature.AUTHENTICATION)
@@ -32,5 +31,3 @@ class TestRegistration:
             confirm_password=settings.test_user.password
         )
         registration_page.registration_form.registration_button_click()
-
-
