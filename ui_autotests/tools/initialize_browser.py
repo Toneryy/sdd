@@ -1,6 +1,5 @@
 import allure
 from playwright.sync_api import Page, Playwright
-from pydantic import HttpUrl
 
 from config import settings, Browser
 

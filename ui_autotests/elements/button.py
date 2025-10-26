@@ -6,24 +6,24 @@ from tools.logger import get_logger
 
 logger = get_logger("BUTTON")
 
+
 class Button(BaseElement):
     @property
     def type_of(self):
         return 'button'
 
-    def check_enabled(self):
+    def check_enabled(self, **kwargs):
         step = f'Checking that the {self.type_of} "{self.name}" is enabled'
 
         with allure.step(step):
-            locator = self.get_locator()
+            locator = self.get_locator(**kwargs)
             logger.info(step)
             expect(locator).to_be_enabled()
 
-    def check_disabled(self):
+    def check_disabled(self, **kwargs):
         step = f'Checking that the {self.type_of} "{self.name}" is disabled'
 
         with allure.step(step):
-            locator = self.get_locator()
+            locator = self.get_locator(**kwargs)
             logger.info(step)
             expect(locator).to_be_disabled()
-

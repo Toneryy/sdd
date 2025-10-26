@@ -11,26 +11,26 @@ class Input(BaseElement):
     def type_of(self):
         return 'input'
 
-    def fill(self, value):
+    def fill(self, value, **kwargs):
         step = f'Filling {self.type_of} "{self.name}" with "{value}"'
 
         with allure.step(step):
-            locator = self.get_locator()
+            locator = self.get_locator(**kwargs)
             logger.info(step)
             locator.fill(value)
 
-    def check_have_value(self, value: str):
+    def check_have_value(self, value: str, **kwargs):
         step = f'Checking that {self.type_of} "{self.name}" has a value "{value}"'
 
         with allure.step(step):
-            locator = self.get_locator()
+            locator = self.get_locator(**kwargs)
             logger.info(step)
             expect(locator).to_have_value(value)
 
-    def check_have_placeholder(self, value: str):
+    def check_have_placeholder(self, value: str, **kwargs):
         step = f'Checking that {self.type_of} "{self.name}" has a placeholder "{value}"'
 
         with allure.step(step):
-            locator = self.get_locator()
+            locator = self.get_locator(**kwargs)
             logger.info(step)
             expect(locator).to_have_attribute("placeholder", value)

@@ -12,10 +12,10 @@ class FileInput(BaseElement):
     def type_of(self):
         return "file input"
 
-    def set_input_files(self, file: str):
+    def set_input_files(self, file: str, **kwargs):
         step = f'Set "{file}" to the {self.type_of} "{self.name}"'
 
         with allure.step(step):
-            locator = self.get_locator()
+            locator = self.get_locator(**kwargs)
             logger.info(step)
             locator.set_input_file(file)

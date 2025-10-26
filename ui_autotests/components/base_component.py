@@ -6,6 +6,7 @@ from tools.logger import get_logger
 
 logger = get_logger("BASE_COMPONENT")
 
+
 class BaseComponent:
     def __init__(self, page_frontend: Page):
         self.page = page_frontend
