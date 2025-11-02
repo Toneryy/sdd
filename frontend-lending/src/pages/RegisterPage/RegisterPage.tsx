@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register as registerUser } from '../../api/auth'
 import { toast } from 'react-toastify'
@@ -14,22 +14,107 @@ const RegisterPage: React.FC = () => {
         password: '',
         confirmPassword: ''
     })
+    const [errors, setErrors] = useState<{
+        username?: string
+        email?: string
+        phone?: string
+        password?: string
+        confirmPassword?: string
+    }>({})
+    const phoneInputRef = useRef<HTMLInputElement>(null)
 
-    const navigate = useNavigate() // Для перенаправления после успешной регистрации
+    const navigate = useNavigate()
+
+    const validateEmail = (email: string): boolean => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    }
+
+    const validatePhone = (phone: string): boolean => {
+        const digits = phone.replace(/\D/g, '')
+        return digits.length >= 10 && digits.length <= 12
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value })
+        const { name, value } = e.target
+        setForm({ ...form, [name]: value })
+        // Очистка ошибки при вводе
+        if (errors[name as keyof typeof errors]) {
+            setErrors({ ...errors, [name]: undefined })
+        }
+    }
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.target
+        const cursorPosition = input.selectionStart || 0
+        const oldValue = form.phone
+        const newValue = formatRuPhone(input.value)
+        
+        setForm({ ...form, phone: newValue })
+        if (errors.phone) {
+            setErrors({ ...errors, phone: undefined })
+        }
+        
+        // Восстанавливаем позицию курсора
+        setTimeout(() => {
+            if (phoneInputRef.current) {
+                let newCursorPosition = cursorPosition
+                
+                if (newValue.length < oldValue.length) {
+                    const deletedChars = oldValue.length - newValue.length
+                    newCursorPosition = Math.max(0, cursorPosition - deletedChars)
+                } else {
+                    const addedChars = newValue.length - oldValue.length
+                    newCursorPosition = cursorPosition + addedChars
+                }
+                
+                if (newCursorPosition > newValue.length) {
+                    newCursorPosition = newValue.length
+                }
+                
+                phoneInputRef.current.setSelectionRange(newCursorPosition, newCursorPosition)
+            }
+        }, 0)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (form.password !== form.confirmPassword) {
-            toast.error('Пароли не совпадают', { toastId: 'register-error' })
+        const newErrors: typeof errors = {}
+
+        if (!form.username || !form.username.trim()) {
+            newErrors.username = 'Имя обязательно'
+        }
+
+        if (!form.email) {
+            newErrors.email = 'Email обязателен'
+        } else if (!validateEmail(form.email)) {
+            newErrors.email = 'Некорректный email'
+        }
+
+        if (!form.phone) {
+            newErrors.phone = 'Телефон обязателен'
+        } else if (!validatePhone(form.phone)) {
+            newErrors.phone = 'Некорректный номер телефона'
+        }
+
+        if (!form.password) {
+            newErrors.password = 'Пароль обязателен'
+        }
+
+        if (!form.confirmPassword) {
+            newErrors.confirmPassword = 'Подтвердите пароль'
+        } else if (form.password !== form.confirmPassword) {
+            newErrors.confirmPassword = 'Пароли не совпадают'
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            if (newErrors.confirmPassword) {
+                toast.error('Пароли не совпадают', { toastId: 'register-error' })
+            }
             return
         }
 
-        // Удаляем все нецифровые символы из телефона и форматируем
         const formattedPhone = normalizeRuPhoneToE164(form.phone)
 
         try {
@@ -39,12 +124,13 @@ const RegisterPage: React.FC = () => {
                 phone: formattedPhone,
                 password: form.password
             })
-            toast.success('Регистрация успешна!') // Уведомление об успешной регистрации
-            navigate('/login') // Перенаправление на страницу входа
-        } catch (error: any) {
-            console.error("Ошибка при регистрации:", error.response?.data || error.message)
+            toast.success('Регистрация успешна!')
+            navigate('/login')
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } }; message?: string }
+            console.error("Ошибка при регистрации:", err.response?.data || err.message)
             toast.error(
-                error.response?.data?.message || 'Ошибка регистрации',
+                err.response?.data?.message || err.message || 'Ошибка регистрации',
                 { toastId: 'register-error' }
             )
         }
@@ -61,9 +147,12 @@ const RegisterPage: React.FC = () => {
                         name="username"
                         type="text"
                         placeholder="Имя"
-                        required
+                        value={form.username}
                         onChange={handleChange}
+                        aria-invalid={!!errors.username}
+                        aria-describedby={errors.username ? 'username-error' : undefined}
                     />
+                    {errors.username && <span id="username-error" style={{ color: 'red', fontSize: '12px' }}>{errors.username}</span>}
                 </div>
 
                 <div className={styles.inputGroup}>
@@ -72,20 +161,26 @@ const RegisterPage: React.FC = () => {
                         name="email"
                         type="email"
                         placeholder="Email"
-                        required
+                        value={form.email}
                         onChange={handleChange}
+                        aria-invalid={!!errors.email}
+                        aria-describedby={errors.email ? 'email-error' : undefined}
                     />
+                    {errors.email && <span id="email-error" style={{ color: 'red', fontSize: '12px' }}>{errors.email}</span>}
                 </div>
 
                 <div className={styles.inputGroup}>
                     <FiPhone className={styles.icon} />
                     <input
+                        ref={phoneInputRef}
                         name="phone"
                         placeholder="Телефон"
                         value={form.phone}
-                        onChange={(e) => setForm({ ...form, phone: formatRuPhone(e.target.value) })}
-                        required
+                        onChange={handlePhoneChange}
+                        aria-invalid={!!errors.phone}
+                        aria-describedby={errors.phone ? 'phone-error' : undefined}
                     />
+                    {errors.phone && <span id="phone-error" style={{ color: 'red', fontSize: '12px' }}>{errors.phone}</span>}
                 </div>
 
                 <div className={styles.inputGroup}>
@@ -94,9 +189,12 @@ const RegisterPage: React.FC = () => {
                         name="password"
                         type="password"
                         placeholder="Пароль"
-                        required
+                        value={form.password}
                         onChange={handleChange}
+                        aria-invalid={!!errors.password}
+                        aria-describedby={errors.password ? 'password-error' : undefined}
                     />
+                    {errors.password && <span id="password-error" style={{ color: 'red', fontSize: '12px' }}>{errors.password}</span>}
                 </div>
 
                 <div className={styles.inputGroup}>
@@ -105,9 +203,12 @@ const RegisterPage: React.FC = () => {
                         name="confirmPassword"
                         type="password"
                         placeholder="Повторите пароль"
-                        required
+                        value={form.confirmPassword}
                         onChange={handleChange}
+                        aria-invalid={!!errors.confirmPassword}
+                        aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
                     />
+                    {errors.confirmPassword && <span id="confirmPassword-error" style={{ color: 'red', fontSize: '12px' }}>{errors.confirmPassword}</span>}
                 </div>
 
                 <button type="submit" className={styles.submitBtn}>

@@ -1,27 +1,16 @@
 // pages/About/About.module.scss
+@import "../../Styles/variables";
+
 .about {
-  padding: 5rem 2rem;
-  background-color: #f9f9f9;
-  color: #2c3e50;
+  padding: $page-padding-top 2rem clamp(3rem, 6vw, 5rem);
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  color: #111827;
+  position: relative;
 
   @media (max-width: 768px) {
-    padding: 3rem 1rem;
+    padding: $page-padding-top-mobile 1rem clamp(2rem, 4vw, 3rem);
   }
 }
-
-.iconPlaceholder {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto;
-    background-color: #3498db;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
 
 .container {
   max-width: 1200px;
@@ -29,77 +18,123 @@
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: $page-title-size;
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  font-weight: $page-title-weight;
+  color: $page-title-color;
+  letter-spacing: -0.02em;
   position: relative;
-  color: #3498db;
 
   &::after {
     content: "";
     display: block;
     width: 80px;
     height: 4px;
-    background: #e74c3c;
-    margin: 1rem auto 0;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    margin: 1.5rem auto 0;
+    border-radius: 2px;
   }
 
   @media (max-width: 768px) {
-    font-size: 2rem;
+    margin-bottom: 2rem;
   }
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: clamp(2.5rem, 5vw, 4rem);
 }
 
 .text {
-  font-size: 1.2rem;
-  line-height: 1.6;
+  font-size: $body-text-size;
+  line-height: 1.8;
   max-width: 800px;
   margin: 0 auto;
   text-align: center;
-
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
+  color: $body-text-color;
+  font-weight: 400;
 }
 
 .features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: 2rem;
   margin-top: 2rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    gap: 2.5rem;
+  }
 }
 
 .featureItem {
   background: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  padding: clamp(2rem, 4vw, 2.5rem);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   text-align: center;
-  transition: transform 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+
+    &::before {
+      transform: scaleX(1);
+    }
+
+    .icon {
+      transform: scale(1.1) rotate(5deg);
+      color: #667eea;
+    }
   }
 
   h3 {
     margin: 1.5rem 0 1rem;
-    color: #2c3e50;
+    color: $section-title-color;
+    font-size: $section-title-size;
+    font-weight: $section-title-weight;
   }
 
   p {
-    color: #7f8c8d;
-    line-height: 1.5;
+    color: $page-subtitle-color;
+    line-height: 1.7;
+    font-size: $body-text-size;
   }
 }
 
 .icon {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto;
-  fill: #3498db;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 1.5rem;
+  color: #667eea;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (max-width: 768px) {
+    width: 60px;
+    height: 60px;
+  }
 }

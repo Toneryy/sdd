@@ -5,27 +5,64 @@ import { toast } from 'react-toastify'
 import styles from './LoginPage.module.scss'
 import { FiMail, FiLock } from 'react-icons/fi'
 import { AuthContext } from 'context/AuthContext'
+import { setTokens } from '../../services/token'
 
 const LoginPage: React.FC = () => {
     const { login } = useContext(AuthContext);
     const [form, setForm] = useState({ email: '', password: '' })
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
     const navigate = useNavigate()
 
+    const validateEmail = (email: string): boolean => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    }
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value })
+        const { name, value } = e.target
+        setForm({ ...form, [name]: value })
+        // Очистка ошибки при вводе
+        if (errors[name as keyof typeof errors]) {
+            setErrors({ ...errors, [name]: undefined })
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        
+        const newErrors: { email?: string; password?: string } = {}
+        
+        if (!form.email) {
+            newErrors.email = 'Email обязателен'
+        } else if (!validateEmail(form.email)) {
+            newErrors.email = 'Некорректный email'
+        }
+        
+        if (!form.password) {
+            newErrors.password = 'Пароль обязателен'
+        }
+        
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            return
+        }
+
         try {
             const res = await loginUser(form)
-            // ApiResponse<AuthResponse>
-            login(res.data.data.accessToken)
+            const authData = res.data.data
+            // Сохраняем токены
+            setTokens({
+                accessToken: authData.accessToken,
+                refreshToken: authData.refreshToken,
+                user: authData.user
+            })
+            // Обновляем состояние авторизации
+            login(authData.accessToken)
             toast.success('Успешный вход!', { toastId: 'login-success' })
             navigate('/profile')
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } }; message?: string }
             toast.error(
-                error.response?.data?.message || 'Ошибка входа',
+                err.response?.data?.message || err.message || 'Ошибка входа',
                 { toastId: 'login-error' }
             )
         }
@@ -38,12 +75,30 @@ const LoginPage: React.FC = () => {
 
                 <div className={styles.inputGroup}>
                     <FiMail className={styles.icon} />
-                    <input name="email" type="email" placeholder="Email" required onChange={handleChange} />
+                    <input 
+                        name="email" 
+                        type="email" 
+                        placeholder="Email" 
+                        value={form.email}
+                        onChange={handleChange}
+                        aria-invalid={!!errors.email}
+                        aria-describedby={errors.email ? 'email-error' : undefined}
+                    />
+                    {errors.email && <span id="email-error" style={{ color: 'red', fontSize: '12px' }}>{errors.email}</span>}
                 </div>
 
                 <div className={styles.inputGroup}>
                     <FiLock className={styles.icon} />
-                    <input name="password" type="password" placeholder="Пароль" required onChange={handleChange} />
+                    <input 
+                        name="password" 
+                        type="password" 
+                        placeholder="Пароль" 
+                        value={form.password}
+                        onChange={handleChange}
+                        aria-invalid={!!errors.password}
+                        aria-describedby={errors.password ? 'password-error' : undefined}
+                    />
+                    {errors.password && <span id="password-error" style={{ color: 'red', fontSize: '12px' }}>{errors.password}</span>}
                 </div>
 
                 <button type="submit" className={styles.submitBtn}>Войти</button>

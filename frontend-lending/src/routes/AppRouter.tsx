@@ -23,6 +23,9 @@ const CheckoutDev = lazy(() => import('pages/CheckoutDev/CheckoutDev'))
 const CheckoutSuccessDev = lazy(() => import('pages/CheckoutSuccessDev/CheckoutSuccessDev'))
 const NewsPage = lazy(() => import('pages/NewsPage/NewsPage'))
 const NewsDetail = lazy(() => import('pages/NewsPage/NewsDetail'))
+const NotFoundPage = lazy(() => import('pages/ErrorPages/NotFoundPage'))
+const ServerErrorPage = lazy(() => import('pages/ErrorPages/ServerErrorPage'))
+const ForbiddenPage = lazy(() => import('pages/ErrorPages/ForbiddenPage'))
 
 const AppRouter: React.FC = () => {
   const { isAuth } = useContext(AuthContext)
@@ -78,6 +81,11 @@ const AppRouter: React.FC = () => {
             path="/profile/:id"
             element={isAuth ? <ProductDetails /> : <Navigate to="/login" replace />}
           />
+          
+          {/* Error pages */}
+          <Route path="/403" element={<ForbiddenPage />} />
+          <Route path="/500" element={<ServerErrorPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
       </Suspense>

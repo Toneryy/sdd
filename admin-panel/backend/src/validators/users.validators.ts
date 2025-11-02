@@ -3,12 +3,9 @@ import Joi from 'joi';
 // Валидация создания пользователя
 export const createUserSchema = Joi.object({
   username: Joi.string()
-    .min(3)
-    .max(50)
     .required()
     .messages({
       'string.empty': 'Имя пользователя обязательно',
-      'string.min': 'Имя пользователя должно быть не менее 3 символов',
       'any.required': 'Имя пользователя обязательно',
     }),
   email: Joi.string()
@@ -27,11 +24,9 @@ export const createUserSchema = Joi.object({
       'string.pattern.base': 'Некорректный формат телефона',
     }),
   password: Joi.string()
-    .min(6)
     .required()
     .messages({
       'string.empty': 'Пароль обязателен',
-      'string.min': 'Пароль должен быть не менее 6 символов',
       'any.required': 'Пароль обязателен',
     }),
 });
@@ -39,12 +34,7 @@ export const createUserSchema = Joi.object({
 // Валидация обновления пользователя
 export const updateUserSchema = Joi.object({
   username: Joi.string()
-    .min(3)
-    .max(50)
-    .optional()
-    .messages({
-      'string.min': 'Имя пользователя должно быть не менее 3 символов',
-    }),
+    .optional(),
   email: Joi.string()
     .email()
     .optional()
@@ -59,11 +49,7 @@ export const updateUserSchema = Joi.object({
       'string.pattern.base': 'Некорректный формат телефона',
     }),
   password: Joi.string()
-    .min(6)
-    .optional()
-    .messages({
-      'string.min': 'Пароль должен быть не менее 6 символов',
-    }),
+    .optional(),
 }).min(1).messages({
   'object.min': 'Необходимо указать хотя бы одно поле для обновления',
 });

@@ -2,12 +2,11 @@
 
 .profile {
   max-width: 1100px;
-  margin: 120px auto 100px;
-  padding: 0 16px;
+  margin: 0 auto;
+  padding: $page-padding-top 16px clamp(3rem, 6vw, 5rem);
 
   @media (max-width: 540px) {
-    margin: 100px auto 60px;
-    padding: 0 12px;
+    padding: $page-padding-top-mobile 12px clamp(2rem, 4vw, 3rem);
   }
 }
 

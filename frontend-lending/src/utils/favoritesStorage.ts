@@ -1,16 +1,18 @@
 // src/utils/favoritesStorage.ts
+import type { FavoriteItem } from '../types';
+
 const FAV_KEY = "favorites";
 const FAV_EXPIRY = "favorites_expiry";
 function emitFavChange() {
   window.dispatchEvent(new Event("favoritesChanged"));
 }
-export const saveFavorites = (items: any[]) => {
+export const saveFavorites = (items: FavoriteItem[]) => {
   const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
   localStorage.setItem(FAV_KEY, JSON.stringify(items));
   localStorage.setItem(FAV_EXPIRY, expiry.toString());
   emitFavChange();
 };
-export const loadFavorites = (): any[] => {
+export const loadFavorites = (): FavoriteItem[] => {
   const exp = parseInt(localStorage.getItem(FAV_EXPIRY) || "0", 10);
   if (Date.now() > exp) {
     localStorage.removeItem(FAV_KEY);

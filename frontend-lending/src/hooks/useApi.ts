@@ -17,8 +17,11 @@ export function useApi<T>(fn: () => Promise<T>, deps: unknown[] = []) {
       .then((res) => {
         if (!cancelled) setData(res);
       })
-      .catch((e: any) => {
-        if (!cancelled) setError(e?.message || 'Request failed');
+      .catch((e: unknown) => {
+        if (!cancelled) {
+          const error = e instanceof Error ? e : new Error('Request failed');
+          setError(error.message);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

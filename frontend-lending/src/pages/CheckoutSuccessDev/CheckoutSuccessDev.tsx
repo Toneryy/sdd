@@ -4,6 +4,7 @@ import styles from "./CheckoutSuccessDev.module.scss";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getOrderStatus } from "../../api/purchase";
+import type { AxiosErrorLike } from "../../types";
 
 type OrderItem = {
     id: string;
@@ -37,8 +38,9 @@ const CheckoutSuccessDev: React.FC = () => {
                 setLoading(true);
                 const data = await getOrderStatus(orderNumber);
                 setOrder(data);
-            } catch (e: any) {
-                toast.error(e?.response?.data?.message || "Не удалось загрузить заказ");
+            } catch (e: unknown) {
+                const error = e as AxiosErrorLike;
+                toast.error(error?.response?.data?.message || "Не удалось загрузить заказ");
                 navigate("/profile");
             } finally {
                 setLoading(false);

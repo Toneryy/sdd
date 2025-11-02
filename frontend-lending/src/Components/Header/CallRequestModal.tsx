@@ -11,6 +11,7 @@ const CallRequestModal: React.FC<Props> = ({ onClose }) => {
     const [phone, setPhone] = useState("");
     const [problem, setProblem] = useState("");
     const mouseDownInside = useRef(false);
+    const phoneInputRef = useRef<HTMLInputElement>(null);
 
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
         mouseDownInside.current =
@@ -24,6 +25,36 @@ const CallRequestModal: React.FC<Props> = ({ onClose }) => {
             onClose();
         }
         mouseDownInside.current = false;
+    };
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.target;
+        const cursorPosition = input.selectionStart || 0;
+        const oldValue = phone;
+        const newValue = formatRuPhone(input.value);
+        
+        setPhone(newValue);
+        
+        // Восстанавливаем позицию курсора
+        setTimeout(() => {
+            if (phoneInputRef.current) {
+                let newCursorPosition = cursorPosition;
+                
+                if (newValue.length < oldValue.length) {
+                    const deletedChars = oldValue.length - newValue.length;
+                    newCursorPosition = Math.max(0, cursorPosition - deletedChars);
+                } else {
+                    const addedChars = newValue.length - oldValue.length;
+                    newCursorPosition = cursorPosition + addedChars;
+                }
+                
+                if (newCursorPosition > newValue.length) {
+                    newCursorPosition = newValue.length;
+                }
+                
+                phoneInputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+            }
+        }, 0);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -52,10 +83,11 @@ const CallRequestModal: React.FC<Props> = ({ onClose }) => {
                         required
                     />
                     <input
+                        ref={phoneInputRef}
                         type="tel"
                         placeholder="+7 (___) ___-__-__"
                         value={phone}
-                        onChange={(e) => setPhone(formatRuPhone(e.target.value))}
+                        onChange={handlePhoneChange}
                         required
                     />
                     <textarea

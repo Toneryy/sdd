@@ -12,6 +12,8 @@ import {
 import { createOrder, CartItemPayload } from "../../api/purchase";
 import { devCreatePayment, devPay } from "../../api/payments.dev";
 import { fetchProfile } from "../../api/profile";
+import { getAccessToken } from "../../services/token";
+import type { AxiosErrorLike } from "../../types";
 
 const formatMoney = (n: number, currency = "₽") =>
     `${Math.round(n).toLocaleString()} ${currency}`;
@@ -99,7 +101,7 @@ const CheckoutDev: React.FC = () => {
     useEffect(() => {
         (async () => {
             try {
-                const token = localStorage.getItem("token");
+                const token = getAccessToken();
                 if (!token) {
                     tError("Не найден токен авторизации");
                     navigate("/login");
@@ -113,8 +115,9 @@ const CheckoutDev: React.FC = () => {
                     return;
                 }
                 setUserId(uid);
-            } catch (e: any) {
-                tError(e?.response?.data?.message || "Не удалось получить профиль");
+            } catch (e: unknown) {
+                const error = e as AxiosErrorLike;
+                tError(error?.response?.data?.message || "Не удалось получить профиль");
                 navigate("/login");
             }
         })();
@@ -163,16 +166,18 @@ const CheckoutDev: React.FC = () => {
                     const created = await devCreatePayment(res.orderId);
                     setAmount(created.amount ?? totalLocal);
                     setCurrency(created.currency ?? "RUB");
-                } catch (e: any) {
+                } catch (e: unknown) {
+                    const error = e as AxiosErrorLike;
                     setAmount(totalLocal);
                     setCurrency("RUB");
                     tWarn(
-                        e?.response?.data?.message ||
+                        error?.response?.data?.message ||
                         "Не удалось зафиксировать сумму оплаты. Попробуйте ещё раз на шаге оплаты."
                     );
                 }
-            } catch (e: any) {
-                tError(e?.response?.data?.message || "Не удалось создать заказ");
+            } catch (e: unknown) {
+                const error = e as AxiosErrorLike;
+                tError(error?.response?.data?.message || "Не удалось создать заказ");
                 navigate("/cart");
             } finally {
                 setIsLoading(false);
@@ -220,8 +225,9 @@ const CheckoutDev: React.FC = () => {
                 clearCart();
                 navigate(`/checkout/success/${paid.orderNumber}`);
             }
-        } catch (e: any) {
-            tError(e?.response?.data?.message || "Ошибка оплаты");
+        } catch (e: unknown) {
+            const error = e as AxiosErrorLike;
+            tError(error?.response?.data?.message || "Ошибка оплаты");
         } finally {
             setIsLoading(false);
         }

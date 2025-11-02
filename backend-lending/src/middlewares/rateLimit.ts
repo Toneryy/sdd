@@ -26,10 +26,11 @@ function keyByUserOrIp(req: Request) {
 // Мягкий лимит на общие запросы
 export const generalLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 120,
+  max: process.env.NODE_ENV === 'production' ? 120 : 1000, // В dev режиме намного больше
   standardHeaders: "draft-7",
   legacyHeaders: false,
   keyGenerator: keyByUserOrIp,
+  message: "Too many requests, please try again later.",
 });
 
 // Строгий лимит на checkout

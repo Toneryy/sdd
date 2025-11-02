@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { fetchProfile, fetchPurchases, PurchaseCard } from 'api/profile';
 import { AuthContext } from 'context/AuthContext';
+import { getAccessToken } from '../../services/token';
+import type { ProfileData, SupportTicket, AxiosErrorLike } from '../../types';
 import styles from './Profile.module.scss';
 import {
     FiMail,
@@ -20,7 +22,7 @@ type TabKey = 'profile' | 'purchases' | 'tickets';
 
 const Profile: React.FC = () => {
     const { logout } = useContext(AuthContext);
-    const [profileData, setProfileData] = useState<any>(null);
+    const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
     // Покупки (постранично)
     const [purchases, setPurchases] = useState<PurchaseCard[]>([]);
@@ -40,7 +42,7 @@ const Profile: React.FC = () => {
 
     // Профиль
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = getAccessToken();
         if (!token) {
             navigate('/login');
             return;
@@ -50,15 +52,22 @@ const Profile: React.FC = () => {
             .then((response) => setProfileData(response.data))
             .catch((error) => {
                 console.error('Ошибка загрузки профиля', error);
-                toast.error('Сессия истекла. Пожалуйста, войдите заново.');
-                logout();
-                navigate('/login');
+                // Ошибка авторизации (401) обрабатывается централизованно через handleAuthError в api.ts
+                // Не нужно вызывать logout/navigate здесь для 401 - это вызовет цикл
+                if (error?.response?.status !== 401) {
+                    // Показываем только если это не ошибка авторизации
+                    toast.error('Не удалось загрузить профиль');
+                    // Для других ошибок редиректим на логин только если нет токена
+                    if (!getAccessToken()) {
+                        navigate('/login');
+                    }
+                }
             });
     }, []);
 
     // Подгрузка покупок
     const loadPurchases = async (nextPage: number) => {
-        const token = localStorage.getItem('token');
+        const token = getAccessToken();
         if (!token) return;
         setIsPurchasesLoading(true);
         try {
@@ -70,8 +79,9 @@ const Profile: React.FC = () => {
             }
             setTotalOrders(data.totalOrders);
             setPage(nextPage);
-        } catch (e: any) {
-            toast.error(e?.response?.data?.message || 'Не удалось загрузить покупки');
+        } catch (e: unknown) {
+            const error = e as AxiosErrorLike;
+            toast.error(error?.response?.data?.message || 'Не удалось загрузить покупки');
         } finally {
             setIsPurchasesLoading(false);
         }
@@ -152,7 +162,7 @@ const Profile: React.FC = () => {
     const TicketsList = () => (
         <div className={styles.historyList}>
             {profileData?.supportHistory?.length ? (
-                profileData.supportHistory.map((item: any) => (
+                profileData.supportHistory.map((item: SupportTicket) => (
                     <div className={styles.historyItem} key={item.id}>
                         <FiArchive className={styles.historyIcon} />
                         <div className={styles.historyBody}>
@@ -166,8 +176,8 @@ const Profile: React.FC = () => {
                                 >
                                     {STATUS_LABELS[item.status] ?? item.status}
                                 </span>
-                            </div>
-                            <p className={styles.historyDate}>Создано: {formatDate(item.created_at)}</p>
+                      z      </div>
+                            <p className={styles.historyDate}>Создано: {(item.createdAt || item.created_at) ? formatDate(item.createdAt || item.created_at!) : 'Дата не указана'}</p>
                         </div>
                     </div>
                 ))
@@ -212,7 +222,7 @@ const Profile: React.FC = () => {
                         <div key={`${p.orderId}-${p.productId}-${idx}`} className={styles.purchaseCard}>
                             <div className={styles.purchaseThumb}>
                                 {p.img ? (
-                                    <img src={p.img} alt={p.name || 'Товар'} />
+                                    <img src={p.img} alt={p.name || 'Товар'} loading="lazy" />
                                 ) : (
                                     <div className={styles.thumbPlaceholder}>🎁</div>
                                 )}

@@ -60,7 +60,7 @@ export const Reviews = () => {
                         <SwiperSlide key={index}>
                             <div className={styles.card}>
                                 <div className={styles.header}>
-                                    <img src={r.avatar} alt={r.name} className={styles.avatar} />
+                                    <img src={r.avatar} alt={r.name} className={styles.avatar} loading="lazy" />
                                     <div>
                                         <h4 className={styles.name}>{r.name}</h4>
                                         <div className={styles.rating}>

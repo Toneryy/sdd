@@ -1,6 +1,6 @@
 import { create, type StateCreator } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { CartItem } from '../utils/cartStorage'
+import type { CartItem } from '../types'
 
 interface CartState {
   items: CartItem[]

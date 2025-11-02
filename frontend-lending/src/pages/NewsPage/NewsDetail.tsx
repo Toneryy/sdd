@@ -52,7 +52,7 @@ const NewsDetail: React.FC = () => {
             </div>
 
             {news.image && (
-                <img src={news.image} alt={news.title} className={styles.detailImage} />
+                <img src={news.image} alt={news.title} className={styles.detailImage} loading="lazy" />
             )}
 
             {news.description && (

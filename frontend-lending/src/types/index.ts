@@ -93,5 +93,81 @@ export interface Draft {
   updatedAt: string;
 }
 
+// Корзина
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  img?: string;
+  quantity: number;
+  available: number;
+}
 
+// API Error types
+export interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+  statusCode?: number;
+}
 
+export interface AxiosErrorLike {
+  response?: {
+    data?: ApiErrorResponse;
+    status?: number;
+    statusText?: string;
+  };
+  message?: string;
+}
+
+// Profile types
+export interface SupportTicket {
+  id: string;
+  title: string;
+  status: 'pending' | 'active' | 'closed';
+  createdAt?: string;
+  created_at?: string; // для обратной совместимости
+  updatedAt?: string;
+  updated_at?: string; // для обратной совместимости
+  description?: string;
+}
+
+export interface Subscription {
+  title: string;
+  [key: string]: unknown;
+}
+
+export interface ActiveSubscription {
+  subscriptions?: Subscription;
+  end_date?: string;
+  [key: string]: unknown;
+}
+
+export interface ProfileUser {
+  email?: string;
+  phone?: string;
+  [key: string]: unknown;
+}
+
+export interface ProfileData {
+  id?: string;
+  email?: string;
+  username?: string;
+  phone?: string;
+  user?: ProfileUser;
+  activeSubscription?: ActiveSubscription;
+  supportHistory?: SupportTicket[];
+  [key: string]: unknown; // для других полей которые могут быть в ответе
+}
+
+// Favorite item type (для favoritesStorage)
+// Может быть как полный Product, так и упрощенный с id
+export interface FavoriteItem {
+  id: string;
+  name?: string;
+  price?: number;
+  available?: number;
+  img?: string;
+  description?: string;
+  category?: string;
+  [key: string]: unknown; // для других полей
+}

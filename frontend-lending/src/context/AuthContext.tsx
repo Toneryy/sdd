@@ -1,5 +1,6 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useState, PropsWithChildren, useEffect } from 'react'
+import { getAccessToken, clearTokens } from '../services/token'
 
 interface AuthContextType {
     isAuth: boolean
@@ -15,27 +16,44 @@ export const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [isAuth, setIsAuth] = useState<boolean>(() =>
-        Boolean(localStorage.getItem('token'))
+        Boolean(getAccessToken())
     )
 
-    // Если токен внезапно удалили из другого таба, будем реагировать
+    // Слушаем изменения токенов в storage (для синхронизации между вкладками и после clearTokens)
     useEffect(() => {
+        const checkAuth = () => {
+            setIsAuth(Boolean(getAccessToken()))
+        }
+        
+        // Проверяем при монтировании
+        checkAuth()
+        
+        // Слушаем события storage (изменения из других вкладок)
         const onStorage = (e: StorageEvent) => {
-            if (e.key === 'token') {
-                setIsAuth(Boolean(e.newValue))
+            if (e.key === 'access_token' || e.key === 'token' || e.key === 'refresh_token') {
+                checkAuth()
             }
         }
         window.addEventListener('storage', onStorage)
-        return () => window.removeEventListener('storage', onStorage)
+        
+        // Слушаем custom event для синхронизации в той же вкладке
+        const onAuthChange = () => checkAuth()
+        window.addEventListener('auth-changed', onAuthChange)
+        
+        return () => {
+            window.removeEventListener('storage', onStorage)
+            window.removeEventListener('auth-changed', onAuthChange)
+        }
     }, [])
 
     const login = (token: string) => {
-        localStorage.setItem('token', token)
-        setIsAuth(true)
+        // Токен уже сохранен через setTokens перед вызовом этой функции
+        // Обновляем состояние авторизации
+        setIsAuth(Boolean(getAccessToken()))
     }
 
     const logout = () => {
-        localStorage.removeItem('token')
+        clearTokens()
         setIsAuth(false)
     }
 

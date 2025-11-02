@@ -1,12 +1,21 @@
+@import "../../Styles/variables";
+
 .productDetails {
   position: relative;
   padding: 2rem;
-  margin: 180px auto;
+  margin: 0 auto;
+  margin-top: calc($page-padding-top + 80px);
+  margin-bottom: clamp(3rem, 6vw, 5rem);
   max-width: 700px;
   background-color: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  
+  @media (max-width: 768px) {
+    margin-top: calc($page-padding-top-mobile + 60px);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
 
   .backButton {
     position: absolute;

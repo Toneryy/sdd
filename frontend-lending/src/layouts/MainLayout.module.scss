@@ -6,5 +6,10 @@
 
 .main {
   flex: 1;
+
+  @media (max-width: 1024px) {
+    padding-top: 60px; // Отступ для мобильного header
+    padding-bottom: 0; // bottom bar уже добавляет отступ через body
+  }
 }
 

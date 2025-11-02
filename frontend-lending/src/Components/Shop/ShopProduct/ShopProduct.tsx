@@ -53,7 +53,7 @@ const ShopProduct: React.FC = () => {
             <div className={styles.card}>
                 <div className={styles.imageWrapper}>
                     {product.img ? (
-                        <img src={product.img} alt={product.name} className={styles.image} />
+                        <img src={product.img} alt={product.name} className={styles.image} loading="lazy" />
                     ) : (
                         <div className={styles.imagePlaceholder}>🎁</div>
                     )}

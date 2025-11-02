@@ -23,7 +23,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ news }) => {
     return (
         <Link to={`/news/${news.id}`} className={styles.newsCard}>
             {news.image && (
-                <img src={news.image} alt={news.title} className={styles.newsImage} />
+                <img src={news.image} alt={news.title} className={styles.newsImage} loading="lazy" />
             )}
             <div className={styles.newsContent}>
                 <h2 className={styles.newsTitle}>{news.title}</h2>

@@ -3,13 +3,9 @@ import Joi from 'joi';
 // Валидация регистрации
 export const registerSchema = Joi.object({
   username: Joi.string()
-    .min(3)
-    .max(50)
     .required()
     .messages({
       'string.empty': 'Имя пользователя обязательно',
-      'string.min': 'Имя пользователя должно быть не менее 3 символов',
-      'string.max': 'Имя пользователя должно быть не более 50 символов',
       'any.required': 'Имя пользователя обязательно',
     }),
   email: Joi.string()
@@ -28,11 +24,9 @@ export const registerSchema = Joi.object({
       'string.pattern.base': 'Некорректный формат телефона',
     }),
   password: Joi.string()
-    .min(6)
     .required()
     .messages({
       'string.empty': 'Пароль обязателен',
-      'string.min': 'Пароль должен быть не менее 6 символов',
       'any.required': 'Пароль обязателен',
     }),
 });

@@ -1,5 +1,7 @@
 import { API_URL } from '../constants';
-import { getAccessToken, refreshTokens } from './token';
+import { getAccessToken, refreshTokens, clearTokens } from './token';
+import { handleAuthError } from '../utils/authErrorHandler';
+import { AuthResponse } from '../types';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -8,16 +10,20 @@ interface RequestOptions extends RequestInit {
   retry?: number;
   timeoutMs?: number;
   asJson?: boolean;
+  skipAuthError?: boolean; // Для запросов, где не нужно показывать ошибку авторизации
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+let isRefreshing = false;
+let refreshPromise: Promise<AuthResponse> | null = null;
 
 export class ApiService {
   private baseURL = API_URL;
 
   async request<T>(
     endpoint: string,
-    { auth = true, retry = 2, timeoutMs = 15000, asJson = true, ...init }: RequestOptions = {}
+    { auth = true, retry = 2, timeoutMs = 15000, asJson = true, skipAuthError = false, ...init }: RequestOptions = {}
   ): Promise<T> {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
     const headers = new Headers(init.headers);
@@ -38,6 +44,16 @@ export class ApiService {
       return fetch(url, { ...init, headers, signal: controller.signal });
     };
 
+    // Если идет refresh, ждем его завершения
+    if (isRefreshing && refreshPromise) {
+      await refreshPromise;
+      // Обновляем токен в заголовках
+      if (auth) {
+        const token = getAccessToken();
+        if (token) headers.set('Authorization', `Bearer ${token}`);
+      }
+    }
+
     let attempt = 0;
 
     while (attempt <= retry) {
@@ -46,13 +62,61 @@ export class ApiService {
         clearTimeout(timeout);
 
         if (res.status === 401 && auth) {
-          try {
-            await refreshTokens();
-            const retryRes = await doFetch();
-            if (!retryRes.ok) throw await this.toApiError(retryRes);
-            return (await this.parseBody<T>(retryRes));
-          } catch (e) {
-            throw await this.toApiError(res);
+          // Пытаемся обновить токен только один раз
+          if (!isRefreshing) {
+            isRefreshing = true;
+            refreshPromise = refreshTokens()
+              .then((authRes) => {
+                isRefreshing = false;
+                refreshPromise = null;
+                return authRes;
+              })
+              .catch((e) => {
+                isRefreshing = false;
+                refreshPromise = null;
+                // Обрабатываем ошибку авторизации
+                if (!skipAuthError) {
+                  handleAuthError(e, undefined, true);
+                }
+                throw e;
+              });
+            
+            try {
+              await refreshPromise;
+              // Обновляем заголовки с новым токеном
+              const newToken = getAccessToken();
+              if (newToken) headers.set('Authorization', `Bearer ${newToken}`);
+              // Повторяем запрос
+              const retryRes = await doFetch();
+              if (!retryRes.ok) {
+                if (retryRes.status === 401 && !skipAuthError) {
+                  handleAuthError(new Error('Токен истёк'), undefined, true);
+                }
+                throw await this.toApiError(retryRes);
+              }
+              return (await this.parseBody<T>(retryRes));
+            } catch (e) {
+              // Если refresh не удался, пробрасываем ошибку
+              throw e;
+            }
+          } else {
+            // Если уже идет refresh, ждем его и повторяем запрос
+            try {
+              await refreshPromise;
+              const newToken = getAccessToken();
+              if (newToken) headers.set('Authorization', `Bearer ${newToken}`);
+              const retryRes = await doFetch();
+              if (!retryRes.ok) {
+                if (retryRes.status === 401 && !skipAuthError) {
+                  handleAuthError(new Error('Токен истёк'), undefined, true);
+                }
+                throw await this.toApiError(retryRes);
+              }
+              return (await this.parseBody<T>(retryRes));
+            } catch (e) {
+              // Если refresh не удался, пробрасываем ошибку
+              throw e;
+            }
           }
         }
 
@@ -62,6 +126,12 @@ export class ApiService {
             attempt++;
             continue;
           }
+          
+          // Если это 401, но не обработано выше
+          if (res.status === 401 && !skipAuthError) {
+            handleAuthError(await this.toApiError(res), undefined, true);
+          }
+          
           throw await this.toApiError(res);
         }
 
@@ -72,6 +142,12 @@ export class ApiService {
           attempt++;
           continue;
         }
+        
+        // Обрабатываем ошибку авторизации перед пробросом
+        if (!skipAuthError) {
+          handleAuthError(err, undefined, false); // не редиректим здесь, так как ошибка уже проброшена
+        }
+        
         throw err;
       }
     }
@@ -96,17 +172,17 @@ export class ApiService {
   get<T>(endpoint: string, opts?: RequestOptions) {
     return this.request<T>(endpoint, { ...opts, method: 'GET' });
   }
-  post<T>(endpoint: string, body?: any, opts?: RequestOptions) {
+  post<T>(endpoint: string, body?: unknown, opts?: RequestOptions) {
     return this.request<T>(endpoint, {
       ...opts,
       method: 'POST',
       body: body instanceof FormData ? body : JSON.stringify(body ?? {}),
     });
   }
-  put<T>(endpoint: string, body?: any, opts?: RequestOptions) {
+  put<T>(endpoint: string, body?: unknown, opts?: RequestOptions) {
     return this.request<T>(endpoint, { ...opts, method: 'PUT', body: JSON.stringify(body ?? {}) });
   }
-  patch<T>(endpoint: string, body?: any, opts?: RequestOptions) {
+  patch<T>(endpoint: string, body?: unknown, opts?: RequestOptions) {
     return this.request<T>(endpoint, { ...opts, method: 'PATCH', body: JSON.stringify(body ?? {}) });
   }
   delete<T>(endpoint: string, opts?: RequestOptions) {
