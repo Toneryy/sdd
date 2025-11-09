@@ -69,6 +69,7 @@ const ServiceDetails: React.FC = () => {
             img: sub.image,
             quantity: quantity,
             available: 999, // Для подписок всегда доступно
+            type: 'subscription', // услуга из subscriptions
         });
         
         toast.success(`${sub.title} добавлен в корзину`, { toastId: `cart-${sub.id}` });

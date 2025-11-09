@@ -20,7 +20,7 @@ const cartCreator: StateCreator<CartState> = (set, get) => ({
             const newQty = Math.min(existing.quantity + item.quantity, item.available)
             return {
               items: state.items.map((i) =>
-                i.id === item.id ? { ...i, available: item.available, quantity: newQty } : i
+                i.id === item.id ? { ...i, available: item.available, quantity: newQty, type: item.type } : i
               ),
             }
           }

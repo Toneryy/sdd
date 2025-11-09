@@ -10,28 +10,20 @@ interface Filters {
 }
 
 interface FiltersProps {
+    filters: Filters;
     onApply: (filters: Filters) => void;
 }
 
-const FiltersSidebar: React.FC<FiltersProps> = ({ onApply }) => {
-    const [minPrice, setMinPrice] = useState("");
-    const [maxPrice, setMaxPrice] = useState("");
-    const [category, setCategory] = useState("");
+const FiltersSidebar: React.FC<FiltersProps> = ({ filters, onApply }) => {
+    const [category, setCategory] = useState(filters.category);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [inStock, setInStock] = useState(true); // по умолчанию включен
 
-    // утилита, чтобы не дублировать onApply
-    const apply = (patch: Partial<Filters> = {}) => {
-        onApply({
-            minPrice,
-            maxPrice,
-            category,
-            inStock,
-            ...patch, // patch перекрывает актуальные значения
-        });
-    };
+    // Синхронизация category с внешним состоянием
+    useEffect(() => {
+        setCategory(filters.category);
+    }, [filters.category]);
 
     // загрузка категорий
     useEffect(() => {
@@ -50,51 +42,19 @@ const FiltersSidebar: React.FC<FiltersProps> = ({ onApply }) => {
 
     // автоприменение для чекбокса «В наличии»
     const handleInStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const next = e.target.checked;
-        setInStock(next);
-        apply({ inStock: next });
+        onApply({ ...filters, inStock: e.target.checked });
     };
 
-    // (опционально можно тоже автоприменять категорию)
+    // автоприменение категории
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const val = e.target.value;
         setCategory(val);
-        // apply({ category: val }); // ← если нужно автоприменение категории
-    };
-
-    // цены применяются по кнопке (чтобы не дергать запрос на каждый ввод)
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        apply();
+        onApply({ ...filters, category: val });
     };
 
     return (
-        <form className={styles.sidebar} onSubmit={handleSubmit}>
+        <div className={styles.sidebar}>
             <h3>Фильтры</h3>
-
-            <div className={styles.filterGroup}>
-                <label htmlFor="minPrice">Цена от:</label>
-                <input
-                    id="minPrice"
-                    type="number"
-                    min="0"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    placeholder="0"
-                />
-            </div>
-
-            <div className={styles.filterGroup}>
-                <label htmlFor="maxPrice">Цена до:</label>
-                <input
-                    id="maxPrice"
-                    type="number"
-                    min="0"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    placeholder="10000"
-                />
-            </div>
 
             <div className={styles.filterGroup}>
                 <label htmlFor="category">Категория:</label>
@@ -123,7 +83,7 @@ const FiltersSidebar: React.FC<FiltersProps> = ({ onApply }) => {
                             id="inStock"
                             type="checkbox"
                             className={styles.switchInput}
-                            checked={inStock}
+                            checked={filters.inStock}
                             onChange={handleInStockChange}
                         />
                         {/* Лейбл рисует сам переключатель */}
@@ -135,11 +95,7 @@ const FiltersSidebar: React.FC<FiltersProps> = ({ onApply }) => {
 
                 <p className={styles.switchHint}>Показывать только товары на складе</p>
             </div>
-
-            <button type="submit" className={styles.applyButton}>
-                Применить
-            </button>
-        </form>
+        </div>
     );
 };
 

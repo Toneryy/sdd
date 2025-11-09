@@ -11,8 +11,8 @@ const Profile = lazy(() => import('pages/ProfilePage/Profile'))
 import { AuthContext } from '../context/AuthContext'
 const Services = lazy(() => import('Components/Services/Services'))
 const ServiceDetails = lazy(() => import('pages/ServiceDetails/ServiceDetails'))
-// const Shop = lazy(() => import('Components/Shop/Shop'))
-// const ShopProduct = lazy(() => import('Components/Shop/ShopProduct/ShopProduct'))
+const Shop = lazy(() => import('Components/Shop/Shop'))
+const ShopProduct = lazy(() => import('Components/Shop/ShopProduct/ShopProduct'))
 const ProductDetails = lazy(() => import('pages/ProductDetailsPage/ProductDetails'))
 const Cart = lazy(() => import('pages/Cart/Cart'))
 import ScrollToTop from 'utils/ScrollToTop'
@@ -39,8 +39,8 @@ const AppRouter: React.FC = () => {
           <Route index element={<HomePage />} />
           <Route path='/subscriptions' element={<Services />} />
           <Route path="/subscriptions/:id" element={<ServiceDetails />} />
-          {/* <Route path='/shop' element={<Shop />} />
-          <Route path="/shop/:id" element={<ShopProduct />} /> */}
+          <Route path='/shop' element={<Shop />} />
+          <Route path="/shop/:id" element={<ShopProduct />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/favorites" element={<Favorites />} />

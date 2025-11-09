@@ -37,6 +37,7 @@ const ShopProduct: React.FC = () => {
             img: product.img,
             quantity: 1,
             available: product.available,
+            type: 'product', // товар из магазина
         })
         setInCart(true);
     };

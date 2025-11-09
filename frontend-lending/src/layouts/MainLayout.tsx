@@ -2,6 +2,7 @@ import React from 'react';
 import Header from '../Components/Header/Header';
 import { Outlet } from 'react-router-dom'
 import Footer from 'Components/Footer/Footer';
+import ScrollToTopButton from '../Components/ScrollToTopButton/ScrollToTopButton';
 import styles from './MainLayout.module.scss';
 
 const MainLayout: React.FC = () => {
@@ -12,6 +13,7 @@ const MainLayout: React.FC = () => {
         <Outlet />
       </main>
       <Footer />
+      <ScrollToTopButton />
     </div>
   );
 };

@@ -141,6 +141,7 @@ const Favorites: React.FC = () => {
                 img: it.img,
                 quantity: it.quantity,
                 available: it.available ?? 999,
+                type: it.type, // передаем тип из избранного
             });
             // Удаляем из избранного после добавления в корзину
             toggleFavorite(it.id);

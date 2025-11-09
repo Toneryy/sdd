@@ -1,10 +1,29 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './Footer.module.scss'
 import { FaTelegramPlane, FaYoutube, FaInstagram, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa'
 import { FiArrowRight } from 'react-icons/fi'
+import { getNews } from '../../api/publicNews'
+import type { News } from '../../types'
 
 const Footer: React.FC = () => {
+    const [news, setNews] = useState<News[]>([])
+
+    useEffect(() => {
+        getNews()
+            .then(data => {
+                // Берем последние 3 новости
+                const latestNews = data
+                    .filter(n => n.published)
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .slice(0, 3)
+                setNews(latestNews)
+            })
+            .catch(() => {
+                // Игнорируем ошибки загрузки новостей в футере
+            })
+    }, [])
+
     return (
         <footer className={styles.footer}>
             <div className={styles.container}>
@@ -58,9 +77,9 @@ const Footer: React.FC = () => {
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/news">
+                                <Link to="/shop">
                                     <FiArrowRight />
-                                    <span>Новости</span>
+                                    <span>Магазин</span>
                                 </Link>
                             </li>
                             <li>
@@ -78,7 +97,34 @@ const Footer: React.FC = () => {
                         </ul>
                     </div>
 
-                    {/* Колонка 3: Контакты */}
+                    {/* Колонка 3: Последние новости */}
+                    <div className={styles.column}>
+                        <h3 className={styles.columnTitle}>Последние новости</h3>
+                        {news.length > 0 ? (
+                            <ul className={styles.newsList}>
+                                {news.map((item) => (
+                                    <li key={item.id}>
+                                        <Link to={`/news/${item.id}`} className={styles.newsItem}>
+                                            <span className={styles.newsTitle}>{item.title}</span>
+                                            <span className={styles.newsDate}>
+                                                {new Date(item.created_at).toLocaleDateString('ru-RU', {
+                                                    day: 'numeric',
+                                                    month: 'short'
+                                                })}
+                                            </span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className={styles.noNews}>Новостей пока нет</p>
+                        )}
+                        <Link to="/news" className={styles.allNewsLink}>
+                            Все новости <FiArrowRight />
+                        </Link>
+                    </div>
+
+                    {/* Колонка 4: Контакты */}
                     <div className={styles.column}>
                         <h3 className={styles.columnTitle}>Контакты</h3>
                         <ul className={styles.contactList}>
@@ -93,25 +139,6 @@ const Footer: React.FC = () => {
                             <li>
                                 <FaMapMarkerAlt />
                                 <span>Москва, Россия</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Колонка 4: Документы */}
-                    <div className={styles.column}>
-                        <h3 className={styles.columnTitle}>Документы</h3>
-                        <ul className={styles.linkList}>
-                            <li>
-                                <Link to="/privacy-policy">
-                                    <FiArrowRight />
-                                    <span>Политика конфиденциальности</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/terms">
-                                    <FiArrowRight />
-                                    <span>Пользовательское соглашение</span>
-                                </Link>
                             </li>
                         </ul>
                     </div>

@@ -1,27 +1,151 @@
 @import "../../Styles/variables";
 
-.shopContainer {
-  width: 100%;
-  padding: 2rem 1rem;
+.shop {
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+  padding: $page-padding-top 0 clamp(2rem, 4vw, 3rem);
 
-  .container {
-    max-width: 1200px;
-    margin: 100px auto;
+  @media (max-width: 1024px) {
+    min-height: calc(100vh - 60px - 64px);
+    padding: $page-padding-top-mobile 0 clamp(1.5rem, 3vw, 2rem);
   }
 }
 
-.searchWrapper {
-  @extend .container;
-  margin-bottom: 1.5rem;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem);
 }
 
-.content {
-  @extend .container;
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  gap: 2rem;
+// Breadcrumbs
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2rem);
+  font-size: 0.9rem;
+  color: #718096;
+
+  a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+  }
+
+  span {
+    color: #a0aec0;
+  }
+}
+
+// Header
+.header {
+  text-align: center;
+  margin-bottom: clamp(3rem, 6vw, 4rem);
+}
+
+.title {
+  font-size: $page-title-size;
+  font-weight: $page-title-weight;
+  color: $page-title-color;
+  margin-bottom: 0.75rem;
+  line-height: $page-title-line-height;
+}
+
+.subtitle {
+  font-size: $page-subtitle-size;
+  color: $page-subtitle-color;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: $page-subtitle-line-height;
+  font-weight: $page-subtitle-weight;
+}
+
+// Filters Bar
+.filtersBar {
+  background: white;
+  border-radius: 16px;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: clamp(1.5rem, 3vw, 2rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.75rem, 2vw, 1rem);
+  align-items: center;
 
   @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.priceFilters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.priceInput {
+  width: 90px;
+  padding: 0.75rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  text-align: center;
+  background: #fafafa;
+  transition: all 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  &::placeholder {
+    color: #a0aec0;
+  }
+}
+
+.priceSeparator {
+  color: #a0aec0;
+  font-weight: 500;
+}
+
+.sortSelect {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  background: #fafafa;
+  color: #2d3748;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 180px;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+// Content
+.content {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: clamp(1.5rem, 3vw, 2rem);
+
+  @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
 }

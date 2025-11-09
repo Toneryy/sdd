@@ -1,30 +1,32 @@
-// components/Home/Home.module.scss
+@import "../../Styles/variables";
+
+// Премиальный hero-блок в стиле современных SaaS лендингов
 .hero {
   position: relative;
-  min-height: calc(100vh - 80px); // учитываем header
+  min-height: calc(100vh - 80px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  background-size: 200% 200%;
-  animation: gradientShift 15s ease infinite;
-  color: white;
-  text-align: center;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem);
   overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-    pointer-events: none;
-  }
-
+  
+  // Современный спокойный градиент вместо кислотного
+  background: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #1e293b 25%,
+    #312e81 50%,
+    #4c1d95 75%,
+    #581c87 100%
+  );
+  
+  // Subtle motion через анимацию градиента
+  background-size: 200% 200%;
+  animation: subtleGradientShift 20s ease infinite;
+  
   @media (max-width: 1024px) {
-    padding: 1.5rem 1.5rem 60px;
-    min-height: calc(100vh - 60px - 64px); // header + bottom bar
+    padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 1.5rem) 60px;
+    min-height: calc(100vh - 60px - 64px);
   }
 
   @media (max-width: 768px) {
@@ -33,86 +35,367 @@
   }
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+// Анимация градиента (более мягкая)
+@keyframes subtleGradientShift {
+  0%, 100% { 
+    background-position: 0% 50%; 
+  }
+  50% { 
+    background-position: 100% 50%; 
+  }
 }
 
+// Декоративные blur blobs для глубины
+.blob1,
+.blob2,
+.blob3 {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.3;
+  pointer-events: none;
+  animation: blobFloat 15s ease-in-out infinite;
+}
+
+.blob1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+  top: -200px;
+  left: -200px;
+  animation-delay: 0s;
+}
+
+.blob2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+  bottom: -150px;
+  right: -150px;
+  animation-delay: 5s;
+}
+
+.blob3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #a855f7 0%, transparent 70%);
+  top: 50%;
+  right: 10%;
+  animation-delay: 10s;
+}
+
+@keyframes blobFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+// Noise overlay для премиального ощущения
+.noiseOverlay {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 1;
+}
+
+// Контент с backdrop-filter для глубины
 .content {
   position: relative;
-  z-index: 1;
-  max-width: 900px;
+  z-index: 2;
+  max-width: 1000px;
   margin: 0 auto;
-  animation: fadeInUp 0.8s ease-out;
+  text-align: center;
+  animation: fadeInUp 0.6s ease-out;
+  backdrop-filter: blur(30px);
+  padding: clamp(2rem, 4vw, 3rem);
+  border-radius: 24px;
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
+// Tagline (мелкий текст сверху)
+.tagline {
+  font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  font-family: $font-main;
+}
+
+// Главный заголовок с улучшенной типографикой
 .title {
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-size: clamp(2rem, 5vw, 4.5rem);
   font-weight: 800;
-  margin-bottom: 1.5rem;
   line-height: 1.1;
-  letter-spacing: -0.02em;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.03em;
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+  color: #ffffff;
+  font-family: $font-main;
+  
+  // Выделение ключевых слов градиентом
+  .highlight {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+      border-radius: 2px;
+      opacity: 0.5;
+    }
+  }
   
   @media (max-width: 768px) {
     margin-bottom: 1rem;
   }
 }
 
+// Подзаголовок с улучшенной читаемостью
 .subtitle {
-  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-  margin-bottom: 2.5rem;
-  opacity: 0.95;
-  line-height: 1.6;
-  font-weight: 300;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  line-height: 1.7;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: $font-main;
   
   @media (max-width: 768px) {
     margin-bottom: 2rem;
   }
 }
 
-.ctaButton {
-  display: inline-block;
-  padding: 1.1rem 3rem;
-  font-size: clamp(1rem, 2vw, 1.2rem);
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50px;
+// Группа CTA кнопок
+.ctaGroup {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: clamp(3rem, 6vw, 4.5rem);
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+}
+
+// Основная CTA кнопка (контрастная с градиентом)
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 2vw, 1.25rem) clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+  font-family: $font-main;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  span {
+    position: relative;
+    z-index: 1;
+  }
+  
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5);
+    
+    &::before {
+      opacity: 1;
+    }
   }
-
+  
   &:active {
-    transform: translateY(-1px);
+    transform: translateY(0) scale(0.98);
   }
-
+  
   @media (max-width: 768px) {
-    padding: 0.9rem 2rem;
     width: 100%;
-    max-width: 300px;
+    max-width: 320px;
   }
+}
+
+// Вторичная CTA кнопка (прозрачная с градиентной рамкой)
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 2vw, 1.25rem) clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: $font-main;
+  position: relative;
+  
+  // Градиентная рамка через псевдоэлемент
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.5) 0%, rgba(139, 92, 246, 0.5) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+    
+    &::before {
+      opacity: 1;
+    }
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+// Блок преимуществ
+.features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  max-width: 900px;
+  margin: 0 auto;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-4px);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+  }
+}
+
+.featureIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  color: #a78bfa;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  
+  .feature:hover & {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+    transform: scale(1.1) rotate(5deg);
+    color: #c4b5fd;
+  }
+}
+
+.featureContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.featureTitle {
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  font-family: $font-main;
+}
+
+.featureDesc {
+  font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  font-family: $font-main;
 }

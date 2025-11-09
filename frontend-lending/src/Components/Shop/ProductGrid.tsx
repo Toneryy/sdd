@@ -1,22 +1,18 @@
 // src/components/ProductGrid/ProductGrid.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import Fuse from "fuse.js";
+import { FiShoppingCart, FiHeart, FiZap, FiChevronDown } from "react-icons/fi";
+import { FaHeart } from "react-icons/fa";
 import styles from "./ProductGrid.module.scss";
 import { fetchProducts, Product } from "../../api/shop";
 import { getSearchVariants } from "../../utils/keyboardAndTranslit";
-import { FaHeart } from "react-icons/fa";
 import { useFavoritesStore } from "../../store/favorites";
+import { useCartStore } from "../../store/cart";
+import Skeleton from "../Skeleton/Skeleton";
 
-function useWindowWidth() {
-    const [width, setWidth] = useState(window.innerWidth);
-    useEffect(() => {
-        const onResize = () => setWidth(window.innerWidth);
-        window.addEventListener("resize", onResize);
-        return () => window.removeEventListener("resize", onResize);
-    }, []);
-    return width;
-}
+type SortOption = 'default' | 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'available_desc';
 
 interface Filters {
     minPrice: string;
@@ -28,47 +24,94 @@ interface Filters {
 interface Props {
     filters: Filters;
     searchInput: string;
+    sortBy: SortOption;
 }
 
-const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
+const ProductGrid: React.FC<Props> = ({ filters, searchInput, sortBy }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [displayCount, setDisplayCount] = useState(20);
 
     // Для управления «избранным» (Zustand)
     const favIdsArr = useFavoritesStore(s => s.ids);
     const toggleFav = useFavoritesStore(s => s.toggle);
     const favIds = useMemo(() => new Set(favIdsArr), [favIdsArr]);
 
-    // Пагинация
-    const width = useWindowWidth();
-    const itemsPerPage = width >= 1024 ? 12 : width >= 768 ? 8 : 4;
-    const [currentPage, setCurrentPage] = useState(1);
-
-    // (инициализация не нужна — persist zustand восстанавливает ids)
+    // Корзина
+    const addToCart = useCartStore(s => s.add);
 
     // Загрузка товаров
     useEffect(() => {
+        let mounted = true;
         setLoading(true);
         setError(null);
         fetchProducts(filters.minPrice, filters.maxPrice, filters.category, filters.inStock)
             .then(res => {
-                setProducts(res.data);
-                setCurrentPage(1);
+                if (mounted) {
+                    setProducts(res.data);
+                    setDisplayCount(20);
+                }
             })
-            .catch(() => setError("Ошибка при загрузке товаров"))
-            .finally(() => setLoading(false));
+            .catch(() => {
+                if (mounted) {
+                    setError("Ошибка при загрузке товаров");
+                }
+            })
+            .finally(() => {
+                if (mounted) {
+                    setLoading(false);
+                }
+            });
+        
+        return () => {
+            mounted = false;
+        };
     }, [filters]);
 
     // Добавление/удаление из «избранного»
-    const toggleFavorite = (product: Product, e: React.MouseEvent) => {
+    const handleToggleFavorite = (product: Product, e: React.MouseEvent) => {
         e.preventDefault();
+        e.stopPropagation();
+        const isFav = favIds.has(product.id);
         toggleFav(product.id);
+        toast.info(
+            isFav ? 'Удалено из избранного' : 'Добавлено в избранное',
+            { toastId: `fav-${product.id}` }
+        );
+    };
+
+    // Добавление в корзину
+    const handleAddToCart = (product: Product, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addToCart({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            img: product.img,
+            quantity: 1,
+            available: product.available,
+            type: 'product',
+        });
+        toast.success(`${product.name} добавлен в корзину!`);
     };
 
     const sourceProducts = useMemo(() => {
-        return filters.inStock ? products.filter(p => p.available > 0) : products;
-    }, [products, filters.inStock]);
+        let result = filters.inStock ? products.filter(p => p.available > 0) : products;
+        
+        // Фильтр по цене
+        if (filters.minPrice) {
+            const min = parseFloat(filters.minPrice);
+            result = result.filter(p => p.price >= min);
+        }
+        if (filters.maxPrice) {
+            const max = parseFloat(filters.maxPrice);
+            result = result.filter(p => p.price <= max);
+        }
+        
+        return result;
+    }, [products, filters]);
 
     // Fuse.js-инстанс
     const fuse = useMemo(
@@ -96,7 +139,7 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
         );
     }, [sourceProducts, variants]);
 
-    // Итоговый список перед пагинацией
+    // Итоговый список после поиска
     const filtered = useMemo(() => {
         if (!searchInput.trim()) return sourceProducts;
         if (substringResults.length > 0) return substringResults;
@@ -107,76 +150,149 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput }) => {
         return Array.from(map.values());
     }, [sourceProducts, searchInput, substringResults, fuse, variants]);
 
-    // Пагинированные данные
-    const totalPages = Math.ceil(filtered.length / itemsPerPage);
-    const pageItems = filtered.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    // Сортировка
+    const sorted = useMemo(() => {
+        const result = [...filtered];
+        switch (sortBy) {
+            case 'price_asc':
+                return result.sort((a, b) => a.price - b.price);
+            case 'price_desc':
+                return result.sort((a, b) => b.price - a.price);
+            case 'name_asc':
+                return result.sort((a, b) => a.name.localeCompare(b.name));
+            case 'name_desc':
+                return result.sort((a, b) => b.name.localeCompare(a.name));
+            case 'available_desc':
+                return result.sort((a, b) => b.available - a.available);
+            default:
+                return result;
+        }
+    }, [filtered, sortBy]);
+
+    // Показываем первые N товаров
+    const displayed = sorted.slice(0, displayCount);
+    const hasMore = displayCount < sorted.length;
+
+    const handleLoadMore = () => {
+        setDisplayCount(prev => prev + 20);
+    };
 
     // Рендер
-    if (loading) return <p className={styles.loading}>Загрузка товаров...</p>;
-    if (error) return <p className={styles.error}>{error}</p>;
-    if (filtered.length === 0)
+    if (loading) {
         return (
-            <div className={styles.emptyState}>
-                <p>😕 Ничего не найдено.</p>
-            </div>
-        );
-
-    return (
-        <>
             <div className={styles.gridWrapper}>
                 <div className={styles.grid}>
-                    {pageItems.map(p => (
-                        <Link key={p.id} to={`/shop/${p.id}`} className={styles.cardLink}>
-                            <div className={styles.card}>
-                                <div className={styles.cardOverlay}>
-                                    <button
-                                        className={`${styles.heartBtn} ${favIds.has(p.id) ? styles.favorited : ""
-                                            }`}
-                                        onClick={e => toggleFavorite(p, e)}
-                                        title={
-                                            favIds.has(p.id)
-                                                ? "Убрать из избранного"
-                                                : "Добавить в избранное"
-                                        }
-                                    >
-                                        <FaHeart />
-                                    </button>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className={styles.skeletonCard}>
+                            <div className={styles.skeletonImage} />
+                            <div className={styles.skeletonContent}>
+                                <div style={{ marginBottom: '0.5rem' }}>
+                                    <Skeleton width="80%" height={20} />
                                 </div>
-                                <div className={styles.imagePlaceholder}>🎁</div>
-                                <h4 className={styles.name}>{p.name}</h4>
-                                <p className={styles.price}>{p.price.toLocaleString()} ₽</p>
-                                {p.available > 0 ? (
-                                    <button className={styles.buyBtn}>Купить</button>
-                                ) : (
-                                    <span className={styles.soldOut}>Нет в наличии</span>
-                                )}
+                                <Skeleton width="50%" height={16} />
                             </div>
-                        </Link>
+                        </div>
                     ))}
                 </div>
-
-                {totalPages > 1 && (
-                    <div className={styles.pagination}>
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <button
-                                key={i + 1}
-                                className={
-                                    i + 1 === currentPage
-                                        ? `${styles.pageBtn} ${styles.active}`
-                                        : styles.pageBtn
-                                }
-                                onClick={() => setCurrentPage(i + 1)}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-                )}
             </div>
-        </>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={styles.errorState}>
+                <p>❌ {error}</p>
+            </div>
+        );
+    }
+
+    if (sorted.length === 0) {
+        return (
+            <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>😔</div>
+                <h3>Ничего не найдено</h3>
+                <p>Попробуйте изменить параметры поиска или фильтры.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className={styles.gridWrapper}>
+            {sorted.length > 0 && (
+                <p className={styles.resultsInfo}>
+                    Найдено: <strong>{sorted.length}</strong> {sorted.length === 1 ? 'товар' : sorted.length < 5 ? 'товара' : 'товаров'}
+                </p>
+            )}
+            
+            <div className={styles.grid}>
+                {displayed.map(p => {
+                    const isFavorite = favIds.has(p.id);
+                    return (
+                        <div key={p.id} className={styles.card}>
+                            <Link to={`/shop/${p.id}`} className={styles.cardLink}>
+                                <div className={styles.imageWrapper}>
+                                    {p.img ? (
+                                        <img src={p.img} alt={p.name} className={styles.image} loading="lazy" />
+                                    ) : (
+                                        <div className={styles.imagePlaceholder}>
+                                            <FiZap />
+                                        </div>
+                                    )}
+                                    <button
+                                        className={`${styles.favoriteBtn} ${isFavorite ? styles.active : ''}`}
+                                        onClick={(e) => handleToggleFavorite(p, e)}
+                                        aria-label={isFavorite ? "Убрать из избранного" : "Добавить в избранное"}
+                                    >
+                                        {isFavorite ? <FaHeart /> : <FiHeart />}
+                                    </button>
+                                </div>
+                                <div className={styles.cardContent}>
+                                    <h3 className={styles.name}>{p.name}</h3>
+                                    <div className={styles.cardFooter}>
+                                        <div className={styles.price}>
+                                            {p.price === 0 ? (
+                                                <span className={styles.priceFree}>Бесплатно</span>
+                                            ) : (
+                                                <>
+                                                    <span className={styles.priceValue}>{p.price.toLocaleString()}</span>
+                                                    <span className={styles.priceCurrency}>₽</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        {p.available > 0 ? (
+                                            <span className={styles.available}>В наличии: {p.available}</span>
+                                        ) : (
+                                            <span className={styles.outOfStock}>Нет в наличии</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </Link>
+                            {p.available > 0 && (
+                                <button 
+                                    className={styles.addToCartBtn}
+                                    onClick={(e) => handleAddToCart(p, e)}
+                                >
+                                    <FiShoppingCart />
+                                    <span>В корзину</span>
+                                </button>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {hasMore && (
+                <div className={styles.loadMoreContainer}>
+                    <button onClick={handleLoadMore} className={styles.loadMoreBtn}>
+                        <span>Показать еще</span>
+                        <FiChevronDown />
+                        <span className={styles.loadMoreCount}>
+                            ({sorted.length - displayCount} из {sorted.length})
+                        </span>
+                    </button>
+                </div>
+            )}
+        </div>
     );
 };
 

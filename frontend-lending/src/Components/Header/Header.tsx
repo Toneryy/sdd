@@ -8,31 +8,26 @@ import {
   FiPhoneCall,
 } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
-import { loadFavorites } from 'utils/favoritesStorage';
+import { useFavoritesStore } from '../../store/favorites';
+import { getAccessToken } from '../../services/token';
 import CallRequestModal from './CallRequestModal';
 import styles from './Header.module.scss';
 import { AuthContext } from 'context/AuthContext';
 
 const Header: React.FC = () => {
-  const { logout } = useContext(AuthContext);
+  const { logout, isAuth } = useContext(AuthContext);
   const [callModalOpen, setCallModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userRef = useRef<HTMLDivElement>(null);
-  const [favCount, setFavCount] = useState(0);
   const navigate = useNavigate();
 
-  const isAuthenticated = Boolean(localStorage.getItem('token'));
-
-  const updateFavCount = () => {
-    const raw = loadFavorites();
-    const uniqueIds = Array.from(new Set(raw.map((p: any) => p.id)));
-    setFavCount(uniqueIds.length);
-  };
+  const isAuthenticated = isAuth || Boolean(getAccessToken());
+  
+  // Используем store для избранного
+  const favIds = useFavoritesStore(s => s.ids);
+  const favCount = favIds.length;
 
   useEffect(() => {
-    updateFavCount();
-    window.addEventListener('favoritesChanged', updateFavCount);
-
     const handleClickOutside = (event: MouseEvent) => {
       if (userRef.current && !userRef.current.contains(event.target as Node)) {
         setUserMenuOpen(false);
@@ -42,7 +37,6 @@ const Header: React.FC = () => {
     document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
-      window.removeEventListener('favoritesChanged', updateFavCount);
     };
   }, []);
 
@@ -71,12 +65,9 @@ const Header: React.FC = () => {
             <NavLink to="/subscriptions" className={({ isActive }) => (isActive ? styles.active : '')}>
               Услуги
             </NavLink>
-            <NavLink to="/news" className={({ isActive }) => (isActive ? styles.active : '')}>
-              Новости
-            </NavLink>
-            {/* <NavLink to="/shop" className={({ isActive }) => (isActive ? styles.active : '')}>
+            <NavLink to="/shop" className={({ isActive }) => (isActive ? styles.active : '')}>
               Магазин
-            </NavLink> */}
+            </NavLink>
           </nav>
 
           {/* СПРАВА: один ряд с единым gap: звонок, избранное, корзина, профиль/войти */}
@@ -153,16 +144,10 @@ const Header: React.FC = () => {
           <span>Услуги</span>
         </NavLink>
 
-        <NavLink to="/news" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
-          <FiGrid />
-          <span>Новости</span>
-        </NavLink>
-
-
-        {/* <NavLink to="/shop" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
+        <NavLink to="/shop" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
           <FiGrid />
           <span>Магазин</span>
-        </NavLink> */}
+        </NavLink>
 
         <NavLink to="/favorites" className={({ isActive }) => `${styles.bottomItem} ${isActive ? styles.active : ''}`}>
           <FaHeart />

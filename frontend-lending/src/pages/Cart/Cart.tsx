@@ -49,6 +49,7 @@ const Cart: React.FC = () => {
             name: data.name,
             img: data.img,
             quantity: Math.min(item.quantity, data.available),
+            type: item.type || 'product', // сохраняем тип или используем 'product' по умолчанию
           })
         } catch {
           updatedCart.push(item)
@@ -195,7 +196,10 @@ const Cart: React.FC = () => {
                   )}
                 </div>
                 <div className={styles.info}>
-                  <Link to={`/shop/${item.id}`} className={styles.title}>
+                  <Link 
+                    to={item.type === 'subscription' ? `/subscriptions/${item.id}` : `/shop/${item.id}`} 
+                    className={styles.title}
+                  >
                     {item.name}
                   </Link>
                   <p>{item.price.toLocaleString()} ₽</p>

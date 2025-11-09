@@ -101,6 +101,7 @@ export interface CartItem {
   img?: string;
   quantity: number;
   available: number;
+  type: 'product' | 'subscription'; // для различения товаров из shop и услуг из subscriptions
 }
 
 // API Error types

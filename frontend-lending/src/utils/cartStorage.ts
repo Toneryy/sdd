@@ -7,6 +7,7 @@ export type CartItem = {
   img?: string;
   quantity: number;
   available: number;
+  type: 'product' | 'subscription'; // для различения товаров из shop и услуг из subscriptions
 };
 
 const CART_KEY = "cart";
