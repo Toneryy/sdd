@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Helmet } from "react-helmet-async";
 import styles from "./ShopProduct.module.scss";
 import { fetchProductById, Product } from "../../../api/shop";
 import { useCartStore } from "../../../store/cart";
+import StructuredData from "../../StructuredData";
 
 const ShopProduct: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -46,8 +48,29 @@ const ShopProduct: React.FC = () => {
     if (error) return <p className={styles.statusError}>{error}</p>;
     if (!product) return <p className={styles.statusError}>Товар не найден</p>;
 
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const productUrl = `${baseUrl}/shop/${product.id}`;
+
     return (
-        <div className={styles.container}>
+        <>
+            <Helmet>
+                <title>{product.name} - bd-project</title>
+                <meta name="description" content={product.description || product.name} />
+            </Helmet>
+            <StructuredData
+                type="product"
+                data={{
+                    name: product.name,
+                    description: product.description,
+                    image: product.img,
+                    price: product.price,
+                    priceCurrency: 'RUB',
+                    availability: product.available > 0 ? 'InStock' : 'OutOfStock',
+                    url: productUrl,
+                    category: product.category,
+                }}
+            />
+            <div className={styles.container}>
             <Link to="/shop" className={styles.backLink}>
                 ← Назад к каталогу
             </Link>
@@ -99,6 +122,7 @@ const ShopProduct: React.FC = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
@@ -13,6 +14,7 @@ import publicNewsRoutes from "./routes/publicNews.routes";
 
 import { generalLimiter } from "./middlewares/rateLimit";
 import { startSchedulers } from "./jobs";
+import { setCsrfToken, verifyCsrfToken } from "./middlewares/csrf.middleware";
 
 dotenv.config();
 
@@ -38,8 +40,32 @@ if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
 const app = express();
 
 app.set("trust proxy", 1);
-app.use(cors());
+
+// Настройка CORS с поддержкой credentials для кук
+app.use(cors({
+  origin: process.env.FRONTEND_URL || true, // Разрешаем все источники в dev, в production укажите конкретный URL
+  credentials: true, // Важно для работы с куками
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Session-Id']
+}));
+
 app.use(express.json());
+app.use(cookieParser()); // Парсинг кук
+
+// CSRF защита (опционально, можно отключить через переменную окружения)
+// Для REST API с JWT в заголовках CSRF обычно не критична
+const ENABLE_CSRF = process.env.ENABLE_CSRF_PROTECTION === 'true';
+
+if (ENABLE_CSRF) {
+  // Устанавливаем CSRF токен при GET запросах
+  app.use(setCsrfToken);
+  // Проверяем CSRF токен для изменяющих запросов
+  app.use(verifyCsrfToken);
+  console.log('✅ CSRF protection enabled');
+} else {
+  console.log('ℹ️  CSRF protection disabled (not needed for REST API with JWT in headers)');
+}
+
 app.use("/api", generalLimiter);
 
 app.use("/api/news", publicNewsRoutes);

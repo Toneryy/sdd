@@ -17,6 +17,7 @@ import { FaHeart } from 'react-icons/fa';
 import { getSubscriptionById } from '../../api/subscriptions';
 import { useCartStore } from '../../store/cart';
 import { useFavoritesStore } from '../../store/favorites';
+import StructuredData from '../../Components/StructuredData';
 import styles from './ServiceDetails.module.scss';
 
 interface Subscription {
@@ -131,13 +132,26 @@ const ServiceDetails: React.FC = () => {
         { icon: <FiHeadphones />, title: '24/7 поддержка', desc: 'Всегда на связи для решения ваших вопросов' },
     ];
 
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const serviceUrl = `${baseUrl}/subscriptions/${sub.id}`;
+
     return (
         <>
             <Helmet>
                 <title>{sub.title} - bd-project</title>
                 <meta name="description" content={sub.description || sub.title} />
             </Helmet>
-
+            <StructuredData
+                type="service"
+                data={{
+                    name: sub.title,
+                    description: sub.description,
+                    image: sub.image,
+                    price: sub.price,
+                    priceCurrency: 'RUB',
+                    url: serviceUrl,
+                }}
+            />
             <div className={styles.wrapper}>
                 <div className={styles.container}>
                     {/* Breadcrumbs */}

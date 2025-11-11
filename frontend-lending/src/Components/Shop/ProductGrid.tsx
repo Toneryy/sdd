@@ -11,6 +11,7 @@ import { getSearchVariants } from "../../utils/keyboardAndTranslit";
 import { useFavoritesStore } from "../../store/favorites";
 import { useCartStore } from "../../store/cart";
 import Skeleton from "../Skeleton/Skeleton";
+import AnimatedCard from "../AnimatedCard";
 
 type SortOption = 'default' | 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'available_desc';
 
@@ -209,9 +210,22 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput, sortBy }) => {
     if (sorted.length === 0) {
         return (
             <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>😔</div>
+                <div className={styles.emptyIcon}>🔍</div>
                 <h3>Ничего не найдено</h3>
-                <p>Попробуйте изменить параметры поиска или фильтры.</p>
+                <p>
+                    {searchInput.trim() 
+                        ? `По запросу "${searchInput}" ничего не найдено.`
+                        : 'Товары с выбранными фильтрами не найдены.'
+                    }
+                </p>
+                <div className={styles.emptySuggestions}>
+                    <p className={styles.suggestionTitle}>Попробуйте:</p>
+                    <ul>
+                        <li>Изменить параметры поиска</li>
+                        <li>Сбросить фильтры</li>
+                        <li>Проверить правильность написания</li>
+                    </ul>
+                </div>
             </div>
         );
     }
@@ -225,10 +239,14 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput, sortBy }) => {
             )}
             
             <div className={styles.grid}>
-                {displayed.map(p => {
+                {displayed.map((p, index) => {
                     const isFavorite = favIds.has(p.id);
                     return (
-                        <div key={p.id} className={styles.card}>
+                        <AnimatedCard 
+                            key={p.id} 
+                            delay={index * 50}
+                            className={styles.card}
+                        >
                             <Link to={`/shop/${p.id}`} className={styles.cardLink}>
                                 <div className={styles.imageWrapper}>
                                     {p.img ? (
@@ -276,7 +294,7 @@ const ProductGrid: React.FC<Props> = ({ filters, searchInput, sortBy }) => {
                                     <span>В корзину</span>
                                 </button>
                             )}
-                        </div>
+                        </AnimatedCard>
                     );
                 })}
             </div>

@@ -104,6 +104,7 @@ export async function refreshTokens(): Promise<AuthResponse> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
+    credentials: 'include', // Отправляем куки (нужно для CSRF защиты, если включена)
   });
   
   if (!res.ok) {

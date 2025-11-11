@@ -361,7 +361,50 @@
 .emptyState p {
   font-size: 1rem;
   color: #718096;
-  margin: 0;
+  margin: 0 0 1.5rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.emptySuggestions {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+
+  .suggestionTitle {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      padding: 0.5rem 0;
+      color: #4a5568;
+      font-size: 0.9rem;
+      position: relative;
+      padding-left: 1.5rem;
+
+      &::before {
+        content: '•';
+        position: absolute;
+        left: 0;
+        color: #667eea;
+        font-weight: bold;
+      }
+    }
+  }
 }
 
 // Error State

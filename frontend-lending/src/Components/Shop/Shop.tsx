@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import styles from "./Shop.module.scss";
 import SearchBar from "./SearchBar";
 import FiltersSidebar from "./FiltersSidebar";
@@ -9,9 +9,56 @@ import ProductGrid from "./ProductGrid";
 type SortOption = 'default' | 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'available_desc';
 
 const Shop: React.FC = () => {
-    const [filters, setFilters] = useState({ minPrice: "", maxPrice: "", category: "", inStock: true });
-    const [searchInput, setSearchInput] = useState("");
-    const [sortBy, setSortBy] = useState<SortOption>('default');
+    const [searchParams, setSearchParams] = useSearchParams();
+    
+    // Функция для получения фильтров из URL
+    const getFiltersFromUrl = (params: URLSearchParams) => ({
+        minPrice: params.get('minPrice') || "",
+        maxPrice: params.get('maxPrice') || "",
+        category: params.get('category') || "",
+        inStock: params.get('inStock') !== 'false',
+    });
+
+    const [filters, setFilters] = useState(() => getFiltersFromUrl(searchParams));
+    const [searchInput, setSearchInput] = useState(() => searchParams.get('search') || "");
+    const [sortBy, setSortBy] = useState<SortOption>(() => (searchParams.get('sort') as SortOption) || 'default');
+
+    // Синхронизация с URL при изменении searchParams (например, при переходе по ссылке)
+    useEffect(() => {
+        const urlFilters = getFiltersFromUrl(searchParams);
+        const urlSearch = searchParams.get('search') || "";
+        const urlSort = searchParams.get('sort') as SortOption;
+        
+        setFilters(urlFilters);
+        setSearchInput(urlSearch);
+        if (urlSort) {
+            setSortBy(urlSort);
+        }
+    }, [searchParams]);
+
+    // Обновление URL при изменении фильтров (с debounce для производительности)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const params = new URLSearchParams();
+            
+            if (filters.minPrice) params.set('minPrice', filters.minPrice);
+            if (filters.maxPrice) params.set('maxPrice', filters.maxPrice);
+            if (filters.category) params.set('category', filters.category);
+            if (!filters.inStock) params.set('inStock', 'false');
+            if (searchInput) params.set('search', searchInput);
+            if (sortBy !== 'default') params.set('sort', sortBy);
+            
+            // Проверяем, изменились ли параметры, чтобы избежать лишних обновлений
+            const newParamsString = params.toString();
+            const currentParamsString = searchParams.toString();
+            
+            if (newParamsString !== currentParamsString) {
+                setSearchParams(params, { replace: true });
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [filters, searchInput, sortBy, setSearchParams, searchParams]);
 
     return (
         <>

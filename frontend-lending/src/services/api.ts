@@ -20,6 +20,7 @@ let refreshPromise: Promise<AuthResponse> | null = null;
 
 export class ApiService {
   private baseURL = API_URL;
+  private csrfToken: string | null = null; // CSRF токен для защиты (если включена на бэкенде)
 
   async request<T>(
     endpoint: string,
@@ -37,11 +38,22 @@ export class ApiService {
       if (token) headers.set('Authorization', `Bearer ${token}`);
     }
 
+    // Добавляем CSRF токен в заголовок (если он есть)
+    // Токен устанавливается сервером в заголовке X-CSRF-Token при GET запросах
+    if (this.csrfToken) {
+      headers.set('X-CSRF-Token', this.csrfToken);
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     const doFetch = async (): Promise<Response> => {
-      return fetch(url, { ...init, headers, signal: controller.signal });
+      return fetch(url, { 
+        ...init, 
+        headers, 
+        signal: controller.signal,
+        credentials: 'include' // Важно: отправляем куки (нужно для CSRF защиты)
+      });
     };
 
     // Если идет refresh, ждем его завершения
@@ -118,6 +130,13 @@ export class ApiService {
               throw e;
             }
           }
+        }
+
+        // Сохраняем CSRF токен из заголовка ответа (если есть)
+        // Сервер отправляет его в заголовке X-CSRF-Token при GET запросах
+        const csrfTokenFromHeader = res.headers.get('X-CSRF-Token');
+        if (csrfTokenFromHeader) {
+          this.csrfToken = csrfTokenFromHeader;
         }
 
         if (!res.ok) {

@@ -47,16 +47,18 @@ export function handleAuthError(error: unknown, onLogout?: () => void, redirectT
   if (!toast.isActive(TOAST_ID)) {
     toast.error('Сессия истекла. Пожалуйста, войдите заново.', {
       toastId: TOAST_ID,
-      autoClose: 3000,
+      autoClose: 2000,
     });
   }
 
-  // Редиректим на логин через небольшую задержку
+  // Немедленный редирект на логин без задержки
   if (redirectToLogin && window.location.pathname !== '/login') {
+    // Используем replace вместо href для немедленного редиректа без истории
+    window.location.replace('/login');
+    // Сбрасываем флаг после небольшой задержки для предотвращения повторных вызовов
     setTimeout(() => {
       isLoggingOut = false;
-      window.location.href = '/login';
-    }, 500);
+    }, 100);
   } else {
     isLoggingOut = false;
   }
