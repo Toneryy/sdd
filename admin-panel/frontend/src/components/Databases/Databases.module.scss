@@ -1,0 +1,111 @@
+/* /src/components/Databases.module.scss */
+
+.container {
+  margin-left: 40px;
+  padding: 20px;
+  background-color: #f4f6f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+.dbList {
+  list-style: none;
+  padding: 0;
+}
+
+.dbItem {
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow 0.3s ease;
+}
+
+.dbItem:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dbAlias {
+  font-size: 1.5rem;
+  color: #34495e;
+  font-weight: 600;
+  margin: 0;
+}
+
+.dbTableName {
+  font-size: 1rem;
+  color: #7f8c8d;
+  margin-top: 8px;
+}
+
+.editBtn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.editBtn:hover {
+  background-color: #2980b9;
+}
+
+.editForm {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.inputField {
+  width: 98%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.saveBtn {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.saveBtn:hover {
+  background-color: #2ecc71;
+}
+
+.cancelBtn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.cancelBtn:hover {
+  background-color: #c0392b;
+}

@@ -1,0 +1,129 @@
+@import "../../Styles/variables";
+
+.faq {
+  padding: $page-padding-top 2rem clamp(3rem, 6vw, 5rem);
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+
+  @media (max-width: 768px) {
+    padding: $page-padding-top-mobile 1rem clamp(2rem, 4vw, 3rem);
+  }
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: $page-title-size;
+  text-align: center;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  font-weight: $page-title-weight;
+  color: $page-title-color;
+  letter-spacing: -0.02em;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    margin: 1.5rem auto 0;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 2rem;
+  }
+}
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    gap: 0.75rem;
+  }
+}
+
+.item {
+  background: white;
+  border-radius: 16px;
+  padding: clamp(1.25rem, 2vw, 1.5rem) clamp(1.5rem, 3vw, 2rem);
+  cursor: pointer;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    border-color: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.1);
+    transform: translateX(4px);
+  }
+
+  &.active {
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+
+    &::before {
+      transform: scaleY(1);
+    }
+  }
+}
+
+.question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #1a1a2e;
+  font-weight: 600;
+  font-size: clamp(1rem, 2vw, 1.1rem);
+  gap: 1rem;
+}
+
+.icon {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.25rem;
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease,
+              margin-top 0.3s ease;
+  color: #6b7280;
+  line-height: 1.7;
+  margin-top: 0;
+  opacity: 0;
+  padding-top: 0;
+}
+
+.active .answer {
+  max-height: 500px;
+  opacity: 1;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.active .icon {
+  transform: rotate(180deg);
+}

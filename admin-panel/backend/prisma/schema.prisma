@@ -1,0 +1,347 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model users {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username           String               @unique
+  email              String               @unique
+  phone              String?              @unique
+  password           String               @db.VarChar
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  orders             orders[]
+  support_requests   support_requests[]   @relation("UserSupportRequests")
+  user_products      user_products[]
+  user_subscriptions user_subscriptions[]
+
+  @@map("users")
+}
+
+model subscriptions {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title              String               @db.VarChar(50)
+  duration_days      Int
+  price              Decimal              @db.Decimal(10, 2)
+  description        String?
+  image              String?
+  order_items        order_items[]
+  user_subscriptions user_subscriptions[]
+
+  @@map("subscriptions")
+}
+
+model user_subscriptions {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String        @db.Uuid
+  subscription_id String        @db.Uuid
+  start_date      DateTime      @db.Date
+  end_date        DateTime      @db.Timestamp(6)
+  active          Boolean       @default(false)
+  subscriptions   subscriptions @relation(fields: [subscription_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([subscription_id])
+  @@index([user_id])
+  @@map("user_subscriptions")
+}
+
+model support_requests {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id              String         @db.Uuid
+  title                String         @db.VarChar(255)
+  description          String?
+  created_at           DateTime?      @default(now()) @db.Timestamptz(6)
+  operator_description String?
+  operator_id          String?        @db.Uuid
+  updated_at           DateTime?      @updatedAt
+  status               SupportStatus  @default(pending)
+  operator             staff_members? @relation("OperatorSupportRequests", fields: [operator_id], references: [id])
+  user                 users          @relation("UserSupportRequests", fields: [user_id], references: [id])
+
+  @@map("support_requests")
+}
+
+model promocodes {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String        @unique @db.VarChar(50)
+  expires_at   DateTime?     @db.Timestamp(6)
+  denomination Int
+  type         String        @db.VarChar(10)
+  promo_usage  promo_usage[]
+
+  @@map("promocodes")
+}
+
+model promo_usage {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String     @db.Uuid
+  promocode_id String     @db.Uuid
+  used_at      DateTime?  @default(now()) @db.Timestamp(6)
+  promocodes   promocodes @relation(fields: [promocode_id], references: [id], onDelete: Cascade)
+
+  @@map("promo_usage")
+}
+
+model categories {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String     @unique @db.VarChar(100)
+  created_at DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime?  @default(now()) @db.Timestamptz(6)
+  products   products[]
+
+  @@map("categories")
+}
+
+model products {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String          @unique @db.VarChar(255)
+  price         Decimal         @db.Decimal(10, 2)
+  category_id   String?         @db.Uuid
+  denomination  String?         @db.VarChar(50)
+  total_amount  Int?            @default(0)
+  created_at    DateTime?       @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamptz(6)
+  img           String?         @db.VarChar(255)
+  description   String?
+  life_duration Int?
+  order_items   order_items[]
+  product_keys  product_keys[]
+  categories    categories?     @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
+  user_products user_products[]
+
+  @@map("products")
+}
+
+model product_keys {
+  id                                                       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_id                                               String?        @db.Uuid
+  key_encrypted                                            String
+  used                                                     Boolean?       @default(false)
+  created_at                                               DateTime?      @default(now()) @db.Timestamptz(6)
+  updated_at                                               DateTime?      @default(now()) @db.Timestamptz(6)
+  reserved_by_order_id                                     String?        @db.Uuid
+  reserved_until                                           DateTime?      @db.Timestamptz(6)
+  key_events                                               key_events[]
+  keys_aliases                                             keys_aliases[]
+  products                                                 products?      @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_keys_product")
+  user_products_user_products_product_key_idToproduct_keys user_products? @relation("user_products_product_key_idToproduct_keys")
+
+  @@index([product_id, used, reserved_until])
+  @@map("product_keys")
+}
+
+model user_products {
+  id                                                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                                                 String        @db.Uuid
+  product_id                                              String        @db.Uuid
+  added_at                                                DateTime      @default(now()) @db.Timestamptz(6)
+  product_key_id                                          String?       @unique @db.Uuid
+  code                                                    String?       @unique(map: "unique_code")
+  products                                                products      @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_product")
+  product_keys_user_products_product_key_idToproduct_keys product_keys? @relation("user_products_product_key_idToproduct_keys", fields: [product_key_id], references: [id], onUpdate: NoAction, map: "fk_product_key")
+  users                                                   users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_purchases_user")
+
+  @@map("user_products")
+}
+
+model db_name_aliases {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  table_name  String  @db.VarChar(100)
+  alias_name  String  @db.VarChar(100)
+  description String? @db.VarChar(255)
+}
+
+model staff_members {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username         String             @db.VarChar(50)
+  email            String             @unique @db.VarChar(100)
+  password         String             @db.VarChar
+  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  role             StaffRole
+  staff_rights     staff_rights[]
+  support_requests support_requests[] @relation("OperatorSupportRequests")
+
+  @@map("staff_members")
+}
+
+model staff_rights {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  component_name  String         @db.VarChar(100)
+  can_access      Boolean?       @default(true)
+  staff_member_id String?        @db.Uuid
+  role            StaffRole?
+  staff_members   staff_members? @relation(fields: [staff_member_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([staff_member_id, component_name])
+  @@index([role, component_name])
+}
+
+model keys_aliases {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_key_id   String            @db.Uuid
+  code             String            @unique @db.VarChar(128)
+  purchased        Boolean?          @default(false)
+  created_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  activated        Boolean?          @default(false)
+  activated_at     DateTime?         @db.Timestamptz(6)
+  active           Boolean?          @default(true)
+  active_days      Int?
+  product_keys     product_keys      @relation(fields: [product_key_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_keys_aliases_product_key")
+  order_item_units order_item_units?
+  order_items      order_items[]
+}
+
+model Post {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  raw_html    String?
+  description String?
+  image       String?
+  button_text String?
+  button_href String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("posts")
+}
+
+model Draft {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  raw_html    String?
+  description String?
+  image       String?
+  button_text String?
+  button_href String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("drafts")
+}
+
+model key_events {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_key_id String?       @db.Uuid
+  alias_id       String?       @db.Uuid
+  order_id       String?       @db.Uuid
+  order_item_id  String?       @db.Uuid
+  event          KeyEventType
+  details        Json?
+  created_at     DateTime      @default(now()) @db.Timestamptz(6)
+  product_keys   product_keys? @relation(fields: [product_key_id], references: [id], onDelete: Cascade)
+
+  @@index([alias_id])
+  @@index([event, created_at])
+  @@index([order_id])
+  @@index([product_key_id])
+}
+
+model order_item_units {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_item_id String        @db.Uuid
+  key_alias_id  String?       @unique @db.Uuid
+  keys_aliases  keys_aliases? @relation(fields: [key_alias_id], references: [id])
+  order_items   order_items   @relation(fields: [order_item_id], references: [id], onDelete: Cascade)
+
+  @@index([order_item_id])
+}
+
+model order_items {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id         String             @db.Uuid
+  product_id       String?            @db.Uuid
+  qty              Int                @default(1)
+  key_alias_id     String?            @db.Uuid
+  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  item_type        OrderItemType      @default(product)
+  subscription_id  String?            @db.Uuid
+  order_item_units order_item_units[]
+  keys_aliases     keys_aliases?      @relation(fields: [key_alias_id], references: [id])
+  orders           orders             @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  products         products?          @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  subscriptions    subscriptions?     @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+
+  @@index([order_id])
+  @@index([product_id])
+  @@index([subscription_id])
+}
+
+model orders {
+  id                             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                        String        @db.Uuid
+  status                         OrderStatus   @default(pending)
+  provider_order_id              String?       @unique
+  amount                         Decimal?      @db.Decimal(10, 2)
+  currency                       String?       @default("RUB")
+  created_at                     DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at                     DateTime?     @default(now()) @db.Timestamptz(6)
+  order_number                   String        @unique @db.VarChar(7)
+  amount_subtotal                Decimal?      @db.Decimal(10, 2)
+  applied_promocode_code         String?       @db.VarChar(50)
+  applied_promocode_denomination Int?
+  applied_promocode_id           String?       @db.Uuid
+  applied_promocode_type         String?       @db.VarChar(20)
+  cart_hash                      String?       @db.VarChar(255)
+  order_items                    order_items[]
+  users                          users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model news {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String   @db.VarChar(255)
+  description String?  @db.VarChar(500)
+  image       String?  @db.VarChar(255)
+  content     String?  
+  styles      String?  
+  published   Boolean  @default(false)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("news")
+}
+
+
+enum StaffRole {
+  administrator
+  operator
+
+  @@map("staff_role")
+}
+
+enum SupportStatus {
+  pending
+  active
+  closed
+}
+
+enum KeyEventType {
+  reserved
+  reservation_released
+  paid
+  alias_created
+  activated
+  alias_deactivated
+  refunded
+  order_expired
+}
+
+enum OrderItemType {
+  product
+  subscription
+}
+
+enum OrderStatus {
+  pending
+  paid
+  cancelled
+  refunded
+  expired
+  awaiting_payment
+  failed
+}

@@ -1,0 +1,40 @@
+// Цвета
+$primary-color: #4F46E5;         // Основной цвет (например, фиолетовый)
+$secondary-color: #22C55E;       // Второстепенный цвет (например, зелёный)
+$text-color: #111827;            // Основной текст
+$background-color: #F9FAFB;      // Фон страницы
+$header-bg-color: #ffffff;       // Фон хедера
+$footer-bg-color: #111827;       // Фон футера
+$link-color: #3B82F6;            // Цвет ссылок
+$border-color: #E5E7EB;          // Цвет границ
+
+// Шрифты
+$font-main: 'Inter', sans-serif;
+
+// Размеры
+$max-width: 1200px;
+$header-height: 80px;
+
+// Отступы
+$section-padding: 80px 20px;
+$page-padding-top-desktop: clamp(3.5rem, 7vw, 5.5rem); // Единый верхний отступ для всех страниц (кроме главной) на десктопе
+$page-padding-top-mobile: clamp(2rem, 4vw, 2.5rem); // Единый верхний отступ для мобильных устройств
+$page-padding-top: $page-padding-top-desktop; // По умолчанию десктоп
+
+// Типографика для страниц
+$page-title-size: clamp(1.75rem, 4vw, 2.5rem);
+$page-title-weight: 700;
+$page-title-color: #2d3748;
+$page-title-line-height: 1.3;
+
+$page-subtitle-size: clamp(0.95rem, 2vw, 1.05rem);
+$page-subtitle-weight: 400;
+$page-subtitle-color: #718096;
+$page-subtitle-line-height: 1.6;
+
+$section-title-size: clamp(1.5rem, 3.5vw, 2rem);
+$section-title-weight: 700;
+$section-title-color: #2d3748;
+
+$body-text-size: clamp(0.95rem, 2vw, 1rem);
+$body-text-color: #4a5568;

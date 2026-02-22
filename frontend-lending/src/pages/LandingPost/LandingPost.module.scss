@@ -1,0 +1,168 @@
+/* src/components/LandingPost/LandingPost.module.scss */
+@import "../../Styles/variables";
+
+/* ---------- состояния ---------- */
+.loading {
+  text-align: center;
+  padding: $page-padding-top 1rem 4rem;
+  font-size: 1.25rem;
+  color: #6b7280;
+  
+  @media (max-width: 768px) {
+    padding: $page-padding-top-mobile 1rem 3rem;
+  }
+}
+
+.rawHtml {
+  padding: $page-padding-top 2rem clamp(2rem, 4vw, 3rem);
+  max-width: 1200px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: $page-padding-top-mobile 1rem clamp(1.5rem, 3vw, 2rem);
+  }
+}
+
+/* ---------- главный баннер ---------- */
+.post {
+  /* фон-картинка приходит инлайном через style={{ backgroundImage }} */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(400px, 50vh, 600px);
+  padding: clamp(3rem, 6vw, 5rem) clamp(2rem, 4vw, 3rem);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    padding: clamp(2rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
+    min-height: clamp(300px, 40vh, 450px);
+  }
+}
+
+/* Улучшенный градиент overlay - менее затемнённый, более плавный */
+.post::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.5) 0%,
+    rgba(30, 41, 59, 0.4) 30%,
+    rgba(99, 102, 241, 0.3) 50%,
+    rgba(139, 92, 246, 0.3) 70%,
+    rgba(15, 23, 42, 0.5) 100%
+  );
+  z-index: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* ---------- контент поверх градиента ---------- */
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease-out;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  
+  // Адаптивная отступная сетка - контент не липнет к краям
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.description {
+  font-size: clamp(1.1rem, 3vw, 1.75rem);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  font-weight: 400;
+  font-family: $font-main;
+  
+  // Ограничение ширины для читаемости
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  
+  // Улучшенный межстрочный ритм
+  letter-spacing: -0.01em;
+
+  @media (max-width: 768px) {
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+}
+
+/* ---------- кнопка в едином стиле с hero-блоком ---------- */
+.button {
+  display: inline-block;
+  padding: clamp(1rem, 2vw, 1.25rem) clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: $font-main;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  span {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.button:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5);
+  
+  &::before {
+    opacity: 1;
+  }
+}
+
+.button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ---------- мобильная адаптация ---------- */
+@media (max-width: 576px) {
+  .button {
+    width: 100%;
+    max-width: 320px;
+    padding: 1rem 2rem;
+  }
+}

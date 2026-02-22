@@ -1,0 +1,47 @@
+/* src/components/Admin/DraftPreview/DraftPreview.module.scss */
+.rawHtml {
+  padding: 16px;
+  border: 1px dashed #ccc;
+  margin-top: 20px;
+}
+
+.post {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  text-align: center;
+  background: #fafafa;
+}
+
+.imageWrapper {
+  margin-bottom: 16px;
+}
+
+.image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.description {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.button {
+  display: inline-block;
+  padding: 10px 24px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.button:hover {
+  background-color: #0056b3;
+}

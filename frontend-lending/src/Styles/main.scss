@@ -1,0 +1,121 @@
+@import './variables';
+
+// Сброс стилей
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: $font-main;
+  color: $text-color;
+  background-color: $background-color;
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  background: none;
+  border: none;
+  transition: all 0.2s ease;
+  
+  // Улучшенные focus states для accessibility
+  &:focus-visible {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  
+  // Плавная анимация при нажатии
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  // Отключаем анимацию для disabled кнопок
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.container {
+  max-width: $max-width;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+// Глобальные анимации для улучшения UX
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Плавные переходы для интерактивных элементов
+a, button, input, select, textarea {
+  transition: all 0.2s ease;
+}
+
+// Улучшенные hover эффекты для ссылок
+a {
+  &:hover {
+    opacity: 0.8;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// Анимация появления элементов при скролле
+.fade-in-up-hidden {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-up {
+  opacity: 1;
+  transform: translateY(0);
+}

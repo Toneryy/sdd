@@ -1,0 +1,138 @@
+// pages/Features/Features.module.scss
+@import "../../Styles/variables";
+
+.features {
+  padding: $page-padding-top 2rem clamp(3rem, 6vw, 5rem);
+  background: #ffffff;
+  position: relative;
+  
+  @media (max-width: 768px) {
+    padding: $page-padding-top-mobile 1rem clamp(2rem, 4vw, 3rem);
+  }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: $page-title-size;
+  text-align: center;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  font-weight: $page-title-weight;
+  color: $page-title-color;
+  letter-spacing: -0.02em;
+  position: relative;
+  
+  &::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    margin: 1.5rem auto 0;
+    border-radius: 2px;
+  }
+  
+  @media (max-width: 768px) {
+    margin-bottom: 2rem;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    gap: 2.5rem;
+  }
+}
+
+.card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: clamp(2rem, 4vw, 2.5rem);
+  border-radius: 24px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  
+  &:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+
+    &::before {
+      opacity: 1;
+    }
+
+    .iconWrapper {
+      transform: scale(1.1) rotate(5deg);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+  }
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+
+  @media (max-width: 768px) {
+    width: 70px;
+    height: 70px;
+    border-radius: 18px;
+  }
+}
+
+.icon {
+  color: white;
+  font-size: 2rem;
+  transition: transform 0.4s ease;
+
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+  }
+}
+
+.cardTitle {
+  font-size: $section-title-size;
+  margin-bottom: 1rem;
+  color: $section-title-color;
+  font-weight: $section-title-weight;
+}
+
+.cardText {
+  color: $page-subtitle-color;
+  line-height: 1.7;
+  font-size: $body-text-size;
+}

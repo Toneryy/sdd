@@ -1,0 +1,140 @@
+// pages/About/About.module.scss
+@import "../../Styles/variables";
+
+.about {
+  padding: $page-padding-top 2rem clamp(3rem, 6vw, 5rem);
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  color: #111827;
+  position: relative;
+
+  @media (max-width: 768px) {
+    padding: $page-padding-top-mobile 1rem clamp(2rem, 4vw, 3rem);
+  }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: $page-title-size;
+  text-align: center;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  font-weight: $page-title-weight;
+  color: $page-title-color;
+  letter-spacing: -0.02em;
+  position: relative;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    margin: 1.5rem auto 0;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 2rem;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 5vw, 4rem);
+}
+
+.text {
+  font-size: $body-text-size;
+  line-height: 1.8;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  color: $body-text-color;
+  font-weight: 400;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    gap: 2.5rem;
+  }
+}
+
+.featureItem {
+  background: white;
+  padding: clamp(2rem, 4vw, 2.5rem);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+
+    &::before {
+      transform: scaleX(1);
+    }
+
+    .icon {
+      transform: scale(1.1) rotate(5deg);
+      color: #667eea;
+    }
+  }
+
+  h3 {
+    margin: 1.5rem 0 1rem;
+    color: $section-title-color;
+    font-size: $section-title-size;
+    font-weight: $section-title-weight;
+  }
+
+  p {
+    color: $page-subtitle-color;
+    line-height: 1.7;
+    font-size: $body-text-size;
+  }
+}
+
+.icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 1.5rem;
+  color: #667eea;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (max-width: 768px) {
+    width: 60px;
+    height: 60px;
+  }
+}

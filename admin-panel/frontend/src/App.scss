@@ -1,0 +1,18 @@
+/* /src/App.scss */
+.App {
+  display: flex;
+  height: 100vh; /* Полная высота экрана */
+}
+
+.mainContent {
+  margin-left: 250px; /* Отступ слева для основного контента (чтобы не перекрывал sidebar) */
+  padding: 20px;
+  width: 100%;
+  overflow-y: auto; /* Прокрутка контента, если нужно */
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    margin-left: 0; /* Для мобильных устройств убираем отступ */
+  }
+}
